@@ -1,0 +1,72 @@
+bootstrap_go_package {
+    name: "soong-halenv",
+    pkgPath: "android/soong/halenv",
+    deps: [
+        "soong",
+        "soong-android",
+        "soong-cc",
+        /* SOURCE */ "soong-tcradioenv",
+        /* SOURCE */ "soong-co",
+    ],
+    srcs: ["hal-env.go"],
+    pluginFor: ["soong_build"],
+}
+
+halenv {
+    name: "hal-env",
+    /* SOURCE */ defaults: ["tcradio-env"],
+    include_dirs: [
+        "external/tinyalsa/include",
+    ],
+    shared_libs: [
+        "libtinyalsa",
+        "libaudioutils",
+    ],
+}
+
+
+//#####################################################
+// build libtcradiohal.so
+//#####################################################
+cc_library_shared {
+    name: "libtcradiohal",
+    defaults: ["hal-env"],
+    srcs: [
+        "src/tcradio_hal.c",
+        "src/util/tcradio_hal_utils.c",
+        "src/util/tcradio_hal_mutex.c",
+        "src/util/tcradio_hal_rbuf.c",
+        "src/fifo/tcradio_hal_fifo.c",
+    ],
+
+    local_include_dirs: [
+        "src",
+        "src/conf",
+        "src/util",
+        "src/audio",
+        "src/fifo",
+    ],
+
+    shared_libs: [
+        "libtcradioperi",
+        "libtcradiohalif",
+    ],
+}
+
+//#####################################################
+// build libtcradiohalif.so
+//#####################################################
+cc_library_shared {
+    name: "libtcradiohalif",
+    defaults: ["hal-env"],
+    srcs: [
+        "src/conf/tcradio_hal_config.c",
+        "src/audio/dev_audio_android.c",
+    ],
+
+    local_include_dirs: [
+        "src",
+        "src/conf",
+        "src/audio",
+    ],
+}

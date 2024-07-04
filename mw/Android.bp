@@ -1,0 +1,80 @@
+bootstrap_go_package {
+    name: "soong-hdmwenv",
+    pkgPath: "android/soong/hdmwenv",
+    deps: [
+        "soong",
+        "soong-android",
+        "soong-cc",
+        /* SOURCE */ "soong-tcradioenv",
+        /* SOURCE */ "soong-co",
+    ],
+    srcs: ["hd-mw-env.go"],
+    pluginFor: ["soong_build"],
+}
+
+hdmwenv {
+    name: "hd-mw-env",
+    /* SOURCE */ defaults: ["tcradio-env"],
+}
+
+
+//#####################################################
+// build libtcradio.so
+//#####################################################
+cc_library_shared {
+    name: "libtcradio",
+    defaults: ["hd-mw-env"],
+    srcs: [
+        "src/tcradio_api.c",
+        "src/conf/tcradio_callback.c",
+        "src/conf/tcradio_config.c",
+        "src/service/tcradio_service.c",
+        "src/hd/tcradio_hdr_if.c",
+        "src/sound/tcradio_sound.c",
+        "src/rds/tcradio_rds.c",
+        "src/rds/tcradio_rds_if.c",
+        "src/rds/tcradio_rds_sync.c",
+        "src/rds/tcradio_rds_parser.c",
+        "src/util/tcradio_memory.c",
+        "src/util/tcradio_msgq.c",
+        "src/util/tcradio_temp.c",
+        "src/util/tcradio_thread.c",
+        "src/util/tcradio_utils.c",
+    ],
+
+    local_include_dirs: [
+        "src",
+        "src/conf",
+        "src/service",
+        "src/sound",
+        "src/rds",
+        "src/util",
+        "src/hd",
+    ],
+    shared_libs: [
+        "libtcradioperi",
+        "libtcradiohal",
+        "libtcradiohalif",
+        "libtchdradio",
+        "libtchdradioif",
+    ],
+}
+
+
+//#####################################################
+// build TcRadioCui
+//#####################################################
+cc_binary {
+    name: "TcRadioCui",
+    defaults: ["hd-mw-env"],
+    srcs: ["src/cui/tcradio_cui.c"],
+
+    local_include_dirs: [
+        "src",
+        "src/rds",
+        "src/hd",
+    ],
+    shared_libs: [
+        "libtcradio",
+    ],
+}

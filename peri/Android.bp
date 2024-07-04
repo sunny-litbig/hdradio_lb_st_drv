@@ -1,0 +1,59 @@
+bootstrap_go_package {
+    name: "soong-perienv",
+    pkgPath: "android/soong/perienv",
+    deps: [
+        "soong",
+        "soong-android",
+        "soong-cc",
+    ],
+    srcs: ["peri-env.go"],
+    pluginFor: ["soong_build"],
+}
+
+perienv {
+	name: "peri-env",
+	cflags: [
+	    "-Wno-unused-variable",
+	    "-Wno-unused-parameter",
+	    "-Wno-unused-function",
+	    "-Wno-implicit-function-declaration",
+	    "-Wno-format",
+	    "-Wno-int-conversion",
+	    "-Wno-sign-compare",
+	    "-Wno-incompatible-pointer-types"
+	],
+
+	shared_libs: [
+	    "libutils",
+	    "libcutils",
+	    "libbinder",
+	    "liblog",
+	],
+	vendor: true,
+}
+
+//#####################################################
+// build libtcradioperi.so
+//#####################################################
+cc_library_shared {
+    name: "libtcradioperi",
+	defaults: ["peri-env"],
+    srcs: [
+        "src/gpio/dev_gpio.c",
+        "src/i2c/dev_i2c.c",
+        "src/i2s/dev_iq_i2s.c",
+        "src/i2s/dev_blend_audio_i2s.c",
+        "src/spi/dev_spi.c",
+        "src/conf/tcradio_peri_config.c",
+    ],
+
+    local_include_dirs: [
+        "src",
+        "src/conf",
+        "src/gpio",
+        "src/i2c",
+        "src/i2s",
+        "src/spi",
+        "src/tuner",
+    ],
+}

@@ -1,0 +1,19 @@
+1. TC HD Radio framework library configuration is as follows.
+   - libtchdradio.so.x.x.x
+   - Header files for APIs
+   - tchdr_callback.c for CDM I/F
+
+2. Please use TC HD Radio framework libraries with XPERI HD Radio library 2.6.10.
+
+3. TC HD Radio Framework library refers to "libHDRadio.so" that is XPERI's HD Radio library.
+
+4. Please see the header file in the "api" folder.
+
+5. Fill in the user code of each function with reference to 'tchdr_callback.c' file.
+   The user code is necessary for tuner control in CDM I/F.
+
+6. HD Radio framework threads are using real time priority. When running the CLI, the following errors may occur.
+     "An error occurred: Operation not permitted"
+   Add the following entry to the /etc/sysctl.conf file.
+     "kernel.sched_rt_runtime_us = -1"
+

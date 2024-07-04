@@ -1,0 +1,115 @@
+bootstrap_go_package {
+    name: "soong-tunerenv",
+    pkgPath: "android/soong/tunerenv",
+    deps: [
+        "soong",
+        "soong-android",
+        "soong-cc",
+        /* SOURCE */ "soong-tcradioenv",
+        /* SOURCE */ "soong-co",
+    ],
+    srcs: ["tuner-env.go"],
+    pluginFor: ["soong_build"],
+}
+
+tunerenv {
+	name: "tuner-env",
+	/* SOURCE */ defaults: ["tcradio-env"],
+}
+
+
+//#########################################################
+// SILAB : build libsi4796xdriver.so
+//#########################################################
+// Todo : choose where to install tuner firmware.
+//        I'm not sure whether "/vendor" is correct.
+//        below will be install to /system/etc/firmware
+//#########################################################
+cc_library_shared {
+    name: "libsi4796xdriver",
+    defaults: ["tuner-env"],
+    srcs: [
+        "src/si479xx/si479xx_core.c",
+        "src/si479xx/si479xx_hal.c",
+    ],
+    local_include_dirs: ["src/si479xx"],
+    shared_libs: ["libtcradioperi"],
+}
+
+//##########################################################
+//# SILAB : install firmware
+//##########################################################
+// prebuilt_etc: prebuilt_etc is supported since Android Q.
+//##########################################################
+prebuilt_etc {
+    name: "si4795x_amfmdab_sw1p2p5p11_v4p1.bin",
+    src: "src/si479xx/bin/si4795x_amfmdab_sw1p2p5p11_v4p1.bin",
+    filename: "si4795x_amfmdab_sw1p2p5p11_v4p1.bin",
+    sub_dir: "TccRadio/Firmware",
+    installable: true,
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "si4795x_amfmwb_sw1p2p11_v4p1.bin",
+    src: "src/si479xx/bin/si4795x_amfmwb_sw1p2p11_v4p1.bin",
+    filename: "si4795x_amfmwb_sw1p2p11_v4p1.bin",
+    sub_dir: "TccRadio/Firmware",
+    installable: true,
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "si4796x_amfmdab_sw1p2p5p11_v4p1.bin",
+    src: "src/si479xx/bin/si4796x_amfmdab_sw1p2p5p11_v4p1.bin",
+    filename: "si4796x_amfmdab_sw1p2p5p11_v4p1.bin",
+    sub_dir: "TccRadio/Firmware",
+    installable: true,
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "si4796x_amfmwb_sw1p2p11_v4p1.bin",
+    src: "src/si479xx/bin/si4796x_amfmwb_sw1p2p11_v4p1.bin",
+    filename: "si4796x_amfmwb_sw1p2p11_v4p1.bin",
+    sub_dir: "TccRadio/Firmware",
+    installable: true,
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "si4795x_amfmdab_sw1p2_v3p0.bin",
+    src: "src/si479xx/bin/si4795x_amfmdab_sw1p2_v3p0.bin",
+    filename: "si4795x_amfmdab_sw1p2_v3p0.bin",
+    sub_dir: "TccRadio/Firmware",
+    installable: true,
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "si4795x_amfmwb_sw1p2_v3p0.bin",
+    src: "src/si479xx/bin/si4795x_amfmwb_sw1p2_v3p0.bin",
+    filename: "si4795x_amfmwb_sw1p2_v3p0.bin",
+    sub_dir: "TccRadio/Firmware",
+    installable: true,
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "si4796x_amfmdab_sw1p2_v3p0.bin",
+    src: "src/si479xx/bin/si4796x_amfmdab_sw1p2_v3p0.bin",
+    filename: "si4796x_amfmdab_sw1p2_v3p0.bin",
+    sub_dir: "TccRadio/Firmware",
+    installable: true,
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "si4796x_amfmwb_sw1p2_v3p0.bin",
+    src: "src/si479xx/bin/si4796x_amfmwb_sw1p2_v3p0.bin",
+    filename: "si4796x_amfmwb_sw1p2_v3p0.bin",
+    sub_dir: "TccRadio/Firmware",
+    installable: true,
+    vendor: true,
+}
+

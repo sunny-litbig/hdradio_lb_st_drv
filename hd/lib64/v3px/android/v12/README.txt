@@ -1,0 +1,1 @@
+It's lib for A72 but use on A53.
