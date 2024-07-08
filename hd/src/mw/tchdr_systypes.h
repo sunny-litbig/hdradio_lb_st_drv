@@ -95,10 +95,10 @@ extern "C" {
 
 /**< Specify compiled HD Radio configuration for distribution */
 //#define HDR_CONFIG	(HDR_1p5_DUAL_MRC_CONFIG)		// Not compatible with higher version
-#define HDR_CONFIG	(HDR_1p5_MRC_CONFIG)			// Not compatible with higher version
+//#define HDR_CONFIG	(HDR_1p5_MRC_CONFIG)			// Not compatible with higher version
 //#define HDR_CONFIG	(HDR_1p5_CONFIG)				// Not compatible with higher version
 //#define HDR_CONFIG	(HDR_1p0_MRC_CONFIG)			// Not compatible with higher version
-//#define HDR_CONFIG	(HDR_1p0_CONFIG)				// Not compatible with higher version
+#define HDR_CONFIG	(HDR_1p0_CONFIG)				// Not compatible with higher version
 
 #if HDR_CONFIG == HDR_1p0_CONFIG
 	#define NUM_HDR_INSTANCES				(1U)
