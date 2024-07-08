@@ -576,7 +576,7 @@ static void tcradioservice_eventHandler(void)
 					if(iqSR < eTC_HDR_BBSRC_UNKNOWN) {
 						if(stTunerConfig.hdType == eRADIO_HD_TYPE_HD1p0) {
 							if(stTunerConfig.numTuners == eRADIO_CONF_TYPE_SINGLE) {
-							#if 0
+							#if 1
 								// If USE_THIRD_TUNER_AS_SINGLE_TUNER is not defined in si479xx_hal.h, set as follows.
 								tcradioservice_confHdrIQ01Drv(pfnIQ01I2sOpen, pfnIQ01I2sClose, pfnIQ01I2sSetParams, pfnIQ01I2sStart, pfnIQ01I2sStop, pfnIQ01I2sRead);
 							#else
