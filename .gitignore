@@ -29,3 +29,7 @@ stamp-*
 *.tar.gz
 *.si4project
 tc-radio-hd-manager
+cscope.*
+mkscope.sh
+tags
+*.swp
