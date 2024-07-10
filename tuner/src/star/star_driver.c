@@ -660,80 +660,6 @@ Tun_Status TUN_Get_ReceptionQuality (tU8 deviceAddress, int channelID, union Tun
 
 
 /*************************************************************************************
-Function        : TUN_Get_ChannelQuality
-Description    : This function returns the AM/FM/WX quality information of the foreground 
-            or background channel before WSP during normal reception mode (thus not including Seek nor RDS AF check)
-            before the algorithms that improve reception quality.
-            consisting of: RF fieldstrength, baseband fieldstrength, Detune, Multipath, Adjacent Channel 
-            and Stereo/Mono flag (a deviation indication is also returned in addition to the quality information).
-            
-Parameters    :
-        deviceAddress :  star tuner I2C address.
-        channelID :
-            1  :  foreground channel
-            2  :  background channel
-
-        pQuality : the pointer of the signal quality data will be stored.    
-            union Tun_SignalQuality
-            {
-                FM_SignalQuality    fmQuality;
-                AM_SignalQuality    amQuality;
-                WX_SignalQuality    wxQuality;
-            };
-            
-Return Value    : Tun_Status
-*************************************************************************************/
-Tun_Status TUN_Get_ChannelQuality (tU8 deviceAddress, int channelID, tBool bVPAMode, union Tun_SignalQuality *pQuality)
-{
-    Tun_Status tunerStatus = RET_ERROR;
-    int cmdID = CMD_CODE_TUNER_GET_CHANNEL_QUALITY;    
-    int cmdParamNum = 1;
-    int ansParmNum = 3;
-    int ansParamOffset = 0;
-    int realAnsParamNum;
-    
-    tU8 paramData[cmdParamNum * 3];
-    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
-
-    if (bVPAMode)
-    {
-        cmdParamNum = 0;
-        ansParmNum = 6;
-        if (channelID == 2) ansParamOffset = 3 * 3;
-    }
-    
-    assert((channelID == 1) ||(channelID == 2));
-    memset(paramData, 0x00, cmdParamNum * 3);
-    paramData[2] = channelID;
-
-#ifdef STAR_COMM_BUS_I2C
-    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
-    
-#ifdef TRACE_STAR_CMD_GET_RECEPTION_QUALITY    
-    PRINTF("Star_Command_Communicate = %s, answerData = 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x ", RetStatusName[tunerStatus].Name, 
-        answerData[0], answerData[1], answerData[2],  answerData[3], answerData[4], answerData[5], answerData[6], answerData[7],
-         answerData[8],  answerData[9], answerData[10], answerData[11], answerData[12], answerData[13], answerData[14]);
-#endif        
-        
-    if ((tunerStatus == RET_SUCCESS) && (realAnsParamNum >= 3))
-    {
-        pQuality->fmQuality.fstRF = answerData[3 + ansParamOffset];            /*fstRF*/
-        pQuality->fmQuality.fieldStrength = answerData[4 + ansParamOffset] ;    /* fstBB */
-        pQuality->fmQuality.detuning = answerData[5 + ansParamOffset];
-        pQuality->fmQuality.mp = answerData[6 + ansParamOffset];                /* available only for FM*/
-        pQuality->fmQuality.mpxNoise = answerData[7 + ansParamOffset];        /* available only for FM */
-        pQuality->fmQuality.snr = answerData[8 + ansParamOffset];                /* available only for FM, AM */
-        pQuality->fmQuality.adj = answerData[9 + ansParamOffset];                /* available only for FM AM*/
-        pQuality->fmQuality.stereo= answerData[11 + ansParamOffset] & 0x01;    /* available only for FM*/
-        pQuality->fmQuality.deviation = (answerData[11 + ansParamOffset] >> 1) & 0x7F;    /*deviation */
-    }
-#else
-#endif    
-
-    return tunerStatus;
-}
-
-/*************************************************************************************
 Function        : TUN_conf_JESD204
 Description    : This function is used to configure the JESD204 baseband interface.        
             This function must be calleded before calling TUN_Set_BB_IF.
@@ -1374,6 +1300,24 @@ Tun_Status TUN_Get_TunedFreq(tU8 deviceAddress, int channelID, tU32 *pFreq)
 #endif
 
 
+static uint32 star_u8btou32b(uint8 src)
+{
+    // convert 8bit to 32bit with expanding the sign bit.
+	uint32 ret;
+
+	if(src & 0x80)
+    {
+		ret = src | 0xffffff00U;
+	}
+	else
+    {
+		ret = src & 0x000000ffU;
+	}
+
+	return ret;
+}
+
+
 /*************************************************************************************
 Function        : TUN_Cmd_Write
 Description    : This function performs a write operation to tuner' register. 
@@ -1554,6 +1498,95 @@ Tun_Status TUN_Change_Frequency (tU8 deviceAddress, int channelID, tU32 frequenc
     //PRINTF("Star_Command_Communicate = %s, frequency = %d, deviceAddr = 0x%02x", RetStatusName[tunerStatus].Name, frequency, deviceAddress);
     printf("[%s] Star_Command_Communicate = %d, channelID = %d, frequency = %d \n", __func__, tunerStatus, channelID, frequency);
 #endif
+
+    return tunerStatus;
+}
+
+
+/*************************************************************************************
+Function        : TUN_Get_ChannelQuality
+Description    : This function returns the AM/FM/WX quality information of the foreground 
+            or background channel before WSP during normal reception mode (thus not including Seek nor RDS AF check)
+            before the algorithms that improve reception quality.
+            consisting of: RF fieldstrength, baseband fieldstrength, Detune, Multipath, Adjacent Channel 
+            and Stereo/Mono flag (a deviation indication is also returned in addition to the quality information).
+            
+Parameters    :
+        deviceAddress :  star tuner I2C address.
+        channelID :
+            1  :  foreground channel
+            2  :  background channel
+
+        pQuality : the pointer of the signal quality data will be stored.    
+            union Tun_SignalQuality
+            {
+                FM_SignalQuality    fmQuality;
+                AM_SignalQuality    amQuality;
+                WX_SignalQuality    wxQuality;
+            };
+            
+Return Value    : Tun_Status
+*************************************************************************************/
+#if 0
+Tun_Status TUN_Get_ChannelQuality (tU8 deviceAddress, int channelID, tBool bVPAMode, union Tun_SignalQuality *pQuality)
+#else
+Tun_Status TUN_Get_ChannelQuality (tU8 deviceAddress, int channelID, tBool bVPAMode, stSTAR_DRV_QUALITY_t *pQuality)
+#endif
+{
+    Tun_Status tunerStatus = RET_ERROR;
+    int cmdID = CMD_CODE_TUNER_GET_CHANNEL_QUALITY;    
+    int cmdParamNum = 1;
+    int ansParmNum = 3;
+    int ansParamOffset = 0;
+    int realAnsParamNum;
+    
+    tU8 paramData[cmdParamNum * 3];
+    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
+
+    if (bVPAMode)
+    {
+        cmdParamNum = 0;
+        ansParmNum = 6;
+        if (channelID == 2) ansParamOffset = 3 * 3;
+    }
+    
+    assert((channelID == 1) ||(channelID == 2));
+    memset(paramData, 0x00, cmdParamNum * 3);
+    paramData[2] = channelID;
+
+    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
+    
+#ifdef TRACE_STAR_CMD_GET_RECEPTION_QUALITY    
+    PRINTF("Star_Command_Communicate = %s, answerData = 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x ", RetStatusName[tunerStatus].Name, 
+        answerData[0], answerData[1], answerData[2],  answerData[3], answerData[4], answerData[5], answerData[6], answerData[7],
+         answerData[8],  answerData[9], answerData[10], answerData[11], answerData[12], answerData[13], answerData[14]);
+#endif        
+        
+    if ((tunerStatus == RET_SUCCESS) && (realAnsParamNum >= 3))
+    {
+#if 0   // ST original
+        pQuality->fmQuality.fstRF = answerData[3 + ansParamOffset];            /*fstRF*/
+        pQuality->fmQuality.fieldStrength = answerData[4 + ansParamOffset] ;    /* fstBB */
+        pQuality->fmQuality.detuning = answerData[5 + ansParamOffset];
+        pQuality->fmQuality.mp = answerData[6 + ansParamOffset];                /* available only for FM*/
+        pQuality->fmQuality.mpxNoise = answerData[7 + ansParamOffset];        /* available only for FM */
+        pQuality->fmQuality.snr = answerData[8 + ansParamOffset];                /* available only for FM, AM */
+        pQuality->fmQuality.adj = answerData[9 + ansParamOffset];                /* available only for FM AM*/
+        pQuality->fmQuality.stereo= answerData[11 + ansParamOffset] & 0x01;    /* available only for FM*/
+        pQuality->fmQuality.deviation = (answerData[11 + ansParamOffset] >> 1) & 0x7F;    /*deviation */
+#else   // modify for TC HDRadio
+        pQuality->fm.FstRF = star_u8btou32b(answerData[3 + ansParamOffset]);	/*fstRF*/
+        pQuality->fm.FstBB = star_u8btou32b(answerData[4 + ansParamOffset]);	/*fstBB*/
+        pQuality->fm.Det = answerData[5 + ansParamOffset];
+        pQuality->fm.Mpth = answerData[6 + ansParamOffset];					/* available only for FM*/
+        pQuality->fm.MpxNoise = answerData[7 + ansParamOffset];				/* available only for FM */
+        pQuality->fm.Snr = answerData[8 + ansParamOffset];					/* available only for FM, AM */
+        pQuality->fm.Adj = star_u8btou32b(answerData[9 + ansParamOffset]);	/* available only for FM AM*/
+        pQuality->fm.Stereo= answerData[11 + ansParamOffset] & 0x01;		/* available only for FM*/
+        pQuality->fm.Dev = (answerData[11 + ansParamOffset] >> 1) & 0x7F;	/*deviation*/
+#endif
+    }
+
 
     return tunerStatus;
 }
@@ -1916,10 +1949,22 @@ int star_getTune(unsigned int *mod_mode, unsigned int *curfreq, unsigned int ntu
 
 int star_getQuality(unsigned int mod_mode, stSTAR_DRV_QUALITY_t *qdata, unsigned int ntuner)
 {
+    Tun_Status tunerStatus = RET_SUCCESS;
+    int channelID;
+
     (void)mod_mode;
-    (void)qdata;
-    (void)ntuner;
-    return 0;
+
+    if (ntuner > eTUNER_DRV_ID_SECONDARY)
+        return eRET_NG_UNKNOWN;
+
+    channelID = starhal_getTunerCh(ntuner);
+
+    tunerStatus = TUN_Get_ChannelQuality(I2C_SLAVE_ADDRESS, channelID, 0, qdata);
+
+    if (tunerStatus == RET_SUCCESS)
+        return eRET_OK;
+    else
+        return eRET_NG_UNKNOWN;
 }
 
 int star_setMute(unsigned int fOnOff, unsigned int ntuner)
@@ -2086,5 +2131,7 @@ int star_setIQTestPattern(unsigned int fOnOff, unsigned int sel)
 {
     (void)fOnOff;
     (void)sel;
+
+    return 0;
 }
 
