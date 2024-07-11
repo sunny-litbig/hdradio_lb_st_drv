@@ -1897,6 +1897,9 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
 
     (void)tune_mode;
 
+    if (mod_mode > eTUNER_DRV_AM_MODE)
+        return eRET_NG_UNKNOWN;
+
     if (ntuner > eTUNER_DRV_ID_SECONDARY)
         return eRET_NG_UNKNOWN;
 
@@ -1917,7 +1920,21 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
         tunerStatus = TUN_Change_Frequency(I2C_SLAVE_ADDRESS, channelID, freq);
 
     if (tunerStatus == RET_SUCCESS)
+    {
+        if(mod_mode == eTUNER_DRV_AM_MODE) {
+            star_drv_am_frequency[ntuner] = freq;
+        }
+        else if(mod_mode == eTUNER_DRV_FM_MODE) {
+            star_drv_fm_frequency[ntuner] = freq;
+        }
+        else
+        {
+            printf("[%s] Not supported mod_mode (%d).\n", __func__, mod_mode);
+            return eRET_NG_UNKNOWN;
+        }
+
         return eRET_OK;
+    }
     else
         return eRET_NG_UNKNOWN;
 }
