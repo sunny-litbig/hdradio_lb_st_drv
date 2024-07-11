@@ -517,43 +517,6 @@ Tun_Status TUN_Set_Stereo_Mode (tU8 deviceAddress, Stereo_Mode stereoMode)
 
 
 /*************************************************************************************
-Function        : TUN_Mute
-Description    : This function is used to mute or unmute the audio outputs
-            
-Parameters    :
-        deviceAddress :  star tuner I2C address.
-        muteAction :
-                0x000000: mute audio
-                0x000003: unmute audio
-Return Value    : Tun_Status        
-*************************************************************************************/
-Tun_Status TUN_Mute (tU8 deviceAddress, Mute_Action muteAction)
-{
-    Tun_Status tunerStatus = RET_ERROR;
-    int cmdID = CMD_CODE_TUNER_MUTE;    
-    int cmdParamNum = 1;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
-    int realAnsParamNum;
-    tU8 paramData[cmdParamNum * 3];
-    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
-
-    memset(paramData, 0x00, cmdParamNum * 3);
-    paramData[2] = muteAction;
-
-#ifdef STAR_COMM_BUS_I2C
-    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
-    
-#ifdef TRACE_STAR_CMD_MUTE    
-    PRINTF("Star_Command_Communicate = %s, cmdParamNum = %d, muteAction = %d", RetStatusName[tunerStatus].Name, cmdParamNum, muteAction);
-#endif
-    
-#else
-#endif    
-    return tunerStatus;
-}
-
-
-/*************************************************************************************
 Function        : TUN_Set_VPAMode
 Description    : For FM reception, switches operation mode dynamically and seamlessly between phase diversity (VPA) and dual tuner.
             To switch to VPA operation, both channels have to be previously set to FM mode and tuned to the same frequency.
@@ -1593,6 +1556,40 @@ Tun_Status TUN_Get_ChannelQuality (tU8 deviceAddress, int channelID, tBool bVPAM
 
 
 /*************************************************************************************
+Function        : TUN_Mute
+Description    : This function is used to mute or unmute the audio outputs
+            
+Parameters    :
+        deviceAddress :  star tuner I2C address.
+        muteAction :
+                0x000000: mute audio
+                0x000003: unmute audio
+Return Value    : Tun_Status        
+*************************************************************************************/
+Tun_Status TUN_Mute (tU8 deviceAddress, Mute_Action muteAction)
+{
+    Tun_Status tunerStatus = RET_ERROR;
+    int cmdID = CMD_CODE_TUNER_MUTE;    
+    int cmdParamNum = 1;
+    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    int realAnsParamNum;
+    tU8 paramData[cmdParamNum * 3];
+    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
+
+    memset(paramData, 0x00, cmdParamNum * 3);
+    paramData[2] = muteAction;
+
+    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
+    
+#ifdef TRACE_STAR_CMD_MUTE    
+    PRINTF("Star_Command_Communicate = %s, cmdParamNum = %d, muteAction = %d", RetStatusName[tunerStatus].Name, cmdParamNum, muteAction);
+#endif
+    
+    return tunerStatus;
+}
+
+
+/*************************************************************************************
 Function        : TUN_conf_BB_SAI
 Description    : This function is used to configure the baseband SAI interface.
             The SAI is configured either in MUX mode or AFE mode.
@@ -1986,9 +1983,19 @@ int star_getQuality(unsigned int mod_mode, stSTAR_DRV_QUALITY_t *qdata, unsigned
 
 int star_setMute(unsigned int fOnOff, unsigned int ntuner)
 {
-    (void)fOnOff;
+    Tun_Status tunerStatus = RET_SUCCESS;
+
     (void)ntuner;
-    return 0;
+
+    if (fOnOff != 0)
+        tunerStatus = TUN_Mute(I2C_SLAVE_ADDRESS, MUTE);    // 0x000000: mute audio
+    else
+        tunerStatus = TUN_Mute(I2C_SLAVE_ADDRESS, UNMUTE);    // 0x000003: unmute audio
+
+    if (tunerStatus == RET_SUCCESS)
+        return eRET_OK;
+    else
+        return eRET_NG_UNKNOWN;
 }
 
 int star_open(stTUNER_DRV_CONFIG_t type)
