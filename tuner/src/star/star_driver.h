@@ -270,8 +270,6 @@ Tun_Status TUN_Set_VPAMode(tU8 deviceAddress, Switch_Mode VPAmode);
 Tun_Status TUN_Get_ReceptionQuality (tU8 deviceAddress, int channelID, union Tun_SignalQuality *pQuality);
 Tun_Status TUN_conf_JESD204(tU8 deviceAddress, tU32 mode, tU32 config, tU32 testnum, tU32 testchar, tU32 ilam, tU32 ilak);
 Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode);
-Tun_Status TUN_Set_RDS (tU8 deviceAddress, int channelID, RDS_Action rdsAction);
-Tun_Status TUN_Read_RDS (tU8 deviceAddress, int channelID, RDS_Buffer *pRDSbuffer);
 
 Tun_Status TUN_AF_Start (tU8 deviceAddress, int channelID, tU32 alterFreq, tU32 antSelection, AF_SignalQuality *pAFquality);
 Tun_Status TUN_AF_End(tU8 deviceAddress, int channelID, tU32 freqAfterAFEnd, AF_SignalQuality *pAFquality);
@@ -279,6 +277,7 @@ Tun_Status TUN_AF_Check (tU8 deviceAddress, int channelID, tU32 frequency, AF_Si
 Tun_Status TUN_AF_Switch (tU8 deviceAddress, int channelID, tU32 frequency);
 Tun_Status TUN_Get_AFquality (tU8 deviceAddress, int channelID, AF_SignalQuality *pAFquality);
 Tun_Status TUN_Wait_Ready(tU8 deviceAddress, int channelID, int msTimeOut);
+Tun_Status TUN_Get_TunedFreq(tU8 deviceAddress, int channelID, tU32 *pFreq);
 #endif
 Tun_Status TUN_Cmd_Write(tU8 deviceAddress, tU32 regAddress, tU32 regData);
 Tun_Status TUN_Change_Band (tU8 deviceAddress, int channelID, int bandMode, tU32 maxFreq, tU32 minFreq, int seekStep, int VPAMode);
@@ -289,10 +288,11 @@ Tun_Status TUN_Get_ChannelQuality (tU8 deviceAddress, int channelID, tBool bVPAM
 Tun_Status TUN_Get_ChannelQuality (tU8 deviceAddress, int channelID, tBool bVPAMode, stSTAR_DRV_QUALITY_t *pQuality);
 #endif
 Tun_Status TUN_Mute (tU8 deviceAddress, Mute_Action muteAction);
+Tun_Status TUN_Set_RDS (tU8 deviceAddress, int channelID, RDS_Action rdsAction);
+Tun_Status TUN_Read_RDS (tU8 deviceAddress, int channelID, RDS_Buffer *pRDSbuffer);
 Tun_Status TUN_conf_BB_SAI(tU8 deviceAddress, tU32 mode, tU32 config);
 Tun_Status TUN_Set_Audio_IF(tU8 deviceAddress, tU8 SAIMode, tU32 SAIConfig);
 Tun_Status TUN_Set_BB_IF(tU8 deviceAddress, tU32 BBConfig);
-Tun_Status TUN_Get_TunedFreq(tU8 deviceAddress, int channelID, tU32 *pFreq);
 
 #if 0
 Tun_Status TUN_Download_BootCode(tU8 deviceAddress, Device_Type deviceType);
@@ -316,6 +316,8 @@ int star_setMute(unsigned int fOnOff, unsigned int ntuner);
 int star_open(stTUNER_DRV_CONFIG_t type);
 int star_close(void);
 int star_setIQTestPattern(unsigned int fOnOff, unsigned int sel);
+int star_rds_init(unsigned int ntuner);
+int star_rds_read(unsigned int ntuner);
 
 #endif /* H_STAR_DRIVER */
 
