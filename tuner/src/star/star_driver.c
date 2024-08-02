@@ -727,130 +727,6 @@ Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode)
 
 
 /*************************************************************************************
-Function        : TUN_Set_RDS
-Description    : This function is used to enable or disable the RDS buffer feature of STAR tuner.
-            Decoded blocks are stored in the DSP buffer according to quality criteria set this function.
-Parameters    :
-        deviceAddress :  star tuner I2C address.
-        channelID :
-            1  :  foreground channel
-            2  :  background channel
-
-        rdsAction : Enable RDS Buffer or disable RDS buffer.
-            
-Return Value    : Tun_Status        
-*************************************************************************************/
-Tun_Status TUN_Set_RDS (tU8 deviceAddress, int channelID, RDS_Action rdsAction)
-{
-    Tun_Status tunerStatus = RET_ERROR;
-    int cmdID = CMD_CODE_TUNER_RDSBUFFER_SET;
-    int cmdParamNum = 3;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
-    int realAnsParamNum;
-    tU8 paramData[cmdParamNum * 3];
-    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
-    tU32 rdsCSR;
-    
-    assert((channelID == 1) ||(channelID == 2));
-    memset(paramData, 0x00, cmdParamNum * 3);
-
-    //Reset,   err filter,  polling mode, RDS, Enable
-    rdsCSR   = rdsAction;                //Enable, disable
-#ifdef RBDS_ENABLE
-    rdsCSR |= 0x01 << 2;               //RBDS
-#endif
-    rdsCSR |= 0x01 << 9;               //Reset
-    rdsCSR |= RDS_CSR_ERRTHRESH << 4;           //err filter    
-    
-    paramData[2] = channelID;
-    paramData[3] = (rdsCSR >> 16) & 0xFF;
-    paramData[4] = (rdsCSR >> 8) & 0xFF;
-    paramData[5] = (rdsCSR & 0xFF);
-    paramData[8] = RDS_NORMALMODE_NRQST;
-
-#ifdef STAR_COMM_BUS_I2C
-    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
-
-#ifdef TRACE_STAR_CMD_RDS
-    PRINTF("Star_Command_Communicate = %s, rdsAction = %d", RetStatusName[tunerStatus].Name, rdsAction);
-#endif
-
-#else
-#endif    
-
-    return tunerStatus;
-}
-
-
-/*************************************************************************************
-Function        : TUN_Read_RDS
-Description    : This function returns the collected RDS blocks and clears the RDS buffer of a specific RDS module. 
-            In case the RDS buffer is empty the RDS Read Notification Register is the only response.
-            
-Parameters    :
-        deviceAddress :  star tuner I2C address.
-        channelID :
-            1  :  foreground channel
-            2  :  background channel
-            
-        pRDSbuffer :    the pointer of the RDS buffer data will be stored.
-            {
-                int   validBlockNum;
-                tU8 blockdata[RDSBUFFER_WORDS_MAXNUM * 3];
-            } RDS_Buffer;
-        
-Return Value    : Tun_Status            
-*************************************************************************************/
-Tun_Status TUN_Read_RDS (tU8 deviceAddress, int channelID, RDS_Buffer *pRDSbuffer)
-{
-    Tun_Status tunerStatus = RET_ERROR;
-    int cmdID = CMD_CODE_TUNER_RDSBUFFER_READ;
-    int cmdParamNum = 1;
-    int ansParmNum = 16 + 1;             /* The maximum block num is 16 in the DSP RDS Buffer, plus 1 RNR */
-    int realAnsParamNum;
-    tU8 paramData[cmdParamNum * 3];
-    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
-    
-    assert((channelID == 1) ||(channelID == 2));
-    memset(paramData, 0x00, cmdParamNum * 3);
-    paramData[2] = channelID;
-
-#ifdef STAR_COMM_BUS_I2C
-    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, 0, answerData, TRUE, &realAnsParamNum, TRUE);
-
-#ifdef TRACE_STAR_CMD_RDS
-    PRINTF("Star_Command_Communicate = %s", RetStatusName[tunerStatus].Name);
-#endif
-
-    if ((tunerStatus == RET_SUCCESS) && (realAnsParamNum > 1))
-    {
-        /* answerData[3], answerData[4], answerData[5]   :  Read Notification Register (RNR) */
-        /*  DATARDY  : Bit 23
-              SYNC   :  Bit 22
-              BOFL : Bit21   (do not need check, as new data will overwrite the old data, that means the data in RDS buffer is newest even if it's overfolowed )
-              BNE : Bit20
-              TUNCH2 : Bit 1
-              TUNCH1 : Bit 0
-        */
-        if ((answerData[3] & 0x40) &&    /* data not empty. and RNR SYN OK. do not check DATADY, BOFL, and BNE */
-            (answerData[5] & channelID) )    /* Tun channel information */
-        {
-            pRDSbuffer->validBlockNum = realAnsParamNum - 1;
-            memcpy(pRDSbuffer->blockdata, answerData + 6, 3 * (pRDSbuffer->validBlockNum));
-        }
-    }
-    else
-    {
-        pRDSbuffer->validBlockNum = 0;
-    }
-#else
-#endif
-
-    return tunerStatus;
-}
-
-
-/*************************************************************************************
 Function        : TUN_AF_Start
 Description    : This function is used to start the verification of the quality of a series of AF frequencies. 
             It is always terminated by a function TUN_AF_End.
@@ -1590,6 +1466,123 @@ Tun_Status TUN_Mute (tU8 deviceAddress, Mute_Action muteAction)
 
 
 /*************************************************************************************
+Function        : TUN_Set_RDS
+Description    : This function is used to enable or disable the RDS buffer feature of STAR tuner.
+            Decoded blocks are stored in the DSP buffer according to quality criteria set this function.
+Parameters    :
+        deviceAddress :  star tuner I2C address.
+        channelID :
+            1  :  foreground channel
+            2  :  background channel
+
+        rdsAction : Enable RDS Buffer or disable RDS buffer.
+            
+Return Value    : Tun_Status        
+*************************************************************************************/
+Tun_Status TUN_Set_RDS (tU8 deviceAddress, int channelID, RDS_Action rdsAction)
+{
+    Tun_Status tunerStatus = RET_ERROR;
+    int cmdID = CMD_CODE_TUNER_RDSBUFFER_SET;
+    int cmdParamNum = 3;
+    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    int realAnsParamNum;
+    tU8 paramData[cmdParamNum * 3];
+    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
+    tU32 rdsCSR;
+    
+    assert((channelID == 1) ||(channelID == 2));
+    memset(paramData, 0x00, cmdParamNum * 3);
+
+    //Reset,   err filter,  polling mode, RDS, Enable
+    rdsCSR   = rdsAction;                //Enable, disable
+#ifdef RBDS_ENABLE
+    rdsCSR |= 0x01 << 2;               //RBDS
+#endif
+    rdsCSR |= 0x01 << 9;               //Reset
+    rdsCSR |= RDS_CSR_ERRTHRESH << 4;           //err filter    
+    
+    paramData[2] = channelID;
+    paramData[3] = (rdsCSR >> 16) & 0xFF;
+    paramData[4] = (rdsCSR >> 8) & 0xFF;
+    paramData[5] = (rdsCSR & 0xFF);
+    paramData[8] = RDS_NORMALMODE_NRQST;
+
+    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
+
+#ifdef TRACE_STAR_CMD_RDS
+    PRINTF("Star_Command_Communicate = %s, rdsAction = %d", RetStatusName[tunerStatus].Name, rdsAction);
+#endif
+
+    return tunerStatus;
+}
+
+
+/*************************************************************************************
+Function        : TUN_Read_RDS
+Description    : This function returns the collected RDS blocks and clears the RDS buffer of a specific RDS module. 
+            In case the RDS buffer is empty the RDS Read Notification Register is the only response.
+            
+Parameters    :
+        deviceAddress :  star tuner I2C address.
+        channelID :
+            1  :  foreground channel
+            2  :  background channel
+            
+        pRDSbuffer :    the pointer of the RDS buffer data will be stored.
+            {
+                int   validBlockNum;
+                tU8 blockdata[RDSBUFFER_WORDS_MAXNUM * 3];
+            } RDS_Buffer;
+        
+Return Value    : Tun_Status            
+*************************************************************************************/
+Tun_Status TUN_Read_RDS (tU8 deviceAddress, int channelID, RDS_Buffer *pRDSbuffer)
+{
+    Tun_Status tunerStatus = RET_ERROR;
+    int cmdID = CMD_CODE_TUNER_RDSBUFFER_READ;
+    int cmdParamNum = 1;
+    int ansParmNum = 16 + 1;             /* The maximum block num is 16 in the DSP RDS Buffer, plus 1 RNR */
+    int realAnsParamNum;
+    tU8 paramData[cmdParamNum * 3];
+    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
+    
+    assert((channelID == 1) ||(channelID == 2));
+    memset(paramData, 0x00, cmdParamNum * 3);
+    paramData[2] = channelID;
+
+    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, 0, answerData, TRUE, &realAnsParamNum, TRUE);
+
+#ifdef TRACE_STAR_CMD_RDS
+    PRINTF("Star_Command_Communicate = %s", RetStatusName[tunerStatus].Name);
+#endif
+
+    if ((tunerStatus == RET_SUCCESS) && (realAnsParamNum > 1))
+    {
+        /* answerData[3], answerData[4], answerData[5]   :  Read Notification Register (RNR) */
+        /*  DATARDY  : Bit 23
+              SYNC   :  Bit 22
+              BOFL : Bit21   (do not need check, as new data will overwrite the old data, that means the data in RDS buffer is newest even if it's overfolowed )
+              BNE : Bit20
+              TUNCH2 : Bit 1
+              TUNCH1 : Bit 0
+        */
+        if ((answerData[3] & 0x40) &&    /* data not empty. and RNR SYN OK. do not check DATADY, BOFL, and BNE */
+            (answerData[5] & channelID) )    /* Tun channel information */
+        {
+            pRDSbuffer->validBlockNum = realAnsParamNum - 1;
+            memcpy(pRDSbuffer->blockdata, answerData + 6, 3 * (pRDSbuffer->validBlockNum));
+        }
+    }
+    else
+    {
+        pRDSbuffer->validBlockNum = 0;
+    }
+
+    return tunerStatus;
+}
+
+
+/*************************************************************************************
 Function        : TUN_conf_BB_SAI
 Description    : This function is used to configure the baseband SAI interface.
             The SAI is configured either in MUX mode or AFE mode.
@@ -1918,10 +1911,12 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
 
     if (tunerStatus == RET_SUCCESS)
     {
-        if(mod_mode == eTUNER_DRV_AM_MODE) {
+        if(mod_mode == eTUNER_DRV_AM_MODE)
+        {
             star_drv_am_frequency[ntuner] = freq;
         }
-        else if(mod_mode == eTUNER_DRV_FM_MODE) {
+        else if(mod_mode == eTUNER_DRV_FM_MODE)
+        {
             star_drv_fm_frequency[ntuner] = freq;
         }
         else
@@ -1933,7 +1928,9 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
         return eRET_OK;
     }
     else
+    {
         return eRET_NG_UNKNOWN;
+    }
 }
 
 int star_getTune(unsigned int *mod_mode, unsigned int *curfreq, unsigned int ntuner)
@@ -1942,10 +1939,12 @@ int star_getTune(unsigned int *mod_mode, unsigned int *curfreq, unsigned int ntu
 
     *mod_mode = star_drv_current_band[ntuner];
 
-    if(*mod_mode == eTUNER_DRV_AM_MODE) {
+    if(*mod_mode == eTUNER_DRV_AM_MODE)
+    {
         *curfreq = star_drv_am_frequency[ntuner];
     }
-    else if(*mod_mode == eTUNER_DRV_FM_MODE) {
+    else if(*mod_mode == eTUNER_DRV_FM_MODE)
+    {
         *curfreq = star_drv_fm_frequency[ntuner];
     }
 #if 0
@@ -1976,9 +1975,13 @@ int star_getQuality(unsigned int mod_mode, stSTAR_DRV_QUALITY_t *qdata, unsigned
     tunerStatus = TUN_Get_ChannelQuality(I2C_SLAVE_ADDRESS, channelID, 0, qdata);
 
     if (tunerStatus == RET_SUCCESS)
+    {
         return eRET_OK;
+    }
     else
+    {
         return eRET_NG_UNKNOWN;
+    }
 }
 
 int star_setMute(unsigned int fOnOff, unsigned int ntuner)
@@ -1993,9 +1996,13 @@ int star_setMute(unsigned int fOnOff, unsigned int ntuner)
         tunerStatus = TUN_Mute(I2C_SLAVE_ADDRESS, UNMUTE);    // 0x000003: unmute audio
 
     if (tunerStatus == RET_SUCCESS)
+    {
         return eRET_OK;
+    }
     else
+    {
         return eRET_NG_UNKNOWN;
+    }
 }
 
 int star_open(stTUNER_DRV_CONFIG_t type)
@@ -2159,3 +2166,57 @@ int star_setIQTestPattern(unsigned int fOnOff, unsigned int sel)
     return 0;
 }
 
+int star_rds_init(unsigned int ntuner)
+{
+    Tun_Status tunerStatus = RET_SUCCESS;
+    int channelID;
+
+    if (ntuner > eTUNER_DRV_ID_SECONDARY)
+        return eRET_NG_UNKNOWN;
+
+    channelID = starhal_getTunerCh(ntuner);
+
+    tunerStatus = TUN_Set_RDS(I2C_SLAVE_ADDRESS, channelID, RDSBUFFER_ENABLE);
+
+    if (tunerStatus == RET_SUCCESS)
+    {
+        return eRET_OK;
+    }
+    else
+    {
+        return eRET_NG_UNKNOWN;
+    }
+}
+
+int star_rds_read(unsigned int ntuner)
+{
+    Tun_Status tunerStatus = RET_SUCCESS;
+    int channelID;
+    RDS_Buffer rds_buff_words;
+
+    if (ntuner > eTUNER_DRV_ID_SECONDARY)
+        return eRET_NG_UNKNOWN;
+
+    channelID = starhal_getTunerCh(ntuner);
+    rds_buff_words.validBlockNum = 0;
+    memset(rds_buff_words.blockdata, 0x00 , (RDSBUFFER_WORDS_MAXNUM * 3));
+
+    tunerStatus = TUN_Read_RDS(I2C_SLAVE_ADDRESS, channelID, &rds_buff_words);
+
+    if (tunerStatus == RET_SUCCESS)
+    {
+        if (rds_buff_words.validBlockNum > 0)
+        {
+            printf("[%s] validBlockNum = %d[%d]\n", __func__, rds_buff_words.validBlockNum, RDS_NORMALMODE_NRQST);
+        }
+        else
+        {
+            printf("[%s] RDS data not ready.\n", __func__);
+        }
+        return eRET_OK;
+    }
+    else
+    {
+        return eRET_NG_UNKNOWN;
+    }
+}
