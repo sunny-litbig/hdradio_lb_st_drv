@@ -81,6 +81,8 @@ RET tcradiohal_init(void)
 {
 	RET ret = eRET_OK;
 
+    initLogging();
+
 	ret= tcradiohal_mutexInit();
 	if(ret != eRET_OK) {
 		RHAL_ERR("[%s:%d] Failed to init radio hal mutex!!!\n", __func__, __LINE__);

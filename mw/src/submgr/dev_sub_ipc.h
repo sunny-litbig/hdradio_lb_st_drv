@@ -48,6 +48,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 #define SRIPC_DEBUG
 
 #ifdef __ANDROID__
@@ -62,9 +64,11 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define SRIPC_ERR(...)		((void)printf("[ERROR][RADIO][SUB-IPC]: " __VA_ARGS__))
+// #define SRIPC_ERR(...)		((void)printf("[ERROR][RADIO][SUB-IPC]: " __VA_ARGS__))
+#define SRIPC_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][SUB-IPC]: " __VA_ARGS__))
 #ifdef SRIPC_DEBUG
-#define SRIPC_DBG(...)		((void)printf("[DEBUG][RADIO][SUB-IPC]: " __VA_ARGS__))
+// #define SRIPC_DBG(...)		((void)printf("[DEBUG][RADIO][SUB-IPC]: " __VA_ARGS__))
+#define SRIPC_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][SUB-IPC]: " __VA_ARGS__))
 #else
 #define SRIPC_DBG(...)
 #endif

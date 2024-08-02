@@ -48,6 +48,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 #define SRMGR_DEBUG
 
 #ifdef __ANDROID__
@@ -64,11 +66,15 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define SRMGR_ERR(...)		((void)printf("[ERROR][RADIO][SUBMGR]: " __VA_ARGS__))
-#define SRMGR_WRN(...) 		((void)printf("[WARN][RADIO][SUBMGR]: " __VA_ARGS__))
-#define SRMGR_INF(...) 		((void)printf("[INFO][RADIO][SUBMGR]: " __VA_ARGS__))
+// #define SRMGR_ERR(...)		((void)printf("[ERROR][RADIO][SUBMGR]: " __VA_ARGS__))
+#define SRMGR_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][SUBMGR]: " __VA_ARGS__))
+// #define SRMGR_WRN(...) 		((void)printf("[WARN][RADIO][SUBMGR]: " __VA_ARGS__))
+#define SRMGR_WRN(...) 		((void)LB_PRINTF("[WARN][RADIO][SUBMGR]: " __VA_ARGS__))
+// #define SRMGR_INF(...) 		((void)printf("[INFO][RADIO][SUBMGR]: " __VA_ARGS__))
+#define SRMGR_INF(...) 		((void)LB_PRINTF("[INFO][RADIO][SUBMGR]: " __VA_ARGS__))
 #ifdef SRMGR_DEBUG
-#define SRMGR_DBG(...)		((void)printf("[DEBUG][RADIO][SUBMGR]: " __VA_ARGS__))
+// #define SRMGR_DBG(...)		((void)printf("[DEBUG][RADIO][SUBMGR]: " __VA_ARGS__))
+#define SRMGR_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][SUBMGR]: " __VA_ARGS__))
 #else
 #define	SRMGR_DBG(...)
 #endif

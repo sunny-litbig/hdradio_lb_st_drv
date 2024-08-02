@@ -67,12 +67,12 @@ Agreement between Telechips and Company.
 static stAUDIO_ALSA_CTL_t stSoundRxCtl;
 static stAUDIO_ALSA_CTL_t stSoundTxCtl;
 
-#ifdef USE_PULSEAUDIO
-static const int8 *device_tx = "pulsemedia";
-#else
-static const int8 *device_tx = "plug:tcc";
-//static int8 *device_tx = "hw:0,0";	// for test
-#endif
+// #ifdef USE_PULSEAUDIO
+// static const int8 *device_tx = "pulsemedia";
+// #else
+// static const int8 *device_tx = "plug:tcc";
+static int8 *device_tx = "plug:tdm_s3";	// for test
+// #endif
 
 #if defined(TCC802X_BOARD)
 static const int8 *device_rx = "hw:0,3";
@@ -145,6 +145,16 @@ RET dev_aout_open(stAUDIO_CONFIG_t params)
 		goto error_alsa;
 	}
 
+    SND_ERR("params: format %lu\n", ctl->format);
+    SND_ERR("params: rate %lu\n", ctl->rate);
+    SND_ERR("params: channels %lu\n", ctl->channels);
+    SND_ERR("params: buffer_time %lu\n", ctl->buffer_time);
+    SND_ERR("params: period_time %lu\n", ctl->period_time);
+    SND_ERR("params: nperiods %lu\n", ctl->nperiods);
+    SND_ERR("params: buffer_size %lu\n", ctl->buffer_size);
+    SND_ERR("params: period_size %lu\n", ctl->period_size);
+    SND_ERR("params: start_threshold %lu\n", ctl->start_threshold);
+
 error_alsa:
 
 #else	/* #ifdef TCC_AUDIO_DEVICE */
@@ -189,7 +199,9 @@ RET dev_aout_write(uint8 *pbuf, int32 frame_size)
 #endif
 	while((retry_count++<5) && (frame_size > 0))
 	{
-		frames = (int32)snd_pcm_writei(ctl->h_alsa, write_buf, (snd_pcm_uframes_t)frame_size);
+        frames = (int32)snd_pcm_writei(ctl->h_alsa, write_buf, (snd_pcm_uframes_t)frame_size);
+
+		// SND_ERR("[%s:%d]: [snd_pcm_writei] ALSA write frame_size [%d] writen frame size [%d]\n",__func__, __LINE__, frame_size, frames);
 
 		if(frames < 0)
 		{
@@ -224,7 +236,7 @@ RET dev_aout_write(uint8 *pbuf, int32 frame_size)
 
 	if(frame_size > 0)
 	{
-		SND_ERR("[%s:%d]: ALSA write frame_size wrong[%d], retry_count[%d]\n",__func__, __LINE__, frame_size, retry_count);
+		SND_ERR("[%s:%d]: ALSA write frame_size wrong[%d] writen frame [%d], retry_count[%d]\n",__func__, __LINE__, frame_size, frames, retry_count);
 		ret = (RET)eRET_NG_ALSA_UNDRRUN;
 	}
 
@@ -626,6 +638,9 @@ static int32 set_hwparams(void *arg, snd_pcm_access_t access)
 	snd_pcm_hw_params_get_period_size(ctl->p_alsa_hw_params, &ctl->period_size, NULL);
 	SND_DBG("was set period_size = %lu\n",ctl->period_size);
 	SND_DBG("was set buffer_size = %lu\n",ctl->buffer_size);
+    if (ctl->start_threshold > ctl->buffer_size) {
+        ctl->start_threshold = ctl->buffer_size;
+    }
 	if (2*ctl->period_size > ctl->buffer_size) {
 		SND_ERR("buffer too small, could not use\n");
 		return err;

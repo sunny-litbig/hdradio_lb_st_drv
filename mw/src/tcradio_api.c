@@ -115,6 +115,8 @@ RET tcradio_init(void)
 {
 	RET ret = eRET_OK;
 
+    initLogging();
+
 	if(getRadioInitStatus() != 0) {
 		ret = eRET_NG_ALREADY_INIT;
 		return ret;

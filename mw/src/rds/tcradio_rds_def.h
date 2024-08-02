@@ -48,6 +48,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 #define RADIO_RDS_DEBUG
 
 #ifdef __ANDROID__
@@ -62,9 +64,11 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define RDS_ERR(...)		((void)printf("[ERROR][RADIO][RDS]: " __VA_ARGS__))
+// #define RDS_ERR(...)		((void)printf("[ERROR][RADIO][RDS]: " __VA_ARGS__))
+#define RDS_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][RDS]: " __VA_ARGS__))
 #ifdef RADIO_RDS_DEBUG
-#define RDS_DBG(...)		((void)printf("[DEBUG][RADIO][RDS]: " __VA_ARGS__))
+// #define RDS_DBG(...)		((void)printf("[DEBUG][RADIO][RDS]: " __VA_ARGS__))
+#define RDS_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][RDS]: " __VA_ARGS__))
 #else
 #define	RDS_DBG(...)
 #endif

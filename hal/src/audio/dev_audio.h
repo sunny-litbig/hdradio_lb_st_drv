@@ -50,12 +50,15 @@ Agreement between Telechips and Company.
   #include "alsa/asoundlib.h"
  #endif
 #endif
+
 /***************************************************
 *				Defines					*
 ****************************************************/
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "DMBLog.h"
 
 #define SND_DEBUG
 
@@ -71,9 +74,11 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define SND_ERR(...)		((void)printf("[ERROR][RADIO][ALSA]: " __VA_ARGS__))
+// #define SND_ERR(...)		((void)printf("[ERROR][RADIO][ALSA]: " __VA_ARGS__))
+#define SND_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][ALSA]: " __VA_ARGS__))
 #ifdef SND_DEBUG
-#define SND_DBG(...)		((void)printf("[DEBUG][RADIO][ALSA]: " __VA_ARGS__))
+// #define SND_DBG(...)		((void)printf("[DEBUG][RADIO][ALSA]: " __VA_ARGS__))
+#define SND_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][ALSA]: " __VA_ARGS__))
 #else
 #define	SND_DBG(...)
 #endif

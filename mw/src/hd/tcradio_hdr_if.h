@@ -56,6 +56,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 //#define HDR_SERVICE_DEBUG
 
 #ifdef __ANDROID__
@@ -70,9 +72,11 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define HDRS_ERR(...)		((void)printf("[ERROR][HAL][HDR-IF]: " __VA_ARGS__))
+// #define HDRS_ERR(...)		((void)printf("[ERROR][HAL][HDR-IF]: " __VA_ARGS__))
+#define HDRS_ERR(...)		((void)LB_PRINTF("[ERROR][HAL][HDR-IF]: " __VA_ARGS__))
 #ifdef HDR_SERVICE_DEBUG
-#define HDRS_DBG(...)		((void)printf("[DEBUG][HAL][HDR-IF]: " __VA_ARGS__))
+// #define HDRS_DBG(...)		((void)printf("[DEBUG][HAL][HDR-IF]: " __VA_ARGS__))
+#define HDRS_DBG(...)		((void)LB_PRINTF("[DEBUG][HAL][HDR-IF]: " __VA_ARGS__))
 #else
 #define	HDRS_DBG(...)
 #endif

@@ -48,6 +48,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 #define RADIO_SRV_DEBUG
 
 #ifdef __ANDROID__
@@ -64,11 +66,15 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define RSRV_ERR(...)		((void)printf("[ERROR][RADIO][SRV]: " __VA_ARGS__))
-#define RSRV_WRN(...)		((void)printf("[WARN][RADIO][SRV]: " __VA_ARGS__))
-#define RSRV_INF(...)		((void)printf("[INFO][RADIO][SRV]: " __VA_ARGS__))
+// #define RSRV_ERR(...)		((void)printf("[ERROR][RADIO][SRV]: " __VA_ARGS__))
+// #define RSRV_WRN(...)		((void)printf("[WARN][RADIO][SRV]: " __VA_ARGS__))
+// #define RSRV_INF(...)		((void)printf("[INFO][RADIO][SRV]: " __VA_ARGS__))
+#define RSRV_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][SRV]: " __VA_ARGS__))
+#define RSRV_WRN(...)		((void)LB_PRINTF("[WARN][RADIO][SRV]: " __VA_ARGS__))
+#define RSRV_INF(...)		((void)LB_PRINTF("[INFO][RADIO][SRV]: " __VA_ARGS__))
 #ifdef RADIO_SRV_DEBUG
-#define RSRV_DBG(...)		((void)printf("[DEBUG][RADIO][SRV]: " __VA_ARGS__))
+// #define RSRV_DBG(...)		((void)printf("[DEBUG][RADIO][SRV]: " __VA_ARGS__))
+#define RSRV_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][SRV]: " __VA_ARGS__))
 #else
 #define	RSRV_DBG(...)
 #endif

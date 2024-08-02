@@ -21,6 +21,7 @@ libtcradiohal_la_CPPFLAGS = \
 	-I$(TOP)/src/fifo
 
 libtcradiohal_la_SOURCES = \
+	src/DMBLog.c \
 	src/tcradio_hal.c \
 	src/util/tcradio_hal_utils.c \
 	src/util/tcradio_hal_mutex.c \
@@ -47,6 +48,9 @@ libtcradiohal_la_LIBADD += \
 endif
 libtcradiohal_la_LIBADD += \
 	-ltcradioperi
+
+libtcradiohal_la_LIBADD += \
+	-ldlt
 
 libtcradiohal_la_LDFLAGS = \
 	-version-number 2:0:0 \
@@ -78,6 +82,7 @@ TcRadioHalCui_LDADD = \
 	$(top_builddir)/libtcradiohalif.la
 
 include_HEADERS = \
+	$(TOP)/src/DMBLog.h \
 	$(TOP)/src/tcradio_hal.h \
 	$(TOP)/src/fifo/tcradio_hal_fifo.h \
 	$(TOP)/src/conf/tcradio_hal_config.h

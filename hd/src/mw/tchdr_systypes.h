@@ -132,7 +132,7 @@ extern "C" {
 #endif
 
 // For Debugging
-//#define DEBUG_ENABLE_HDR_LOG
+#define DEBUG_ENABLE_HDR_LOG
 //#define DEBUG_TCDAT_TEST_DUMP                    	// Enable digital-analog audio tracker
 //#define DEBUG_IQ_BUF_FILE_DUMP                   	// Dump the I, Q, IQ buffers at bbinput thread
 //#deinfe DEBUG_ENABLE_TRACE_THREAD                	// Enable trace thread for XPERI debugging

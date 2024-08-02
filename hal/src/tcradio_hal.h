@@ -49,6 +49,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 #define RHAL_DEBUG
 
 #ifdef __ANDROID__
@@ -63,9 +65,11 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define RHAL_ERR(...)		((void)printf("[ERROR][RADIO][HAL]: " __VA_ARGS__))
+// #define RHAL_ERR(...)		((void)printf("[ERROR][RADIO][HAL]: " __VA_ARGS__))
+#define RHAL_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][HAL]: " __VA_ARGS__))
 #ifdef RHAL_DEBUG
-#define RHAL_DBG(...)		((void)printf("[DEBUG][RADIO][HAL]: " __VA_ARGS__))
+// #define RHAL_DBG(...)		((void)printf("[DEBUG][RADIO][HAL]: " __VA_ARGS__))
+#define RHAL_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][HAL]: " __VA_ARGS__))
 #else
 #define	RHAL_DBG(...)
 #endif

@@ -48,6 +48,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 #define TCRADIO_AUDIO_HAL_DEBUG
 
 #ifdef __ANDROID__
@@ -62,9 +64,10 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define RAHAL_ERR(...)		((void)printf("[ERROR][RADIO][AUD-FIFO]: " __VA_ARGS__))
+// #define RAHAL_ERR(...)		((void)printf("[ERROR][RADIO][AUD-FIFO]: " __VA_ARGS__))
+#define RAHAL_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][AUD-FIFO]: " __VA_ARGS__))
 #ifdef TCRADIO_AUDIO_HAL_DEBUG
-#define RAHAL_DBG(...)		((void)printf("[DEBUG][RADIO][AUD-FIFO]: " __VA_ARGS__))
+#define RAHAL_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][AUD-FIFO]: " __VA_ARGS__))
 #else
 #define	RAHAL_DBG(...)
 #endif

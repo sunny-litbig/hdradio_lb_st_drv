@@ -50,6 +50,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 #define RAPP_DEBUG
 
 #ifdef __ANDROID__
@@ -64,9 +66,11 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define RAPP_ERR(...)		((void)printf("[ERROR][RADIO][APP]: " __VA_ARGS__))
+// #define RAPP_ERR(...)		((void)printf("[ERROR][RADIO][APP]: " __VA_ARGS__))
+#define RAPP_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][APP]: " __VA_ARGS__))
 #ifdef RAPP_DEBUG
-#define RAPP_DBG(...)		((void)printf("[DEBUG][RADIO][APP]: " __VA_ARGS__))
+// #define RAPP_DBG(...)		((void)printf("[DEBUG][RADIO][APP]: " __VA_ARGS__))
+#define RAPP_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][APP]: " __VA_ARGS__))
 #else
 #define	RAPP_DBG(...)
 #endif

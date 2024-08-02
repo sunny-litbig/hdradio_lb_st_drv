@@ -22,6 +22,7 @@ libtcradio_la_CPPFLAGS = \
 	-I$(TOP)/src/hd
 
 libtcradio_la_SOURCES = \
+	src/DMBLog.c \
 	src/tcradio_api.c \
 	src/conf/tcradio_callback.c \
 	src/conf/tcradio_config.c \
@@ -48,6 +49,9 @@ libtcradio_la_LIBADD += \
 	-ltchdradioif \
 	-lHDRadio
 endif
+
+libtcradio_la_LIBADD += \
+	-ldlt
 
 libtcradio_la_LDFLAGS = \
 	-version-number 2:0:0 \
@@ -89,6 +93,7 @@ TcRadioSubManager_LDADD = \
 	$(top_builddir)/libtcradio.la
 
 include_HEADERS = \
+	$(TOP)/src/DMBLog.h \
 	$(TOP)/src/tcradio_api.h \
 	$(TOP)/src/rds/tcradio_rds_api.h \
 	$(TOP)/src/hd/tcradio_hdr_if.h
