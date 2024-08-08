@@ -24,6 +24,7 @@ libtchdradio_la_CPPFLAGS = \
 	-I$(TOP)/src/core
 
 libtchdradio_la_SOURCES = \
+	src/DMBLog.c \
 	src/mw/tchdr_common.c \
 	src/mw/tchdr_callback_conf.c \
 	src/mw/tchdr_msg.c \
@@ -69,6 +70,7 @@ libtchdradioif_la_LDFLAGS = \
 	-fPIC
 
 include_HEADERS = \
+	$(TOP)/src/DMBLog.h \
 	$(TOP)/src/api/tchdr_types.h \
 	$(TOP)/src/api/tchdr_callback.h \
 	$(TOP)/src/api/tchdr_psd.h \
@@ -145,6 +147,9 @@ endif
 libtchdradio_la_LIBADD = \
 	-L$(HDRADIO_LIB) -ltcresampler \
 	-L$(HDRADIO_LIB) -ltcprotection
+
+libtchdradio_la_LIBADD += \
+	-ldlt
 
 if TARGET_IS_TC_EVB
 DEFS += -DUSE_TELECHIPS_EVB

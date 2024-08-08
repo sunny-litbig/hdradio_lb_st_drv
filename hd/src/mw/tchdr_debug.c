@@ -42,6 +42,8 @@ Agreement between Telechips and Company.
 
 #include "tchdr_common.h"
 
+#include "DMBLog.h"
+
 /***************************************************
 *        Global variable definitions               *
 ****************************************************/
@@ -71,11 +73,16 @@ static eLOG_TYPE_t eDebugLogLevel = eLOG_INF;
 #define  LOGW(...) (__android_log_print(ANDROID_LOG_WARN,HDRLOGTAG, __VA_ARGS__))
 #define  LOGE(...) (__android_log_print(ANDROID_LOG_ERROR,HDRLOGTAG, __VA_ARGS__))
 #else	// for linux or others debugging
-#define  LOGV(...) ((void)printf("[VBS][HDR]" __VA_ARGS__))
-#define  LOGD(...) ((void)printf("[DBG][HDR]" __VA_ARGS__))
-#define  LOGI(...) ((void)printf("[INF][HDR]" __VA_ARGS__))
-#define  LOGW(...) ((void)printf("[WRN][HDR]" __VA_ARGS__))
-#define  LOGE(...) ((void)printf("[ERR][HDR]" __VA_ARGS__))
+// #define  LOGV(...) ((void)printf("[VBS][HDR]" __VA_ARGS__))
+// #define  LOGD(...) ((void)printf("[DBG][HDR]" __VA_ARGS__))
+// #define  LOGI(...) ((void)printf("[INF][HDR]" __VA_ARGS__))
+// #define  LOGW(...) ((void)printf("[WRN][HDR]" __VA_ARGS__))
+// #define  LOGE(...) ((void)printf("[ERR][HDR]" __VA_ARGS__))
+#define  LOGV(...) ((void)LB_PRINTF("[VBS][HDR]" __VA_ARGS__))
+#define  LOGD(...) ((void)LB_PRINTF("[DBG][HDR]" __VA_ARGS__))
+#define  LOGI(...) ((void)LB_PRINTF("[INF][HDR]" __VA_ARGS__))
+#define  LOGW(...) ((void)LB_PRINTF("[WRN][HDR]" __VA_ARGS__))
+#define  LOGE(...) ((void)LB_PRINTF("[ERR][HDR]" __VA_ARGS__))
 #endif
 
 #define MAX_LOG_LENGTH		(1024U)
