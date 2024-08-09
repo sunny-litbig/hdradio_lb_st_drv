@@ -28,6 +28,8 @@
 #include "star_protocol.h"
 #include "star_driver.h"
 
+#include "DMBLog.h"
+
 // Boot Code for Telechips HD Radio
 #include "TDA7707_OM_v7.22.0.h"
 #include "TDA7707_OM_v7.22.0.boot.h"
@@ -46,6 +48,35 @@ unsigned int star_drv_initialized = 0;
 unsigned int star_drv_current_band[STAR_MAX_TUNER_IC_NUM] = {-1, -1, -1, -1};
 unsigned int star_drv_fm_frequency[STAR_MAX_TUNER_IC_NUM] = {-1, -1, -1, -1};
 unsigned int star_drv_am_frequency[STAR_MAX_TUNER_IC_NUM] = {-1, -1, -1, -1};
+
+#ifdef __ANDROID__
+
+#define TDRV_TAG			("[TUNER][DRIVER]")
+#define TDRV_ERR(...)		(__android_log_print(ANDROID_LOG_ERROR,TDRV_TAG, __VA_ARGS__))
+#define TDRV_INF(...)		(__android_log_print(ANDROID_LOG_INFO,TDRV_TAG, __VA_ARGS__))
+#define TDRV_WRN(...)		(__android_log_print(ANDROID_LOG_WARN,TDRV_TAG, __VA_ARGS__))
+#ifdef TUNER_DRV_DEBUG
+#define TDRV_DBG(...)		(__android_log_print(ANDROID_LOG_DEBUG,TDRV_TAG, __VA_ARGS__))
+#else
+#define	TDRV_DBG(...)
+#endif
+
+#else // #ifdef __ANDROID__
+
+// #define TDRV_ERR(...)		((void)printf("[ERROR][TUNER][DRIVER]: " __VA_ARGS__))
+// #define TDRV_INF(...)		((void)printf("[INFO][TUNER][DRIVER]: " __VA_ARGS__))
+// #define TDRV_WRN(...)		((void)printf("[WARN][TUNER][DRIVER]: " __VA_ARGS__))
+// #define TDRV_DBG(...)		((void)printf("[DEBUG][TUNER][DRIVER]: " __VA_ARGS__))
+#define TDRV_ERR(...)		((void)LB_PRINTF("[ERROR][TUNER][DRIVER]: " __VA_ARGS__))
+#define TDRV_INF(...)		((void)LB_PRINTF("[INFO][TUNER][DRIVER]: " __VA_ARGS__))
+#define TDRV_WRN(...)		((void)LB_PRINTF("[WARN][TUNER][DRIVER]: " __VA_ARGS__))
+#ifdef TUNER_DRV_DEBUG
+#define TDRV_DBG(...)		((void)LB_PRINTF("[DEBUG][TUNER][DRIVER]: " __VA_ARGS__))
+#else
+#define	TDRV_DBG(...)
+#endif
+
+#endif // #ifdef __ANDROID__
 
 stSTAR_BAND_INFO_t stAreaBands[eTUNER_DRV_CONF_AREA_MAX][2] =
 {
@@ -67,9 +98,9 @@ stSTAR_BAND_INFO_t stAreaBands[eTUNER_DRV_CONF_AREA_MAX][2] =
 };
 
 /* STAR DRIVER DEBUG INFORM OPTIONS */
-//#define TRACE_STAR_CMD_WRITE
-//#define TRACE_STAR_CMD_CHANGE_BAND
-//#define TRACE_STAR_CMD_TUNE
+// #define TRACE_STAR_CMD_WRITE
+#define TRACE_STAR_CMD_CHANGE_BAND
+#define TRACE_STAR_CMD_TUNE
 //#define TRACE_STAR_CMD_SEEK
 //#define TRACE_STAR_CMD_PING
 //#define TRACE_STAR_CMD_FM_STEREO_MODE
@@ -411,7 +442,7 @@ Tun_Status TUN_Seek_Continue (tU8 deviceAddress, int channelID, Seek_Direction s
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
     
 #ifdef TRACE_STAR_CMD_SEEK        
-    PRINTF("Star_Command_Communicate = %s, cmdParamNum = %d", RetStatusName[tunerStatus].Name, cmdParamNum);
+    TDRV_ERR("Star_Command_Communicate = %s, cmdParamNum = %d", RetStatusName[tunerStatus].Name, cmdParamNum);
 #endif
     
 #else
@@ -459,7 +490,7 @@ Tun_Status TUN_Ping (tU8 deviceAddress)
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
     
 #ifdef TRACE_STAR_CMD_PING    
-    PRINTF("Star_Command_Communicate = %s, cmdParamNum = %d, checkData = 0x%06x", RetStatusName[tunerStatus].Name, cmdParamNum, checkData);
+    TDRV_ERR("Star_Command_Communicate = %s, cmdParamNum = %d, checkData = 0x%06x", RetStatusName[tunerStatus].Name, cmdParamNum, checkData);
 #endif
     
     if (tunerStatus == RET_SUCCESS)
@@ -506,7 +537,7 @@ Tun_Status TUN_Set_Stereo_Mode (tU8 deviceAddress, Stereo_Mode stereoMode)
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
     
 #ifdef TRACE_STAR_CMD_FM_STEREO_MODE        
-    PRINTF("Star_Command_Communicate = %s, cmdParamNum = %d, stereoMode = %d", RetStatusName[tunerStatus].Name, cmdParamNum, stereoMode);
+    TDRV_ERR("Star_Command_Communicate = %s, cmdParamNum = %d, stereoMode = %d", RetStatusName[tunerStatus].Name, cmdParamNum, stereoMode);
 #endif
     
 #else
@@ -546,7 +577,7 @@ Tun_Status TUN_Set_VPAMode(tU8 deviceAddress, Switch_Mode VPAmode)
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
     
 #ifdef TRACE_STAR_CMD_SET_VPA    
-    PRINTF("Star_Command_Communicate = %s, cmdParamNum = %d, VPAmode = %d", RetStatusName[tunerStatus].Name, cmdParamNum, VPAmode);
+    TDRV_ERR("Star_Command_Communicate = %s, cmdParamNum = %d, VPAmode = %d", RetStatusName[tunerStatus].Name, cmdParamNum, VPAmode);
 #endif
     
 #else
@@ -597,7 +628,7 @@ Tun_Status TUN_Get_ReceptionQuality (tU8 deviceAddress, int channelID, union Tun
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
     
 #ifdef TRACE_STAR_CMD_GET_RECEPTION_QUALITY    
-    PRINTF("Star_Command_Communicate = %s, answerData = 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x ", RetStatusName[tunerStatus].Name, 
+    TDRV_ERR("Star_Command_Communicate = %s, answerData = 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x ", RetStatusName[tunerStatus].Name, 
         answerData[0], answerData[1], answerData[2],  answerData[3], answerData[4], answerData[5], answerData[6], answerData[7],
          answerData[8],  answerData[9], answerData[10], answerData[11], answerData[12], answerData[13], answerData[14]);
 #endif        
@@ -671,7 +702,7 @@ Tun_Status TUN_conf_JESD204(tU8 deviceAddress, tU32 mode, tU32 config, tU32 test
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
 
 #ifdef TRACE_STAR_CMD_CONF_JESD204
-    PRINTF("Star_Command_Communicate = %s, mode = 0x%06x, config = 0x%06x, testnum = 0x%06x, testchar = 0x%06x, ILAM = 0x%06x, ILAK = 0x%06x", RetStatusName[tunerStatus].Name, mode, config, testnum, testchar, ilam, ilak);
+    TDRV_ERR("Star_Command_Communicate = %s, mode = 0x%06x, config = 0x%06x, testnum = 0x%06x, testchar = 0x%06x, ILAM = 0x%06x, ILAK = 0x%06x", RetStatusName[tunerStatus].Name, mode, config, testnum, testchar, ilam, ilak);
 #endif
 
 #else
@@ -716,7 +747,7 @@ Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode)
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
 
 #ifdef TRACE_STAR_CMD_CONF_BB_SAI
-    PRINTF("Star_Command_Communicate = %s, blendMode = 0x%06x", RetStatusName[tunerStatus].Name, blendMode);
+    TDRV_ERR("Star_Command_Communicate = %s, blendMode = 0x%06x", RetStatusName[tunerStatus].Name, blendMode);
 #endif
 
 #else
@@ -774,7 +805,7 @@ Tun_Status TUN_AF_Start (tU8 deviceAddress, int channelID, tU32 alterFreq, tU32 
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, 0, answerData, TRUE, &realAnsParamNum, TRUE);
 
 #ifdef TRACE_STAR_CMD_RDS
-    PRINTF("Star_Command_Communicate = %s", RetStatusName[tunerStatus].Name);
+    TDRV_ERR("Star_Command_Communicate = %s", RetStatusName[tunerStatus].Name);
 #endif
 
     if ((tunerStatus == RET_SUCCESS) && (realAnsParamNum >=3))
@@ -843,7 +874,7 @@ Tun_Status TUN_AF_End(tU8 deviceAddress, int channelID, tU32 freqAfterAFEnd, AF_
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, 0, answerData, TRUE, &realAnsParamNum, TRUE);
 
 #ifdef TRACE_STAR_CMD_RDS
-    PRINTF("Star_Command_Communicate = %s", RetStatusName[tunerStatus].Name);
+    TDRV_ERR("Star_Command_Communicate = %s", RetStatusName[tunerStatus].Name);
 #endif
 
     if ((tunerStatus == RET_SUCCESS) && (realAnsParamNum >=3))
@@ -907,7 +938,7 @@ Tun_Status TUN_AF_Check (tU8 deviceAddress, int channelID, tU32 frequency, AF_Si
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, FALSE);
 
 #ifdef TRACE_STAR_CMD_RDS
-    PRINTF("Star_Command_Communicate = %s, frequency = %d", RetStatusName[tunerStatus].Name, frequency);
+    TDRV_ERR("Star_Command_Communicate = %s, frequency = %d", RetStatusName[tunerStatus].Name, frequency);
 #endif
 
     if ((tunerStatus == RET_SUCCESS) && (realAnsParamNum >=3))
@@ -964,7 +995,7 @@ Tun_Status TUN_AF_Switch (tU8 deviceAddress, int channelID, tU32 frequency)
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
 
 #ifdef TRACE_STAR_CMD_RDS
-    PRINTF("Star_Command_Communicate = %s, frequency = %d", RetStatusName[tunerStatus].Name, frequency);
+    TDRV_ERR("Star_Command_Communicate = %s, frequency = %d", RetStatusName[tunerStatus].Name, frequency);
 #endif
 
 #else
@@ -1016,7 +1047,7 @@ Tun_Status TUN_Get_AFquality (tU8 deviceAddress, int channelID, AF_SignalQuality
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
 
 #ifdef TRACE_STAR_CMD_RDS
-    PRINTF("Star_Command_Communicate = %s", RetStatusName[tunerStatus].Name);
+    TDRV_ERR("Star_Command_Communicate = %s", RetStatusName[tunerStatus].Name);
 #endif
 
     if ((tunerStatus == RET_SUCCESS) && (realAnsParamNum >=3))
@@ -1071,7 +1102,7 @@ Tun_Status TUN_Wait_Ready(tU8 deviceAddress, int channelID, int msTimeOut)
         if (tunerStatus == RET_ERROR) break;
         
 #ifdef TRACE_STAR_TUN_WAIT_READY
-        PRINTF("Star_Get_TunerBusyStatus = %s, busyStatus = %d", RetStatusName[tunerStatus].Name, busyStatus);
+        TDRV_ERR("Star_Get_TunerBusyStatus = %s, busyStatus = %d", RetStatusName[tunerStatus].Name, busyStatus);
 #endif
         if (busyStatus == 0)
         {
@@ -1129,7 +1160,7 @@ Tun_Status TUN_Get_TunedFreq(tU8 deviceAddress, int channelID, tU32 *pFreq)
     }
 
 #ifdef TRACE_STAR_TUN_GET_TUNEDFREQ
-    PRINTF("Star_I2C_Direct_Read = %s, freq = %d", RetStatusName[tunerStatus].Name, *pFreq);
+    TDRV_ERR("Star_I2C_Direct_Read = %s, freq = %d", RetStatusName[tunerStatus].Name, *pFreq);
 #endif
 
 #endif
@@ -1208,7 +1239,7 @@ Tun_Status TUN_Cmd_Write(tU8 deviceAddress, tU32 regAddress, tU32 regData)
     
 #ifdef TRACE_STAR_CMD_WRITE    
     //PRINTF("Star_Command_Communicate= %s, deviceAddress= 0x%02x, regAddress= 0x%06x, cmdParamNum= %d, data= 0x%06x", RetStatusName[tunerStatus].Name, deviceAddress, regAddress, cmdParamNum, regData);
-    printf("[%s] Star_Command_Communicate = %d, regAddress= 0x%06x, cmdParamNum= %d, data= 0x%06x \n",
+    TDRV_ERR("[%s] Star_Command_Communicate = %d, regAddress= 0x%06x, cmdParamNum= %d, data= 0x%06x \n",
         __func__, tunerStatus, regAddress, cmdParamNum, regData);
 #endif
 
@@ -1287,7 +1318,7 @@ Tun_Status TUN_Change_Band (tU8 deviceAddress, int channelID, int bandMode, tU32
 
 #ifdef TRACE_STAR_CMD_CHANGE_BAND                
     //PRINTF("Star_Command_Communicate = %s, channelID = %d, band = %d, freqMax = %d, freqMin = %d, VPA_enable = %d", RetStatusName[tunerStatus].Name, channelID, bandMode, maxFreq, minFreq, VPAMode);
-    printf("[%s] Star_Command_Communicate = %d, channelID = %d, band = %d, freqMax = %d, freqMin = %d \n",
+    TDRV_ERR("[%s] Star_Command_Communicate = %d, channelID = %d, band = %d, freqMax = %d, freqMin = %d \n",
             __func__, tunerStatus, channelID, bandMode, maxFreq, minFreq);
 #endif
 
@@ -1335,7 +1366,7 @@ Tun_Status TUN_Change_Frequency (tU8 deviceAddress, int channelID, tU32 frequenc
 
 #ifdef TRACE_STAR_CMD_TUNE                
     //PRINTF("Star_Command_Communicate = %s, frequency = %d, deviceAddr = 0x%02x", RetStatusName[tunerStatus].Name, frequency, deviceAddress);
-    printf("[%s] Star_Command_Communicate = %d, channelID = %d, frequency = %d \n", __func__, tunerStatus, channelID, frequency);
+    TDRV_ERR("[%s] Star_Command_Communicate = %d, channelID = %d, frequency = %d \n", __func__, tunerStatus, channelID, frequency);
 #endif
 
     return tunerStatus;
@@ -1396,7 +1427,7 @@ Tun_Status TUN_Get_ChannelQuality (tU8 deviceAddress, int channelID, tBool bVPAM
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
     
 #ifdef TRACE_STAR_CMD_GET_RECEPTION_QUALITY    
-    PRINTF("Star_Command_Communicate = %s, answerData = 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x ", RetStatusName[tunerStatus].Name, 
+    TDRV_ERR("Star_Command_Communicate = %d, answerData = 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x   0x%02x 0x%02x 0x%02x  0x%02x 0x%02x 0x%02x ", tunerStatus, 
         answerData[0], answerData[1], answerData[2],  answerData[3], answerData[4], answerData[5], answerData[6], answerData[7],
          answerData[8],  answerData[9], answerData[10], answerData[11], answerData[12], answerData[13], answerData[14]);
 #endif        
@@ -1458,7 +1489,7 @@ Tun_Status TUN_Mute (tU8 deviceAddress, Mute_Action muteAction)
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
     
 #ifdef TRACE_STAR_CMD_MUTE    
-    PRINTF("Star_Command_Communicate = %s, cmdParamNum = %d, muteAction = %d", RetStatusName[tunerStatus].Name, cmdParamNum, muteAction);
+    TDRV_ERR("Star_Command_Communicate = %d, cmdParamNum = %d, muteAction = %d", tunerStatus, cmdParamNum, muteAction);
 #endif
     
     return tunerStatus;
@@ -1510,7 +1541,7 @@ Tun_Status TUN_Set_RDS (tU8 deviceAddress, int channelID, RDS_Action rdsAction)
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
 
 #ifdef TRACE_STAR_CMD_RDS
-    PRINTF("Star_Command_Communicate = %s, rdsAction = %d", RetStatusName[tunerStatus].Name, rdsAction);
+    TDRV_ERR("Star_Command_Communicate = %d, rdsAction = %d", tunerStatus, rdsAction);
 #endif
 
     return tunerStatus;
@@ -1553,7 +1584,7 @@ Tun_Status TUN_Read_RDS (tU8 deviceAddress, int channelID, RDS_Buffer *pRDSbuffe
     tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, 0, answerData, TRUE, &realAnsParamNum, TRUE);
 
 #ifdef TRACE_STAR_CMD_RDS
-    PRINTF("Star_Command_Communicate = %s", RetStatusName[tunerStatus].Name);
+    TDRV_ERR("Star_Command_Communicate = %d", tunerStatus);
 #endif
 
     if ((tunerStatus == RET_SUCCESS) && (realAnsParamNum > 1))
@@ -1623,7 +1654,7 @@ Tun_Status TUN_conf_BB_SAI(tU8 deviceAddress, tU32 mode, tU32 config)
 
 #ifdef TRACE_STAR_CMD_CONF_BB_SAI
     //PRINTF("Star_Command_Communicate = %s, mode = 0x%06x, config = 0x%06x", RetStatusName[tunerStatus].Name, mode, config);
-    printf("[%s] Star_Command_Communicate = %d, mode = 0x%06x, config = 0x%06x \n", __func__, tunerStatus, mode, config);
+    TDRV_ERR("[%s] Star_Command_Communicate = %d, mode = 0x%06x, config = 0x%06x \n", __func__, tunerStatus, mode, config);
 #endif
 
     return tunerStatus;
@@ -1687,7 +1718,7 @@ Tun_Status TUN_Set_Audio_IF(tU8 deviceAddress, tU8 SAIMode, tU32 SAIConfig)
 
 #ifdef TRACE_STAR_CMD_CONF_BB_SAI
     //PRINTF("Star_Command_Communicate = %s, SAIMode = 0x%06x, SAIConfig = 0x%06x", RetStatusName[tunerStatus].Name, SAIMode, SAIConfig);
-    printf("[%s] Star_Command_Communicate = %d, SAIMode = 0x%06x, SAIConfig = 0x%06x \n", __func__, tunerStatus, SAIMode, SAIConfig);
+    TDRV_ERR("[%s] Star_Command_Communicate = %d, SAIMode = 0x%06x, SAIConfig = 0x%06x \n", __func__, tunerStatus, SAIMode, SAIConfig);
 #endif
 
     return tunerStatus;
@@ -1726,7 +1757,7 @@ Tun_Status TUN_Set_BB_IF(tU8 deviceAddress, tU32 BBConfig)
 
 #ifdef TRACE_STAR_CMD_SET_BB_IF            
     //PRINTF("Star_Command_Communicate = %s, BBConfig = %d", RetStatusName[tunerStatus].Name, BBConfig);
-    printf("[%s] Star_Command_Communicate = %d, BBConfig = %d \n", __func__, tunerStatus, BBConfig);
+    TDRV_ERR("[%s] Star_Command_Communicate = %d, BBConfig = %d \n", __func__, tunerStatus, BBConfig);
 #endif
 
     return tunerStatus;
@@ -1899,6 +1930,8 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
 
     (void)tune_mode;
 
+    TDRV_ERR("[%s:%d] mod_mode[%d], freq[%d], tune_mode[%d], star_drv_current_band[%d] : %d\n", __func__, __LINE__
+            , mod_mode, freq, tune_mode, ntuner, star_drv_current_band[ntuner]);
     if (mod_mode > eTUNER_DRV_AM_MODE)
         return eRET_NG_UNKNOWN;
 
@@ -1910,6 +1943,7 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
     if(star_drv_current_band[ntuner] != mod_mode)
     {
         tunerStatus = star_setBand(mod_mode, channelID);
+        TDRV_ERR("[%s:%d] star_setBand(%d, %d) returns : %d\n", __func__, __LINE__, mod_mode, channelID, tunerStatus);
 
         if (tunerStatus == RET_SUCCESS)
         {
@@ -1918,8 +1952,10 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
         }
     }
 
-    if (tunerStatus == RET_SUCCESS)
+    if (tunerStatus == RET_SUCCESS) {
         tunerStatus = TUN_Change_Frequency(I2C_SLAVE_ADDRESS, channelID, freq);
+        TDRV_ERR("[%s:%d] TUN_Change_Frequency(0x%x, %d, %d) returns : %d\n", __func__, __LINE__, I2C_SLAVE_ADDRESS, channelID, freq, tunerStatus);
+    }
 
     if (tunerStatus == RET_SUCCESS)
     {
@@ -1933,7 +1969,7 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
         }
         else
         {
-            printf("[%s] Not supported mod_mode (%d).\n", __func__, mod_mode);
+            TDRV_ERR("[%s] Not supported mod_mode (%d).\n", __func__, mod_mode);
             return eRET_NG_UNKNOWN;
         }
 
@@ -2044,17 +2080,17 @@ int star_open(stTUNER_DRV_CONFIG_t type)
 
     if (tunerStatus != RET_SUCCESS)
     {
-        printf("STAR_ADDRESS_PRECHECKING Star_I2C_Direct_Read fail\n");
+        TDRV_ERR("STAR_ADDRESS_PRECHECKING Star_I2C_Direct_Read fail\n");
         return eRET_NG_UNKNOWN;
     }
 
-    printf("STAR_ADDRESS_PRECHECKING read result : %02x %02x %02x %02x\n", read_data[0], read_data[1], read_data[2], read_data[3]);
+    TDRV_ERR("STAR_ADDRESS_PRECHECKING read result : %02x %02x %02x %02x\n", read_data[0], read_data[1], read_data[2], read_data[3]);
 
     tunerStatus = TUN_Download_BootCode(I2C_SLAVE_ADDRESS);
 
     if (tunerStatus != RET_SUCCESS)
     {
-        printf("TUN_Download_BootCode fail\n");
+        TDRV_ERR("TUN_Download_BootCode fail\n");
         return eRET_NG_UNKNOWN;
     }
 
@@ -2065,11 +2101,11 @@ int star_open(stTUNER_DRV_CONFIG_t type)
 
     if (tunerStatus != RET_SUCCESS)
     {
-        printf("STAR_ADDRESS_CMDBUFFER Star_I2C_Direct_Read fail\n");
+        TDRV_ERR("STAR_ADDRESS_CMDBUFFER Star_I2C_Direct_Read fail\n");
         return eRET_NG_UNKNOWN;
     }
 
-    printf("STAR_ADDRESS_CMDBUFFER read result : %02x %02x %02x %02x\n", read_data[0], read_data[1], read_data[2], read_data[3]);
+    TDRV_ERR("STAR_ADDRESS_CMDBUFFER read result : %02x %02x %02x %02x\n", read_data[0], read_data[1], read_data[2], read_data[3]);
 
     if ((read_data[0] != 0xAF) || (read_data[1] != 0xFE) || (read_data[2] != 0x42) || (read_data[3] != 0x00))
     {
@@ -2080,12 +2116,12 @@ int star_open(stTUNER_DRV_CONFIG_t type)
 
     if (tunerStatus != RET_SUCCESS)
     {
-        printf("TUN_Download_CustomizedCoeffs fail\n");
+        TDRV_ERR("TUN_Download_CustomizedCoeffs fail\n");
         return eRET_NG_UNKNOWN;
     }
     else
     {
-        printf("CustomizedCoeffs has been successfully downloaded.\n");
+        TDRV_ERR("CustomizedCoeffs has been successfully downloaded.\n");
     }
 
     // BB SAI setting
@@ -2095,12 +2131,12 @@ int star_open(stTUNER_DRV_CONFIG_t type)
 
     if (tunerStatus != RET_SUCCESS)
     {
-        printf("BB SAI setup fail. (%d)\n", tunerStatus);
+        TDRV_ERR("BB SAI setup fail. (%d)\n", tunerStatus);
         return eRET_NG_UNKNOWN;
     }
     else
     {
-        printf("BB SAI setup is complete.\n");
+        TDRV_ERR("BB SAI setup is complete.\n");
     }
 
     // set BB IF
@@ -2110,12 +2146,12 @@ int star_open(stTUNER_DRV_CONFIG_t type)
 
     if (tunerStatus != RET_SUCCESS)
     {
-        printf("BB IF setup fail. (%d)\n", tunerStatus);
+        TDRV_ERR("BB IF setup fail. (%d)\n", tunerStatus);
         return eRET_NG_UNKNOWN;
     }
     else
     {
-        printf("BB IF setup is complete.\n");
+        TDRV_ERR("BB IF setup is complete.\n");
     }
 
     // set Audio IF
@@ -2125,12 +2161,12 @@ int star_open(stTUNER_DRV_CONFIG_t type)
 
     if (tunerStatus != RET_SUCCESS)
     {
-        printf("Audio IF setup fai.l (%d)\n", tunerStatus);
+        TDRV_ERR("Audio IF setup fai.l (%d)\n", tunerStatus);
         return eRET_NG_UNKNOWN;
     }
     else
     {
-        printf("Audio IF setup is complete.\n");
+        TDRV_ERR("Audio IF setup is complete.\n");
     }
 
     // initial tune
@@ -2139,12 +2175,12 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     
     if (tunerStatus != RET_SUCCESS)
     {
-        printf("initial tune fail. (%d)\n", tunerStatus);
+        TDRV_ERR("initial tune fail. (%d)\n", tunerStatus);
         return eRET_NG_UNKNOWN;
     }
     else
     {
-        printf("initial tune success.\n");
+        TDRV_ERR("initial tune success.\n");
         return eRET_OK;
     }
 }
@@ -2220,24 +2256,24 @@ int star_rds_read(unsigned int ntuner, RDS_Buffer *rds_buff_words)
 #if 0
             if ((rds_buff_words->validBlockNum != 4) && (rds_buff_words->validBlockNum != 8))
             {
-                printf("[%s] validBlockNum = %d[%d]\n", __func__, rds_buff_words->validBlockNum, RDS_NORMALMODE_NRQST);
+                TDRV_ERR("[%s] validBlockNum = %d[%d]\n", __func__, rds_buff_words->validBlockNum, RDS_NORMALMODE_NRQST);
             }
 #else
-            printf("[%s] validBlockNum = %d[%d]\n", __func__, rds_buff_words->validBlockNum, RDS_NORMALMODE_NRQST);
+            TDRV_ERR("[%s] validBlockNum = %d[%d]\n", __func__, rds_buff_words->validBlockNum, RDS_NORMALMODE_NRQST);
 
             for (int aaa = 0; aaa < rds_buff_words->validBlockNum; aaa ++)
             {
-                printf("aaa = %d, buffer header = %02x, BLOCKID = %x, DATA_H = %02x, DATA_L = %02x .\n",
+                TDRV_ERR("aaa = %d, buffer header = %02x, BLOCKID = %x, DATA_H = %02x, DATA_L = %02x .\n",
                         aaa, rds_buff_words->blockdata[aaa * 3], (rds_buff_words->blockdata[aaa * 3] & 0x03),
                         rds_buff_words->blockdata[(aaa * 3) + 1], rds_buff_words->blockdata[(aaa * 3) + 2]);
             }
 
-            printf("\n\n");
+            TDRV_ERR("\n\n");
 #endif
         }
         else
         {
-            printf("[%s] RDS data not ready.\n", __func__);
+            TDRV_ERR("[%s] RDS data not ready.\n", __func__);
         }
         return eRET_OK;
     }

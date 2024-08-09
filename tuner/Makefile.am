@@ -51,6 +51,7 @@ libtda770xdriver_la_CPPFLAGS = \
 	-I$(TOP)/src/star
 
 libtda770xdriver_la_SOURCES = \
+	src/DMBLog.c \
 	src/star/star_gpio.c \
 	src/star/star_i2c.c \
 	src/star/star_protocol.c \
@@ -58,6 +59,9 @@ libtda770xdriver_la_SOURCES = \
 
 libtda770xdriver_la_LIBADD = \
 	-ltcradioperi
+
+libtda770xdriver_la_LIBADD += \
+	-ldlt
 
 libtda770xdriver_la_LDFLAGS = \
 	-version-number 2:0:0 \
@@ -81,6 +85,7 @@ libmax2175driver_la_LDFLAGS = \
 	-shared
 
 include_HEADERS = \
+	$(TOP)/src/DMBLog.c \
 	$(TOP)/src/si479xx/si479xx_core.h \
 	$(TOP)/src/x0tuner/x0tuner_core.h \
 	$(TOP)/src/max2175/max2175_core.h \

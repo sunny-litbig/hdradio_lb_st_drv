@@ -26,6 +26,39 @@
 #include "star_public.h"
 #include "star_protocol.h"
 
+#include "DMBLog.h"
+
+#ifdef __ANDROID__
+
+#define TPROC_TAG			("[TUNER][PROTOCOL]")
+#define TPROC_ERR(...)		(__android_log_print(ANDROID_LOG_ERROR,TPROC_TAG, __VA_ARGS__))
+#define TPROC_INF(...)		(__android_log_print(ANDROID_LOG_INFO,TPROC_TAG, __VA_ARGS__))
+#define TPROC_WRN(...)		(__android_log_print(ANDROID_LOG_WARN,TPROC_TAG, __VA_ARGS__))
+#ifdef TUNER_PROT_DEBUG
+#define TPROC_DBG(...)		(__android_log_print(ANDROID_LOG_DEBUG,TPROC_TAG, __VA_ARGS__))
+#else
+#define	TPROC_DBG(...)
+#endif
+
+#else // #ifdef __ANDROID__
+
+// #define TPROC_ERR(...)		((void)printf("[ERROR][TUNER][PROTOCOL]: " __VA_ARGS__))
+// #define TPROC_INF(...)		((void)printf("[INFO][TUNER][PROTOCOL]: " __VA_ARGS__))
+// #define TPROC_WRN(...)		((void)printf("[WARN][TUNER][PROTOCOL]: " __VA_ARGS__))
+// #define TPROC_DBG(...)		((void)printf("[DEBUG][TUNER][PROTOCOL]: " __VA_ARGS__))
+#define TPROC_ERR(...)		((void)LB_PRINTF("[ERROR][TUNER][PROTOCOL]: " __VA_ARGS__))
+#define TPROC_INF(...)		((void)LB_PRINTF("[INFO][TUNER][PROTOCOL]: " __VA_ARGS__))
+#define TPROC_WRN(...)		((void)LB_PRINTF("[WARN][TUNER][PROTOCOL]: " __VA_ARGS__))
+#ifdef TUNER_PROT_DEBUG
+#define TPROC_DBG(...)		((void)LB_PRINTF("[DEBUG][TUNER][PROTOCOL]: " __VA_ARGS__))
+#else
+#define	TPROC_DBG(...)
+#endif
+
+#endif // #ifdef __ANDROID__
+
+#define TRACE_STAR_CMD_PROTOCOL
+
 /*************************************************************************************
 Function        : Command_CalculateCheckSum
 Description    : Calculate the checksum for command access, and set CheckSum, as it's command usage,
@@ -137,7 +170,7 @@ static Tun_Status Command_GetAnswer(int deviceAddress, int ansParamNum, tU8 *pAn
     int  ret = 0;
     
 #ifdef TRACE_STAR_CMD_PROTOCOL
-    PRINTF("ansParamNum:%d, bGetAnswerSizeFromHeader:%d", ansParamNum, bGetAnswerSizeFromHeader);
+    TPROC_ERR("ansParamNum:%d, bGetAnswerSizeFromHeader:%d", ansParamNum, bGetAnswerSizeFromHeader);
 #endif
 
     if (bGetAnswerSizeFromHeader)
@@ -211,7 +244,7 @@ Tun_Status Star_Command_Communicate(int deviceAddress, tU8 cmdID, int paramNum, 
     tunerStatus = Command_Send(deviceAddress, cmdID, paramNum, pCmdData);
     
 #ifdef TRACE_STAR_CMD_PROTOCOL
-    PRINTF("Command_Send = %s, cmdID = %d, paramNum = %d, ansParamNum = %d, GetAnswerSizeFromHeader = %d", RetStatusName[tunerStatus].Name, cmdID, paramNum, ansParamNum, bGetAnswerSizeFromHeader);
+    TPROC_ERR("Command_Send = %d, cmdID = %d, paramNum = %d, ansParamNum = %d, GetAnswerSizeFromHeader = %d", tunerStatus, cmdID, paramNum, ansParamNum, bGetAnswerSizeFromHeader);
 #endif
 
     if (tunerStatus == RET_SUCCESS)
@@ -221,7 +254,7 @@ Tun_Status Star_Command_Communicate(int deviceAddress, tU8 cmdID, int paramNum, 
         tunerStatus = Command_GetAnswer(deviceAddress, ansParamNum, pAnswer, bGetAnswerSizeFromHeader, pAnswerParamNum);
         
 #ifdef TRACE_STAR_CMD_PROTOCOL
-        PRINTF("Command_GetAnswer = %s, *pAnswerParamNum = %d", RetStatusName[tunerStatus].Name, *pAnswerParamNum);
+        TPROC_ERR("Command_GetAnswer = %d, *pAnswerParamNum = %d", tunerStatus, *pAnswerParamNum);
 #endif
         
         if (tunerStatus == RET_SUCCESS) 
@@ -286,7 +319,7 @@ Tun_Status Star_I2C_Direct_Write(int deviceAddress, tU32 regAddress, tU8 *pData,
 #endif
 
 #ifdef TRACE_STAR_CMD_PROTOCOL
-    PRINTF("i2c_writing = %d, dataBuffer = 0x%02x%02x%02x ~~, regAddress = 0x%06x, size = %d", ret, dataBuffer[0], dataBuffer[1], dataBuffer[2], regAddress, dataSize);
+    TPROC_ERR("i2c_writing = %d, dataBuffer = 0x%02x%02x%02x ~~, regAddress = 0x%06x, size = %d", ret, dataBuffer[0], dataBuffer[1], dataBuffer[2], regAddress, dataSize);
 #endif
 
     if (ret >= 0) tunerStatus = RET_SUCCESS;
@@ -326,7 +359,7 @@ Tun_Status Star_I2C_Direct_Read(int deviceAddress, tU32 regAddress, tU8* pData, 
 #endif
 
 #ifdef TRACE_STAR_CMD_PROTOCOL
-    PRINTF("i2c_reading = %d, write buffer = 0x%02x%02x%02x, read out data size = %d, out data = 0x%02x%02x%02x%02x", ret, dataBuffer[0], dataBuffer[1], dataBuffer[2], dataSize, *pData, *(pData + 1), *(pData + 2), *(pData + 3));
+    TPROC_ERR("i2c_reading = %d, write buffer = 0x%02x%02x%02x, read out data size = %d, out data = 0x%02x%02x%02x%02x", ret, dataBuffer[0], dataBuffer[1], dataBuffer[2], dataSize, *pData, *(pData + 1), *(pData + 2), *(pData + 3));
 #endif
 
     if (ret >= 0) tunerStatus = RET_SUCCESS;
