@@ -1884,9 +1884,11 @@ static HDRET tchdrbbinput_setTuneMain(stTCHDR_TUNE_t inputTune, S32 fChgBand, S3
 		}
 	}
 	else if((fChgFreq > 0) || (fChgSR > 0)) {
-		if(fChgSR > 0) {
+// temporary use to LGE ccnc
+		// if(fChgSR > 0) {
 			(void)tchdrbbinput_resetIqDrvAndBbinputSetting(eTC_HDR_ID_MAIN, inputTune);
-		}
+		// }
+// ~temporary use to LGE ccnc
 	    ret = tchdrbbinput_setReacquire(&frameworkData->hdrInstance[0]);
 		if(ret != (HDRET)eTC_HDR_RET_OK) {
 			ret = (HDRET)eTC_HDR_RET_NG_RSC;
@@ -2955,7 +2957,7 @@ static S32 tchdr_readAudioInputProcess(S16 *anaAudioInBuffer, S16 * anaAudioOutB
 		#else
 			ret = (*stCircFunc.cb_write)(&analogAudioBuffer, (void*)anaAudioOutBuffer, (U32)ret);
 			if(ret < 0) {
-				(*pfnHdrLog)(eTAG_AIN, eLOG_ERR, "Analog audio(FM/AM) input buffer overrun! Please check tuner audio I2S sample rate.\n");
+				(*pfnHdrLog)(eTAG_AIN, eLOG_ERR, "Analog audio(FM/AM) input buffer overrun! Please check tuner audio I2S sample rate..\n");
 			}
 		#endif
 		}
