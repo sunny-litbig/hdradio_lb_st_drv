@@ -33,3 +33,4 @@ cscope.*
 mkscope.sh
 tags
 *.swp
+.vscode

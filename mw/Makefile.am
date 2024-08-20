@@ -19,6 +19,7 @@ libtcradio_la_CPPFLAGS = \
 	-I$(TOP)/src/sound \
 	-I$(TOP)/src/rds \
 	-I$(TOP)/src/util \
+	-I$(TOP)/src/bg \
 	-I$(TOP)/src/hd
 
 libtcradio_la_SOURCES = \
@@ -29,6 +30,7 @@ libtcradio_la_SOURCES = \
 	src/service/tcradio_service.c \
 	src/hd/tcradio_hdr_if.c \
 	src/sound/tcradio_sound.c \
+	src/bg/tcradio_bg.c \
 	src/rds/tcradio_rds.c \
 	src/rds/tcradio_rds_if.c \
 	src/rds/tcradio_rds_sync.c \

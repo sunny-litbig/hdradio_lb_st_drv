@@ -52,6 +52,7 @@ Agreement between Telechips and Company.
 #include "tcradio_sound.h"
 #include "tcradio_rds_api.h"
 #include "tcradio_rds_def.h"
+#include "tcradio_bg.h"
 
 #define __GET_DIV_4BYTE(X)		(int32)(((X)[3] << 24) | ((X)[2] << 16) | ((X)[1] << 8) | (X)[0])
 #define __GET_DIV_U4BYTE(X)		(uint32)(((X)[3] << 24) | ((X)[2] << 16) | ((X)[1] << 8) | (X)[0])
@@ -144,6 +145,10 @@ RET tcradio_init(void)
 		RSRV_ERR("[%s:%d] Failed to init TcRadio middleware!!!\n", __func__, __LINE__);
 	}
 
+	if(ret == eRET_OK) {
+		ret = tcradiobg_init();
+	}
+
 	return ret;
 }
 
@@ -153,6 +158,10 @@ RET tcradio_deinit(void)
 	if(ret == eRET_OK) {
 		ret = tcradioservice_sendMessage(eSENDER_ID_APP, eRADIO_CMD_DEINIT, pNULL, pNULL, (RET)NULL);
 		setRadioInitStatus(0);
+	}
+
+	if(ret == eRET_OK) {
+		ret = tcradiobg_sendMessage(eSENDER_ID_APP, eRADIO_BG_CMD_DEINIT, pNULL, pNULL, (RET)NULL);
 	}
 
 	return ret;
@@ -183,6 +192,14 @@ RET tcradio_open(stRADIO_CONFIG_t *config)
 			RSRV_WRN("[%s:%d] Already open radio\n", __func__, __LINE__);
 		}
 	}
+
+#if 1
+	if(ret == eRET_OK) {
+		tcradiobg_mutexLock();
+		ret = tcradiobg_sendMessageWithoutMutex(eSENDER_ID_APP, eRADIO_BG_CMD_OPEN, uiBuf, pNULL, (RET)NULL);
+		tcradiobg_mutexUnlock();
+	}
+#endif
 	return ret;
 }
 
@@ -192,6 +209,11 @@ RET tcradio_close(void)
 	if(ret == eRET_OK) {
 		ret = tcradioservice_close();
 	}
+
+	if(ret == eRET_OK) {
+		ret = tcradiobg_close();
+	}
+
 	return ret;
 }
 
@@ -295,6 +317,33 @@ RET tcradio_setSeek(eRADIO_SEEK_MODE_t seekcmd, uint32 *data)
 			ret = eRET_NG_INVALID_PARAM;
 		}
 		tcradioservice_mutexUnlock();
+	}
+	return ret;
+}
+
+RET tcradio_bgStart(eRADIO_MOD_MODE_t mod_mode)
+{
+	RET ret = checkRadioOpenStatus();
+	uint32 uiBuf[MSGQ_DATA_LENGTH]={0,};
+	if(ret == eRET_OK) {
+		tcradiobg_mutexLock();
+		uiBuf[0] = (uint32)eRADIO_SEEK_SCAN_STATION;
+		uiBuf[1] = (uint32)mod_mode;
+		ret = tcradiobg_sendMessageWithoutMutex(eSENDER_ID_APP, eRADIO_BG_CMD_START, uiBuf, pNULL, (RET)NULL);
+		tcradiobg_mutexUnlock();
+	}
+	return ret;
+}
+
+RET tcradio_bgStop(void)
+{
+	RET ret = checkRadioOpenStatus();
+	uint32 uiBuf[MSGQ_DATA_LENGTH]={0,};
+	if(ret == eRET_OK) {
+		tcradiobg_mutexLock();
+		uiBuf[0] = (uint32)eRADIO_SEEK_STOP;
+		ret = tcradiobg_sendMessageWithoutMutex(eSENDER_ID_APP, eRADIO_BG_CMD_STOP, uiBuf, pNULL, (RET)NULL);
+		tcradiobg_mutexUnlock();
 	}
 	return ret;
 }

@@ -61,6 +61,9 @@ stMsgQueue_t *pstRadioDataSystemMsgQ;
 pthread_mutex_t gpRadioSoundMsgQSema = PTHREAD_MUTEX_INITIALIZER;
 stMsgQueue_t *pstRadioSoundMsgQ;
 
+pthread_mutex_t gpRadioBGMsgQSema = PTHREAD_MUTEX_INITIALIZER;
+stMsgQueue_t *pstRadioBGMsgQ;
+
 /***************************************************
 *       Imported variable declarations             *
 ****************************************************/
@@ -219,6 +222,32 @@ static void tcradiosound_messageQueueDeinit(void)
 	pstRadioSoundMsgQ = NULL;
 }
 
+/////////////////////////////// Radio background sacn ///////////////////////////////////////
+static RET tcradiobg_messageQueueInit(void)
+{
+	RET ret = eRET_OK;
+    
+    RSRV_DBG("[%s] \n", __func__);
+
+	pstRadioBGMsgQ = (stMsgQueue_t *)tcradio_malloc(sizeof(stMsgQueue_t));
+	if(pstRadioBGMsgQ != NULL) {
+		tcradio_memset(pstRadioBGMsgQ, 0x00, sizeof(stMsgQueue_t));
+	}
+	else {
+		RSRV_ERR("[%s:%d] Service message queue malloc fail!\n", __func__, __LINE__);
+		ret = eRET_NG_MALLOC;
+	}
+	return ret;
+}
+
+static void tcradiobg_messageQueueDeinit(void)
+{
+	if(pstRadioBGMsgQ != NULL) {
+		tcradio_free(pstRadioBGMsgQ);
+	}
+	pstRadioBGMsgQ = NULL;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*	Radio Message Queue API																					*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -314,6 +343,35 @@ RET tcradiosound_messageDeinit(void)
 	RET ret = eRET_OK;
 	tcradio_mutexDeinit(&gpRadioSoundMsgQSema);
 	tcradiosound_messageQueueDeinit();
+	return ret;
+}
+
+RET tcradiobg_messageInit(void)
+{
+	RET ret = eRET_OK;
+    
+    RSRV_DBG("[%s] \n", __func__);
+
+	ret = tcradio_mutexInit(&gpRadioBGMsgQSema);
+	if(ret != eRET_OK) {
+		RSRV_ERR("[%s:%d] Can't create radio BG Scan mutex member!!! mutex fail!\n", __func__, __LINE__);
+		return ret;
+	}
+
+	ret = tcradiobg_messageQueueInit();
+	if(ret != eRET_OK) {
+		RSRV_ERR("[%s:%d] tcradiobg_messageQueueInit() fail!\n", __func__, __LINE__);
+		return ret;
+	}
+
+	return ret;
+}
+
+RET tcradiobg_messageDeinit(void)
+{
+	RET ret = eRET_OK;
+	tcradio_mutexDeinit(&gpRadioBGMsgQSema);
+	tcradiobg_messageQueueDeinit();
 	return ret;
 }
 
@@ -663,3 +721,115 @@ RET tcradiosound_getMessage(stMsgBuf_t *pstRsvMsgBuf)
 	return ret;
 }
 
+/////////////////////////////// Radio background scan ///////////////////////////////////////
+void tcradiobg_mutexLock(void)
+{
+	pthread_mutex_lock(&gpRadioBGMsgQSema);
+}
+
+void tcradiobg_mutexUnlock(void)
+{
+	pthread_mutex_unlock(&gpRadioBGMsgQSema);
+}
+
+RET tcradiobg_sendMessage(eSENDER_ID_t eSenderID, uint32 uiMode, uint32 *uiData, void *pData, int32 iError)
+{
+	RET ret = eRET_OK;
+	stMsgQueue_t *pstSendMsg;
+
+	if(pstRadioBGMsgQ == NULL) {
+		return eRET_NG_NOT_SUPPORT;
+	}
+
+	tcradiobg_mutexLock();
+	pstSendMsg = pstRadioBGMsgQ;
+	pstSendMsg->msg[pstSendMsg->wp].uiSender = (uint32)eSenderID;
+	pstSendMsg->msg[pstSendMsg->wp].fNewMsg = (uint32)eNEW_MSG_EXIST;
+	pstSendMsg->msg[pstSendMsg->wp].uiMode = uiMode;
+	pstSendMsg->msg[pstSendMsg->wp].iError = iError;
+	if(uiData != NULL) {
+		tcradio_memcpy(pstSendMsg->msg[pstSendMsg->wp].uiData, uiData, MSGQ_DATA_LENGTH*sizeof(uint32));
+	}
+	else {
+		tcradio_memset(pstSendMsg->msg[pstSendMsg->wp].uiData, 0, MSGQ_DATA_LENGTH*sizeof(uint32));
+	}
+
+	if(pData != NULL) {
+		tcradio_memcpy(pstSendMsg->msg[pstSendMsg->wp].pData, pData, MSGQ_PDATA_LENGTH*sizeof(void*));
+	}
+	else {
+		tcradio_memset(pstSendMsg->msg[pstSendMsg->wp].pData, 0, MSGQ_PDATA_LENGTH*sizeof(void*));
+	}
+
+	if(++pstSendMsg->wp >= MSGQ_SIZE) {
+		pstSendMsg->wp = 0;
+	}
+	tcradiobg_mutexUnlock();
+
+	return ret;
+}
+
+RET tcradiobg_getMessage(stMsgBuf_t *pstRsvMsgBuf)
+{
+	RET ret = eRET_OK;
+	stMsgQueue_t *pstSendMsg;
+
+	if(pstRsvMsgBuf == NULL) {
+		ret = eRET_NG_INVALID_PARAM;
+	}
+
+	if(pstRadioBGMsgQ == NULL) {
+		ret = eRET_NG_NOT_SUPPORT;
+	}
+
+	if(ret == eRET_OK) {
+		tcradiobg_mutexLock();
+		pstRsvMsgBuf->fNewMsg = eNEW_MSG_NULL;
+		pstSendMsg = pstRadioBGMsgQ;
+		if(pstSendMsg->wp != pstSendMsg->rp) {
+			tcradio_memcpy(pstRsvMsgBuf, &pstSendMsg->msg[pstSendMsg->rp], sizeof(stMsgBuf_t));
+			pstSendMsg->msg[pstSendMsg->rp].fNewMsg = eNEW_MSG_NULL;
+			if(++pstSendMsg->rp >= MSGQ_SIZE) {
+				pstSendMsg->rp = 0;
+			}
+		}
+		tcradiobg_mutexUnlock();
+	}
+
+	return ret;
+}
+
+RET tcradiobg_sendMessageWithoutMutex(eSENDER_ID_t eSenderID, uint32 uiMode, uint32 *uiData, void *pData, int32 iError)
+{
+	RET ret = eRET_OK;
+	stMsgQueue_t *pstSendMsg;
+
+	if(pstRadioBGMsgQ == NULL) {
+		return eRET_NG_NOT_SUPPORT;
+	}
+
+	pstSendMsg = pstRadioBGMsgQ;
+	pstSendMsg->msg[pstSendMsg->wp].uiSender = (uint32)eSenderID;
+	pstSendMsg->msg[pstSendMsg->wp].fNewMsg = (uint32)eNEW_MSG_EXIST;
+	pstSendMsg->msg[pstSendMsg->wp].uiMode = uiMode;
+	pstSendMsg->msg[pstSendMsg->wp].iError = iError;
+	if(uiData != NULL) {
+		tcradio_memcpy(pstSendMsg->msg[pstSendMsg->wp].uiData, uiData, MSGQ_DATA_LENGTH*sizeof(uint32));
+	}
+	else {
+		tcradio_memset(pstSendMsg->msg[pstSendMsg->wp].uiData, 0, MSGQ_DATA_LENGTH*sizeof(uint32));
+	}
+
+	if(pData != NULL) {
+		tcradio_memcpy(pstSendMsg->msg[pstSendMsg->wp].pData, pData, MSGQ_PDATA_LENGTH*sizeof(void*));
+	}
+	else {
+		tcradio_memset(pstSendMsg->msg[pstSendMsg->wp].pData, 0, MSGQ_PDATA_LENGTH*sizeof(void*));
+	}
+
+	if(++pstSendMsg->wp >= MSGQ_SIZE) {
+		pstSendMsg->wp = 0;
+	}
+
+	return ret;
+}

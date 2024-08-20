@@ -63,6 +63,7 @@ typedef enum{
    	eSENDER_ID_SERVICE	= 2,	/* RADIO SERVICE */
 	eSENDER_ID_RDS		= 3,	/* RADIO DATA SYSTEM (RDS)*/
    	eSENDER_ID_SOUND	= 4,	/* RADIO SOUND */
+   	eSENDER_ID_BG	    = 5,	/* RADIO Background Scan */
    	eSENDER_ID_END
 }eSENDER_ID_t;
 
@@ -119,6 +120,13 @@ extern void tcradiosound_mutexUnlock(void);
 extern RET tcradiosound_sendMessage(eSENDER_ID_t eSenderID, uint32 uiMode, uint32 *uiData, void *pData, int32 iError);
 extern RET tcradiosound_getMessage(stMsgBuf_t *pstRsvMsgBuf);
 
+extern RET tcradiobg_messageInit(void);
+extern RET tcradiobg_messageDeinit(void);
+extern void tcradiobg_mutexLock(void);
+extern void tcradiobg_mutexUnlock(void);
+extern RET tcradiobg_sendMessage(eSENDER_ID_t eSenderID, uint32 uiMode, uint32 *uiData, void *pData, int32 iError);
+extern RET tcradiobg_sendMessageWithoutMutex(eSENDER_ID_t eSenderID, uint32 uiMode, uint32 *uiData, void *pData, int32 iError);
+extern RET tcradiobg_getMessage(stMsgBuf_t *pstRsvMsgBuf);
 #ifdef __cplusplus
 }
 #endif
