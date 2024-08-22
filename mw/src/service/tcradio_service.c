@@ -1516,6 +1516,8 @@ static void tcradioservice_seekHandler(void)
 			uiSendMsg[1] = stRadioService.curFreq;
 			uiSendMsg[2] = tcradioservice_getSeekMode();
 			uiSendMsg[3] = stRadioService.curSeekResult;
+			uiSendMsg[4] = fStationListTx;
+			uiSendMsg[5] = 0;   // Service Scan Result --> 0
 			tcradioapp_sendMessage(eSENDER_ID_SERVICE, eRADIO_NOTIFY_SEEK_MODE, uiSendMsg, pNULL, ret);
 			break;
 
