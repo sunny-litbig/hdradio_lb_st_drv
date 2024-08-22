@@ -1366,7 +1366,7 @@ Tun_Status TUN_Change_Frequency (tU8 deviceAddress, int channelID, tU32 frequenc
 
 #ifdef TRACE_STAR_CMD_TUNE                
     //PRINTF("Star_Command_Communicate = %s, frequency = %d, deviceAddr = 0x%02x", RetStatusName[tunerStatus].Name, frequency, deviceAddress);
-    TDRV_ERR("[%s] Star_Command_Communicate = %d, channelID = %d, frequency = %d \n", __func__, tunerStatus, channelID, frequency);
+    TDRV_DBG("[%s] Star_Command_Communicate = %d, channelID = %d, frequency = %d \n", __func__, tunerStatus, channelID, frequency);
 #endif
 
     return tunerStatus;
@@ -1930,7 +1930,7 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
 
     (void)tune_mode;
 
-    TDRV_ERR("[%s:%d] mod_mode[%d], freq[%d], tune_mode[%d], star_drv_current_band[%d] : %d\n", __func__, __LINE__
+    TDRV_DBG("[%s:%d] mod_mode[%d], freq[%d], tune_mode[%d], star_drv_current_band[%d] : %d\n", __func__, __LINE__
             , mod_mode, freq, tune_mode, ntuner, star_drv_current_band[ntuner]);
     if (mod_mode > eTUNER_DRV_AM_MODE)
         return eRET_NG_UNKNOWN;
@@ -1954,7 +1954,7 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
 
     if (tunerStatus == RET_SUCCESS) {
         tunerStatus = TUN_Change_Frequency(I2C_SLAVE_ADDRESS, channelID, freq);
-        TDRV_ERR("[%s:%d] TUN_Change_Frequency(0x%x, %d, %d) returns : %d\n", __func__, __LINE__, I2C_SLAVE_ADDRESS, channelID, freq, tunerStatus);
+        TDRV_DBG("[%s:%d] TUN_Change_Frequency(0x%x, %d, %d) returns : %d\n", __func__, __LINE__, I2C_SLAVE_ADDRESS, channelID, freq, tunerStatus);
     }
 
     if (tunerStatus == RET_SUCCESS)

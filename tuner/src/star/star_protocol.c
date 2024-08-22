@@ -57,7 +57,7 @@
 
 #endif // #ifdef __ANDROID__
 
-#define TRACE_STAR_CMD_PROTOCOL
+// #define TRACE_STAR_CMD_PROTOCOL
 
 /*************************************************************************************
 Function        : Command_CalculateCheckSum

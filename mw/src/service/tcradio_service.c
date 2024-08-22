@@ -1041,7 +1041,7 @@ void tcradioservice_callbackAppFunction(stMsgBuf_t *pstMsg)
                         }
                         else
                         {
-                            RBG_DBG("[%s] StationListCallBack : tcradio_bg \n", __func__);
+                            RBG_DBG("[%s] StationListCallBack : tcradio_bg stRadioBG.curBGResult %d \n", __func__, stRadioBG.curBGResult);
 						    (*pfnOnGetStationListCallBack)(stRadioBG.curBGResult, (void *)_stBGStationList,pstMsg->iError);
                         }
                     }
