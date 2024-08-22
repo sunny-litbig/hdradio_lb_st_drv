@@ -51,6 +51,7 @@ Agreement between Telechips and Company.
 #include "tcradio_rds_api.h"
 #include "tcradio_rds_def.h"
 #include "tcradio_msgq.h"
+#include "tcradio_bg.h"
 #ifdef USE_HDRADIO
 #include "tcradio_hdr_if.h"
 #endif
@@ -1011,6 +1012,7 @@ void tcradioservice_callbackAppFunction(stMsgBuf_t *pstMsg)
 		case eRADIO_HD_NOTIFY_SIGNAL_STATUS:
 		case eRADIO_HD_NOTIFY_PTY:
 		case eRADIO_HD_NOTIFY_LOT:
+#if 0
 			if(pfnOnGetNotificationCallBack) {
 				if(fStationListTx && pstMsg->uiMode == eRADIO_NOTIFY_SEEK_MODE) {
 					fStationListTx = 0;
@@ -1023,6 +1025,29 @@ void tcradioservice_callbackAppFunction(stMsgBuf_t *pstMsg)
 					(*pfnOnGetNotificationCallBack)(pstMsg->uiMode, pstMsg->uiData, pstMsg->pData, pstMsg->iError);
 				}
 			}
+#else
+			if(pfnOnGetNotificationCallBack) 
+            {
+				(*pfnOnGetNotificationCallBack)(pstMsg->uiMode, pstMsg->uiData, pstMsg->pData, pstMsg->iError);
+
+                if((pstMsg->uiData[4] == 1) && pstMsg->uiMode == eRADIO_NOTIFY_SEEK_MODE)
+                {
+                    if(pfnOnGetStationListCallBack)
+                    {
+                        if((pstMsg->uiData[5] == 0))
+                        {
+                            RBG_DBG("[%s] StationListCallBack : tcradio_service \n", __func__);
+						    (*pfnOnGetStationListCallBack)(uiStationListCounter, (void *)_stStationList,pstMsg->iError);
+                        }
+                        else
+                        {
+                            RBG_DBG("[%s] StationListCallBack : tcradio_bg \n", __func__);
+						    (*pfnOnGetStationListCallBack)(stRadioBG.curBGResult, (void *)_stBGStationList,pstMsg->iError);
+                        }
+                    }
+                }
+            }
+#endif
 			else {
 				RSRV_DBG("Error : Not registered the notification call-back function !!!\n");
 			}

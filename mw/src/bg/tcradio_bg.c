@@ -60,7 +60,7 @@ static pthread_t bgMainThreadID = (pthread_t)NULL;
 uint32 uiBGStateCnt = 0;
 uint32 uiBGRestartCnt = 0;
 
-uint32 BGfStationListTx = 0;
+uint32 fBGStationListTx = 0;
 uint32 uiBGStationListCounter = 0;
 stRADIO_LIST_t _stBGStationList[_AmFmDBSize];
 
@@ -107,13 +107,8 @@ void *tcradiobg_mainThread(void *arg);
 static void tcradiobg_stateHandler(void);
 int32 tcradiobg_checkValidFreqAccordingToConfig(eRADIO_MOD_MODE_t mod_mode, uint32 freq);
 RET tcradiobg_checkValidBandFreqConfig(eRADIO_MOD_MODE_t mod_mode, uint32 start_freq, uint32  end_freq, uint32 step);
-void tcradiobg_appNotifyHandler(void);
 void tcradiobg_appMessageParser(stMsgBuf_t *pstMsg);
-void tcradiobg_callbackAppFunction(stMsgBuf_t *pstMsg);
 
-#if 0
-int32 tcradiobg_isSeeking(void);
-#endif
 /***************************************************
 *			function definition				*
 ****************************************************/
@@ -206,9 +201,6 @@ void tcradiobg_initVariable(void)
 
 RET tcradiobg_checkConfig(stRADIO_CONFIG_t *config)
 {
-    
-    RBG_DBG("[%s] \n", __func__);
-
 	RET ret = eRET_OK;
 	if ( (config->numTuners != 1 && config->numTuners != 2 && config->numTuners != 3 && config->numTuners != 4) ||
 	   (config->fPhaseDiversity != 0 && config->fPhaseDiversity != 1) ||
@@ -274,7 +266,6 @@ void *tcradiobg_mainThread(void *arg)
 		}
         tcradiobg_eventHandler();		// Command Message Event Handler
 		tcradiobg_stateHandler();
-//		tcradiobg_appNotifyHandler();	// Application Notify Message Handler ( Notify Message -> Callback Function )
 		tcradio_mssleep(BG_THREAD_TIME_INTERVAL);
 	}
 
@@ -294,7 +285,6 @@ void tcradiobg_appMessageParser(stMsgBuf_t *pstMsg)
 	tcradio_memcpy(stBGRcvMsgQ.uiData, &pstMsg->uiData, MSGQ_DATA_LENGTH*sizeof(uint32));
 
 	switch((eRADIO_BG_CMD_t)pstMsg->uiMode) {
-	/* Radio */
 		case eRADIO_BG_CMD_OPEN:
             RBG_DBG("[%s] eRADIO_BG_CMD_OPEN \n", __func__);
 
@@ -497,9 +487,6 @@ static void tcradiobg_eventHandler(void)
 int32 tcradiobg_checkValidFreqAccordingToConfig(eRADIO_MOD_MODE_t mod_mode, uint32 freq)
 {
 	RET ret = 0;
-    
-    RBG_DBG("[%s] \n", __func__);
-
 
 	if(mod_mode == eRADIO_FM_MODE) {
 		if(freq < stRadioBG.fm.startFreq || freq > stRadioBG.fm.endFreq) {
@@ -531,9 +518,6 @@ int32 tcradiobg_checkValidFreqAccordingToConfig(eRADIO_MOD_MODE_t mod_mode, uint
 RET tcradiobg_checkValidFreq(eRADIO_MOD_MODE_t mod_mode, uint32 freq)
 {
 	RET ret = eRET_OK;
-    
-    RBG_DBG("[%s] \n", __func__);
-
 
 	if(mod_mode == eRADIO_FM_MODE) {
 		if(freq < 65000 || freq > 108000) {
@@ -555,9 +539,6 @@ RET tcradiobg_checkValidFreq(eRADIO_MOD_MODE_t mod_mode, uint32 freq)
 RET tcradiobg_checkValidBandFreqConfig(eRADIO_MOD_MODE_t mod_mode, uint32 start_freq, uint32  end_freq, uint32 step)
 {
 	RET ret = eRET_OK;
-    
-    RBG_DBG("[%s] \n", __func__);
-
 
 	if(mod_mode == eRADIO_FM_MODE) {
 		if( (tcradiobg_checkValidFreq(mod_mode, start_freq) != eRET_OK) ||
@@ -693,7 +674,6 @@ static void tcradiobg_stateHandler(void)
 			}
 
 			if(retValid == 0) {	// ok
-//				if(tcradiobg_isFmBand() != 0 || tcradiobg_isDabBand() != 0) {
 				if(tcradiobg_isFmBand() != 0) {
 					uiBGStateCnt = 90 / BG_THREAD_TIME_INTERVAL;
 				}
@@ -776,7 +756,7 @@ static void tcradiobg_stateHandler(void)
 
 		case eRADIO_BG_STATE_STOP:
 			if(tcradiobg_getSeekMode() == eRADIO_SEEK_SCAN_STATION) {
-				BGfStationListTx = 1;
+				fBGStationListTx = 1;
 			}
 			tcradiobg_stopSeek(1);
 			eRadioSt = eRADIO_BG_STS_OK_NOTIFY;
@@ -819,12 +799,14 @@ static void tcradiobg_stateHandler(void)
 
 		/* Job Good Complete -> Check Notify Case */
 		case eRADIO_BG_STS_OK_NOTIFY:
-#if 0
+#if 1
 			uiSendMsg[0] = stRadioBG.curBand;
 			uiSendMsg[1] = stRadioBG.curFreq;
 			uiSendMsg[2] = tcradiobg_getSeekMode();
 			uiSendMsg[3] = stRadioBG.curBGResult;
-			tcradioapp_sendMessage(eSENDER_ID_BG, eRADIO_NOTIFY_SEEK_MODE, uiSendMsg, pNULL, ret);
+			uiSendMsg[4] = fBGStationListTx;
+			uiSendMsg[5] = 1;   // BS Scan Result --> 1
+			tcradioapp_sendMessage(eSENDER_ID_SERVICE, eRADIO_NOTIFY_SEEK_MODE, uiSendMsg, pNULL, ret);
 #endif
 			tcradiobg_setState(eRadioBGState);
 
@@ -840,13 +822,6 @@ static void tcradiobg_stateHandler(void)
 		/* Job Continue -> Information Dynamic Notify */
 		case eRADIO_BG_STS_DOING_NOTIFY :
 			tcradiobg_setState(eRadioBGState);
-            #if 0
-			uiSendMsg[0] = stRadioBG.curBand;
-			uiSendMsg[1] = stRadioBG.curFreq;
-			uiSendMsg[2] = tcradiobg_getSeekMode();
-			tcradio_memcpy(uiSendMsg+3, &stRadioBG.stSchQdata, sizeof(stRadioBG.stSchQdata));
-			tcradioapp_sendMessage(eSENDER_ID_BG, eRADIO_NOTIFY_SEEK_MODE, uiSendMsg, pNULL, ret);
-            #endif
 			break;
 
 		/* Job Continue -> Error Notify */
@@ -858,50 +833,6 @@ static void tcradiobg_stateHandler(void)
 			break;
 
 		/* Return Error */
-		default:
-			break;
-	}
-}
-
-void tcradiobg_appNotifyHandler(void)
-{
-	int i;
-	stMsgBuf_t stRecivedMessage = {0,};
-
-	for(i=0; i<3; i++) {
-		tcradioapp_getMessage(&stRecivedMessage);
-		if(stRecivedMessage.fNewMsg == eNEW_MSG_EXIST) {
-			if(stRecivedMessage.uiSender == eSENDER_ID_BG) {
-				tcradiobg_callbackAppFunction(&stRecivedMessage);
-			}
-		}
-		else {
-			break;
-		}
-	}
-}
-
-void tcradiobg_callbackAppFunction(stMsgBuf_t *pstMsg)
-{
-	switch((eRADIO_NOTIFY_t)pstMsg->uiMode) {
-	    case eRADIO_NOTIFY_SEEK_MODE:
-			if(pfnOnGetNotificationCallBack) {
-				if(BGfStationListTx && pstMsg->uiMode == eRADIO_NOTIFY_SEEK_MODE) {
-					BGfStationListTx = 0;
-					(*pfnOnGetNotificationCallBack)(pstMsg->uiMode, pstMsg->uiData, pstMsg->pData, pstMsg->iError);
-					if(pfnOnGetStationListCallBack) {
-						(*pfnOnGetStationListCallBack)(uiBGStationListCounter, (void *)_stBGStationList,pstMsg->iError);
-					}
-				}
-				else {
-					(*pfnOnGetNotificationCallBack)(pstMsg->uiMode, pstMsg->uiData, pstMsg->pData, pstMsg->iError);
-				}
-			}
-			else {
-				RBG_DBG("Error : Not registered the notification call-back function !!!\n");
-			}
-			break;
-
 		default:
 			break;
 	}
@@ -1167,7 +1098,7 @@ void tcradiobg_initSeek(eRADIO_SEEK_MODE_t nextSeekMode)
 	}
 	else if(nextSeekMode < eRADIO_SEEK_END) {
 		if(nextSeekMode == eRADIO_SEEK_SCAN_STATION) {
-			BGfStationListTx = 0;
+			fBGStationListTx = 0;
 			uiBGStationListCounter = 0;
 		}
 		tcradiobg_setSeekMode(nextSeekMode);
@@ -1183,7 +1114,7 @@ void tcradiobg_initSeek(eRADIO_SEEK_MODE_t nextSeekMode)
 void tcradiobg_setValueBGRestart(void)
 {
     stRadioBG.curBGResult = 0;
-    BGfStationListTx = 0;
+    fBGStationListTx = 0;
     uiBGStationListCounter = 0;
 
     if (stRadioBG.curBand == eRADIO_FM_MODE)
@@ -1213,75 +1144,3 @@ int32 tcradiobg_isAmBand(void)
 		ret = 0;
 	return ret;
 }
-
-
-#if 0
-int32 tcradiobg_isSeeking(void)
-{
-	int32 ret = -1;
-	if(tcradiobg_getSeekMode() > eRADIO_SEEK_STOP && tcradiobg_getSeekMode() < eRADIO_SEEK_END)
-		ret = 0;
-	return ret;
-}
-
-RET tcradiobg_setBandFreqConfig(eRADIO_MOD_MODE_t mod_mode, uint32 start_freq, uint32  end_freq, uint32 step)
-{
-	RET ret = eRET_OK;
-    
-    RBG_DBG("[%s] \n", __func__);
-
-
-	if(tcradiobg_getSeekMode() > eRADIO_SEEK_STOP && tcradiobg_getSeekMode() < eRADIO_SEEK_END) {
-		ret = eRET_NG_BUSY;		// Seek Mode
-	}
-	else {
-		ret = tcradiobg_checkValidBandFreqConfig(mod_mode, start_freq, end_freq, step);
-		if(ret == eRET_OK) {
-			if(mod_mode == eRADIO_FM_MODE) {
-				stRadioBG.fm.startFreq = start_freq;
-				stRadioBG.fm.endFreq = end_freq;
-				stRadioBG.fm.step = step;
-			}
-			else if(mod_mode == eRADIO_AM_MODE) {
-				stRadioBG.am.startFreq = start_freq;
-				stRadioBG.am.endFreq = end_freq;
-				stRadioBG.am.step = step;
-			}
-			else {
-				ret = eRET_NG_INVALID_RESP;
-			}
-		}
-	}
-	return ret;
-}
-
-RET tcradiobg_getBandFreqConfig(eRADIO_MOD_MODE_t mod_mode, uint32 *start_freq, uint32 *end_freq, uint32 *step)
-{
-	RET ret = eRET_OK;
-    
-    RBG_DBG("[%s] \n", __func__);
-
-
-	if(mod_mode == eRADIO_FM_MODE) {
-		*start_freq = stRadioBG.fm.startFreq;
-		*end_freq = stRadioBG.fm.endFreq;
-		*step = stRadioBG.fm.step;
-	}
-	else if(mod_mode == eRADIO_AM_MODE) {
-		*start_freq = stRadioBG.am.startFreq;
-		*end_freq = stRadioBG.am.endFreq;
-		*step = stRadioBG.am.step;
-	}
-	else {
-		ret = eRET_NG_INVALID_PARAM;
-	}
-
-	return ret;
-}
-
-uint32 tcradiobg_getCurrentFrequency(void)
-{
-	return stRadioBG.curFreq;
-}
-#endif
-

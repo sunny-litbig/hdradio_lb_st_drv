@@ -185,9 +185,10 @@ typedef struct{
 /***************************************************
 *			Variable definitions				*
 ****************************************************/
-extern stRADIO_BG_t stBGService;
+extern stRADIO_BG_t stRadioBG;
 //extern stRADIO_CONFIG_t stTunerConfig;
 //extern uint32 scanPiList[128];
+extern stRADIO_LIST_t _stBGStationList[_AmFmDBSize];
 
 /***************************************************
 *			Function declaration				*
