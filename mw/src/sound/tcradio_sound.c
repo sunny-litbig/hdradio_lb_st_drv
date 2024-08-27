@@ -390,7 +390,8 @@ RET tcradiosound_setAudio(uint32 fPalyback)
 }
 
 RET tcradiosound_reset(void)
-{
+{
+
 	RET ret = eRET_OK;
 	uint32 faudio = tcradiosound_getPlayback();
 
@@ -526,6 +527,12 @@ static RET tcradiosound_playbackHandler(void)
 		#endif
 			if(pfnAoutWrite != NULL) {
 				(*pfnAoutWrite)(soundBuffer, frames);
+
+                if (aout1st_flag == 1)
+                {
+					RSND_DBG("1st. Audio Output \n");
+                    aout1st_flag = 0;
+                }
 			}
 		#ifdef DEBUG_TCRADIO_AUDIO_OUTPUT_AVAIL_DUMP
 			if(gAvailfile!=NULL) {
@@ -601,7 +608,8 @@ void *tcradiosound_mainThread(void *arg)
 	if(gOutAudfile!=NULL)	fclose(gOutAudfile);
 #endif
 	stRadioSound.fThreadRunning = 0;
-	tcradiosound_messageDeinit();
+	tcradiosound_messageDeinit();
+
 	tcradiohal_audiofifo_deinit(AUDIO_FIFO_NUM);
 	tcradio_exitThread(pNULL);
 

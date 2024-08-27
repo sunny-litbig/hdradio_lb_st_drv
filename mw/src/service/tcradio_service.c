@@ -88,6 +88,8 @@ stMsgBuf_t stRadioRcvMsgQ;
 uint32 scanPiList[128];
 stRDS_SCAN_t stScanPiFreq;
 
+int aout1st_flag;
+
 /***************************************************
 *       Imported variable declarations             *
 ****************************************************/
@@ -933,7 +935,8 @@ RET tcradioservice_setHdrTuneTo(eRADIO_MOD_MODE_t mod_mode, uint32 freq, uint32 
 		case eRADIO_CONF_TYPE_SINGLE:
 			if(ntuner > eRADIO_ID_PRIMARY) {
 				ret = eRET_NG_NOT_SUPPORT;
-			}
+			}
+
 			break;
 
 		case eRADIO_CONF_TYPE_DUAL:
@@ -1386,7 +1389,8 @@ static void tcradioservice_seekHandler(void)
 			}
 			else {
 				tcradiohal_getQuality(stRadioService.curBand, (stTUNER_QUALITY_t *)&stRadioService.stSchQdata, eRADIO_ID_PRIMARY);
-				if(tcradioservice_checkSignalQualityStatus(stRadioService.stSchQdata) == 0) {
+				if(tcradioservice_checkSignalQualityStatus(stRadioService.stSchQdata) == 0) {
+
 					eRadioSeekStep = eSEEK_STEP_CHK_QDATA;
 				}
 			}

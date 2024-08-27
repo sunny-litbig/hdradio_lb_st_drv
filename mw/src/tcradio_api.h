@@ -345,6 +345,7 @@ extern pfnOnGetRdsDataCallBack_t pfnOnGetRdsDataCallBack;
 extern pfnOnPrecheckSeekQual_t pfnOnPrecheckSeekQual;
 extern pfnOnCheckSeekQual_t pfnOnCheckSeekQual;
 
+extern int aout1st_flag;
 /***************************************************
 *			Function declaration				*
 ****************************************************/
