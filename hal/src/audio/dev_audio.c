@@ -155,6 +155,19 @@ RET dev_aout_open(stAUDIO_CONFIG_t params)
     SND_ERR("params: period_size %lu\n", ctl->period_size);
     SND_ERR("params: start_threshold %lu\n", ctl->start_threshold);
 
+#if 0 // FOR_PCM_DUMP LGE
+    FILE *file = fopen("/rw_data/app/appnaradio/snd_pcm_dump.log", "w");
+    static snd_output_t *output = NULL;
+    int err = snd_output_stdio_attach(&output, file, 1);
+    if (err < 0) {
+        printf("Output failed: %s\n", snd_strerror(err));
+        return 0;
+    }
+
+    snd_pcm_dump(ctl->h_alsa, output);
+    fclose(file);
+#endif
+
 error_alsa:
 
 #else	/* #ifdef TCC_AUDIO_DEVICE */
