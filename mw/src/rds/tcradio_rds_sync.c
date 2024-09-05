@@ -72,6 +72,23 @@ extern void tcrds_extractBlocks(uint8 block, uint8 block_h, uint8 block_l);
 /***************************************************
 *			function definition				*
 ****************************************************/
+
+#if 1
+void tcrds_fetchRdsDataHandler(void)
+{
+	uint8 tempbuf[20]={0,}, blerA, blerB, blerC, blerD;
+	uint32 i;
+	uint32 NumValidBlock = 0;
+
+	if(stRds.fEnable) {
+		if(++stRds.rdsFetchCounter >= (80 / RDS_THREAD_TIME_INTERVAL)) {	// 80ms		// 1 Group(A+B+C+D) = 104bits = about 87.6ms
+			tcradiohal_getRdsData(tempbuf, 0, &NumValidBlock);
+
+            stRds.rdsFetchCounter = 0;
+		}
+	}
+}
+#else
 void tcrds_fetchRdsDataHandler(void)
 {
 	uint8 tempbuf[20]={0,}, blerA, blerB, blerC, blerD;
@@ -79,7 +96,7 @@ void tcrds_fetchRdsDataHandler(void)
 
 	if(stRds.fEnable) {
 		if(++stRds.rdsFetchCounter >= (80 / RDS_THREAD_TIME_INTERVAL)) {	// 80ms		// 1 Group(A+B+C+D) = 104bits = about 87.6ms
-			tcradiohal_getRdsData(tempbuf, 0);
+			tcradiohal_getRdsData(tempbuf, 0, NULL);
 			if(tempbuf[6] > 0) {
 				blerA = (tempbuf[7]>>6)&0x03;
 				blerB = (tempbuf[7]>>4)&0x03;
@@ -143,4 +160,4 @@ void tcrds_fetchRdsDataHandler(void)
 		}
 	}
 }
-
+#endif

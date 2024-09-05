@@ -135,7 +135,7 @@ extern RET tcradiohal_setTune(uint32 mod_mode, uint32 freq, uint32 tune_mode, ui
 extern RET tcradiohal_getTune(uint32 *mod_mode, uint32 *freq, uint32 ntuner);
 extern RET tcradiohal_getQuality(uint32 mod_mode, stTUNER_QUALITY_t *qdata, uint32 ntuner);
 extern RET tcradiohal_setRdsConfig(uint32 fOnOff, uint32 reserved, uint32 ntuner);
-extern RET tcradiohal_getRdsData(uint8 *rdsbuf, uint32 ntuner);
+extern RET tcradiohal_getRdsData(uint8 *rdsbuf, uint32 ntuner, int32 *NumValidBlock);
 extern RET tcradiohal_setMute(uint32 fOnOff, uint32 ntuner);
 extern RET tcradiohal_spi_writeRead(uint8 *tx, uint8 *rx, uint32 len, uint32 cs);
 extern RET tcradiohal_i2c_write(uint8 addr, uint8 *tx, uint32 len);

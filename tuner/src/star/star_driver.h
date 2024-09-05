@@ -317,7 +317,7 @@ int star_open(stTUNER_DRV_CONFIG_t type);
 int star_close(void);
 int star_setIQTestPattern(unsigned int fOnOff, unsigned int sel);
 int star_rds_init(unsigned int ntuner);
-int star_rds_read(unsigned int ntuner, RDS_Buffer *rds_buff_words);
+int star_rds_read(unsigned int ntuner, tU8 *blockdata, int *NumValidBlock);
 
 #endif /* H_STAR_DRIVER */
 

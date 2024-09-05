@@ -532,7 +532,7 @@ RET tcradiohal_setRdsConfig(uint32 fOnOff, uint32 reserved, uint32 ntuner)
 		case eTUNER_IC_X0:	ret = eRET_NG_NO_RSC;			break;
 	#endif
 	#ifdef USE_T0_TUNER
-		case eTUNER_IC_T0:	ret = eRET_NG_NO_RSC;			break;
+		case eTUNER_IC_T0:	ret = star_rds_init(ntuner);			break;
 	#endif
 		default:			ret = eRET_NG_INVALID_PARAM;	break;
 	}
@@ -544,7 +544,7 @@ RET tcradiohal_setRdsConfig(uint32 fOnOff, uint32 reserved, uint32 ntuner)
 	return ret;
 }
 
-RET tcradiohal_getRdsData(uint8 *rdsbuf, uint32 ntuner)
+RET tcradiohal_getRdsData(uint8 *rdsbuf, uint32 ntuner, int32 *NumValidBlock)
 {
 	RET ret = eRET_OK;
 
@@ -561,7 +561,7 @@ RET tcradiohal_getRdsData(uint8 *rdsbuf, uint32 ntuner)
 		case eTUNER_IC_X0:	ret = eRET_NG_INVALID_PARAM;				break;
 	#endif
 	#ifdef USE_T0_TUNER
-		case eTUNER_IC_T0:	ret = eRET_NG_NO_RSC;						break;
+		case eTUNER_IC_T0:	ret = star_rds_read(ntuner, rdsbuf, NumValidBlock); break;
 	#endif
 		default:			ret = eRET_NG_INVALID_PARAM;				break;
 	}
