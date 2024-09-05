@@ -157,7 +157,7 @@ extern RET tcradioservice_getHdrSig(void);
 extern RET tcradioservice_getHdrAlertMessage(void);
 extern RET tcradioservice_getHdrLot(void);
 extern RET tcradioservice_setHdrProgramNumber(uint32 num);
-extern int32 tcradioservice_getHdrProgramNumber(void);
+extern int32 tcradioservice_getHdrProgramNumber(uint32* pn);
 
 #ifdef __cplusplus
 }

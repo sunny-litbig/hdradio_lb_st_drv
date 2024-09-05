@@ -404,12 +404,11 @@ RET tcradioservice_setHdrProgramNumber(uint32 num)
 	return ret;
 }
 
-int32 tcradioservice_getHdrProgramNumber(void)
+int32 tcradioservice_getHdrProgramNumber(uint32* pn)
 {
 	uint32 ret = -1;
 #ifdef USE_HDRADIO
-	uint32 pn;
-	ret = tchdr_getProgram(eTC_HDR_ID_MAIN, &pn);
+	ret = tchdr_getProgram(eTC_HDR_ID_MAIN, pn);
 #endif
 	return ret;
 }
