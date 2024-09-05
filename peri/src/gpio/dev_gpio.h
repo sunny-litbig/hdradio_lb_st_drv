@@ -48,6 +48,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 //#define GPIO_DEBUG    <- enable this code to print debugging messages
 
 #ifdef __ANDROID__
@@ -64,12 +66,19 @@ extern "C" {
 #else /* #ifdef __ANDROID__ */
 
 #define	USE_RADIO_GPIO_DRV
-#define GPIO_ERR(...)		((void)printf("[ERROR][RADIO][GPIO]: " __VA_ARGS__))
+#define GPIO_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][GPIO]: " __VA_ARGS__))
 #ifdef GPIO_DEBUG
-#define GPIO_DBG(...)		((void)printf("[DEBUG][RADIO][GPIO]: " __VA_ARGS__))
+#define GPIO_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][GPIO]: " __VA_ARGS__))
 #else
 #define	GPIO_DBG(...)
 #endif
+// #define	USE_RADIO_GPIO_DRV
+// #define GPIO_ERR(...)		((void)printf("[ERROR][RADIO][GPIO]: " __VA_ARGS__))
+// #ifdef GPIO_DEBUG
+// #define GPIO_DBG(...)		((void)printf("[DEBUG][RADIO][GPIO]: " __VA_ARGS__))
+// #else
+// #define	GPIO_DBG(...)
+// #endif
 
 #endif /* #ifdef __ANDROID__ */
 

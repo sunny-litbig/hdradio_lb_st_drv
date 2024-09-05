@@ -48,6 +48,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#include "DMBLog.h"
+
 //#define IQI2S_DEBUG   <- enable this code to print debugging messages
 
 #ifdef __ANDROID__
@@ -62,12 +64,18 @@ extern "C" {
 
 #else /* #ifdef __ANDROID__ */
 
-#define IQI2S_ERR(...)		((void)printf("[ERROR][RADIO][IQI2S]: " __VA_ARGS__))
+#define IQI2S_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][IQI2S]: " __VA_ARGS__))
 #ifdef IQI2S_DEBUG
-#define IQI2S_DBG(...)		((void)printf("[DEBUG][RADIO][IQI2S]: " __VA_ARGS__))
+#define IQI2S_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][IQI2S]: " __VA_ARGS__))
 #else
 #define	IQI2S_DBG(...)
 #endif
+// #define IQI2S_ERR(...)		((void)printf("[ERROR][RADIO][IQI2S]: " __VA_ARGS__))
+// #ifdef IQI2S_DEBUG
+// #define IQI2S_DBG(...)		((void)printf("[DEBUG][RADIO][IQI2S]: " __VA_ARGS__))
+// #else
+// #define	IQI2S_DBG(...)
+// #endif
 
 #endif /* #ifdef __ANDROID__ */
 

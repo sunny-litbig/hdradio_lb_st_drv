@@ -50,6 +50,8 @@ extern "C" {
 
 //#define I2C_DEBUG
 
+#include "DMBLog.h"
+
 #ifdef __ANDROID__
 
 #define I2C_TAG				("[RADIO][I2C]")
@@ -62,12 +64,18 @@ extern "C" {
 
 #else // #ifdef __ANDROID__
 
-#define I2C_ERR(...)		((void)printf("[ERROR][RADIO][I2C]: " __VA_ARGS__))
+#define I2C_ERR(...)		((void)LB_PRINTF("[ERROR][RADIO][I2C]: " __VA_ARGS__))
 #ifdef I2C_DEBUG
-#define I2C_DBG(...)		((void)printf("[DEBUG][RADIO][I2C]: " __VA_ARGS__))
+#define I2C_DBG(...)		((void)LB_PRINTF("[DEBUG][RADIO][I2C]: " __VA_ARGS__))
 #else
 #define	I2C_DBG(...)
 #endif
+// #define I2C_ERR(...)		((void)printf("[ERROR][RADIO][I2C]: " __VA_ARGS__))
+// #ifdef I2C_DEBUG
+// #define I2C_DBG(...)		((void)printf("[DEBUG][RADIO][I2C]: " __VA_ARGS__))
+// #else
+// #define	I2C_DBG(...)
+// #endif
 
 #endif // #ifdef __ANDROID__
 

@@ -22,6 +22,7 @@ libtcradioperi_la_CPPFLAGS = \
 	-I$(TOP)/src/conf
 
 libtcradioperi_la_SOURCES = \
+	src/DMBLog.c \
 	src/gpio/dev_gpio.c \
 	src/i2c/dev_i2c.c \
 	src/i2s/dev_iq_i2s.c \
@@ -30,6 +31,7 @@ libtcradioperi_la_SOURCES = \
 	src/conf/tcradio_peri_config.c
 
 include_HEADERS = \
+	$(TOP)/src/DMBLog.h \
 	$(TOP)/src/tcradio_types.h \
 	$(TOP)/src/i2s/dev_iq_i2s.h \
 	$(TOP)/src/i2s/dev_blend_audio_i2s.h \
@@ -39,6 +41,9 @@ include_HEADERS = \
 libtcradioperi_la_LDFLAGS = \
 	-version-number 2:0:0 \
 	-shared
+
+libtcradioperi_la_LDFLAGS += \
+	-ldlt
 
 #defines for PROCESSOR
 if IS_TCC897X

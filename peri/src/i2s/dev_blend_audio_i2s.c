@@ -79,6 +79,11 @@ static int32 blend_audio_dev_fd = -1;
 static int32 already_set_blend_audio_params = 0;
 static int32 already_blend_audio_start = 0;
 
+// #define DEBUG_TCRADIO_AUDIO_I2S_INPUT_DUMP
+#ifdef DEBUG_TCRADIO_AUDIO_I2S_INPUT_DUMP
+static unsigned int dumpAudioCnt=0;
+static FILE *gOutAudfile;
+#endif
 /***************************************************
 *           Local type definitions                 *
 ****************************************************/
@@ -106,6 +111,10 @@ int32 dev_blend_audio_i2s_open(void)
 		return (-1);
 	}
 
+#ifdef DEBUG_TCRADIO_AUDIO_I2S_INPUT_DUMP
+	gOutAudfile = fopen ("/tmp/alsa_audio_i2s_input.bin", "w");
+    BAI2S_ERR(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<< Audio I2S Input Dump file open >>>>>><<<<<<<\n");
+#endif
 	return 0;
 }
 
@@ -137,6 +146,10 @@ int32 dev_blend_audio_i2s_close(void)
 		blend_audio_buf = NULL;
 	}
 
+#ifdef DEBUG_TCRADIO_AUDIO_I2S_INPUT_DUMP
+    BAI2S_ERR(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<< Audio I2S Input Dump file close >>>>>><<<<<<<\n");
+	if(gOutAudfile!=NULL)	fclose(gOutAudfile);
+#endif
 	return 0;
 }
 
@@ -456,6 +469,22 @@ int32 dev_blend_audio_i2s_read(int8 *data, int32 readsize)		// readsize unit : b
 	ch_readbyte = ioctl(blend_audio_dev_fd, BLENDI2S_AUDIO_MODE_RX_DAI, &g_blend_audio_rx_param);
 	if(ch_readbyte == readsize) {
 		(void)memcpy((void*)data, (void*)blend_audio_buf, (size_t)ch_readbyte);
+		#ifdef DEBUG_TCRADIO_AUDIO_I2S_INPUT_DUMP
+			if(++dumpAudioCnt <= 15500) {	// When read frame size is 2048, it's about 11min.
+				if(dumpAudioCnt == 999) {
+					BAI2S_ERR(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<< Started Audio I2S Input Dump >>>>>><<<<<<<\n");
+				}
+				else if(dumpAudioCnt >= 1000 && dumpAudioCnt < 15500) {
+					fwrite(data, 1, ch_readbyte, gOutAudfile);
+				}
+				else if(dumpAudioCnt == 15500) {
+					if(gOutAudfile!=NULL)	fclose(gOutAudfile);
+					BAI2S_ERR(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<< Finished Audio I2S Input Dump >>>>>><<<<<<<\n");
+				}
+			} else {
+                BAI2S_ERR(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<< Audio I2S Input Dump dumpAudioCnt : %d>>>>>><<<<<<<\n", dumpAudioCnt);
+            }
+		#endif
 	}
 	else {
 		if(ch_readbyte >= 0) {
