@@ -1856,15 +1856,29 @@ Tun_Status TUN_Download_CustomizedCoeffs(tU8 deviceAddress)
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_srcConfig__7___srcBB456Reg00EnLow, 0x0303F0);
 
     // for audio tuning parameter
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smLevDwnLim, 0xfb4000);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smWghtSht, 0x000004);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smLev_o, 0x02aaab);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smMp_g, 0xe55555);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smMp_o, 0x100000);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smDist_o, 0x100000);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smDist_g, 0xb00000);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smLev_g, 0x444444);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smLevUpLim, 0x0a8000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_hcLevUpLim, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_qd3_dBuOffset, 0x0a0000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_hbLevUpLim, 0x39c000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_sbLev_o, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smLev_o, 0x0d5555);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_sbLevDwnLim , 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_hbLev_o, 0xfb4894);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smLevUpLim, 0xf58000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_hcLevDwnLim, 0xf1c000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_sbLevUpLim, 0x1f8000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_smLevDwnLim, 0xe84000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_hbLevDwnLim, 0x214000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_wsp_hcLev_o, 0x080000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_lcLevUpLim, 0xfb0000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_hcLevDwnLim, 0xe20000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_smLev_o, 0x06db6e);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_lcLevDwnLim, 0xf10000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_smLevDwnLim, 0xdc0000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_hcLev_o, 0x044925);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_hcLevUpLim, 0xfe0000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_lcLev_o, 0x060000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_qd_dBuOffset, 0x140000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_smLevUpLim, 0xf10000);
 
     return tunerStatus;
 }
