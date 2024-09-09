@@ -423,7 +423,7 @@ RET tcradio_getTune(eRADIO_MOD_MODE_t *mod_mode, uint32 *freq, uint32 ntuner)
 {
 	RET ret = checkRadioOpenStatus();
 	if(ret == eRET_OK) {
-		if(ntuner < tcradioservice_getNumberOfTuners()) {
+		if(ntuner < tcradioservice_getNumberOfTuners() || ntuner == 1) {
 			ret = tcradiohal_getTune(mod_mode, freq, ntuner);
 		}
 		else {
@@ -437,7 +437,7 @@ RET tcradio_getQuality(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t * qdata, ui
 {
 	RET ret = checkRadioOpenStatus();
 	if(ret == eRET_OK) {
-		if(ntuner < tcradioservice_getNumberOfTuners()) {
+		if(ntuner < tcradioservice_getNumberOfTuners() || ntuner == 1) {
 			ret = tcradiohal_getQuality(mod_mode, (stTUNER_QUALITY_t *)qdata, ntuner);
 		}
 		else {

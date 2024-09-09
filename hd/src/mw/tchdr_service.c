@@ -2060,6 +2060,10 @@ HDRET tchdrsvc_getHdrStatus(eTC_HDR_ID_t id, stTC_HDR_STATUS_t *dataOut)
 
 				(void)HDR_get_audio_quality_report(hdrInstance, &audioQualityReport);
 				dataOut->audioQualityIndicator = audioQualityReport.quality_indicator;			// Digital audio quality indicator
+                dataOut->frameCount = audioQualityReport.frame_count;
+                dataOut->coreErrors = audioQualityReport.core_errors;            
+                dataOut->enhErrors = audioQualityReport.enh_errors;
+
 				(void)HDR_get_tx_dig_audio_gain(hdrInstance, &dataOut->digitalAudioGain);		// TX Digital audio gain
 				(void)HDR_get_playing_program_type(hdrInstance, &dataOut->curPty);				// Current Playing Program Type
 				(void)HDR_test_get_raw_tx_blend_control(hdrInstance, &dataOut->blendControl);	// TX Blend control
@@ -2113,12 +2117,24 @@ HDRET tchdrsvc_getHdrStatus(eTC_HDR_ID_t id, stTC_HDR_STATUS_t *dataOut)
 			(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "14) Hybrid Program Status: %d\n", dataOut->hybridProgram);
 			(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "15) Raw SNR: %d\n", dataOut->rawSnr);
 		#endif
-		#if 0 // for test : refer to procGetStatus() function.
+		#if 1 // for test : refer to procGetStatus() function.
 			HDR_test_ber_t ber;
 		    (void)(*stOsal.osmemset)((void*)&ber, (S8)0, (U32)sizeof(HDR_test_ber_t));
 
 			if(HDR_test_ber_mode_enabled(hdrInstance) == true) {
 				HDR_test_get_ber(hdrInstance, &ber);
+                dataOut->pidsBlockErrors = ber.pids_block_errors;  /**< Total number of PIDS blocks(80 bits) that had at least one error */
+                dataOut->pidsBlocksTested = ber.pids_blocks_tested; /**< Total number of PIDS blocks(80 bits) tested */
+                dataOut->pidsBitErrors = ber.pids_bit_errors;    /**< Total number of PIDS bit errors */
+                dataOut->pidsBitsTested = ber.pids_bits_tested;   /**< Total number of PIDS bits tested */
+                dataOut->p1BitErrors = ber.p1_bit_errors;      /**< Total number of P1 bit errors */
+                dataOut->p1BitsTested = ber.p1_bits_tested;     /**< Total number of P1 bit bits tested */
+                dataOut->p2BitErrors = ber.p2_bit_errors;      /**< Total number of P2 bit errors */
+                dataOut->p2BitsTested = ber.p2_bits_tested;     /**< Total number of P2 bit bits tested */
+                dataOut->p3BitErrors = ber.p3_bit_errors;      /**< Total number of P3 bit errors */
+                dataOut->p3BitsTested = ber.p3_bits_tested;     /**< Total number of P3 bit bits tested */
+                dataOut->p4BitErrors = ber.p4_bit_errors;      /**< Total number of P4 bit errors */
+                dataOut->p4BitsTested = ber.p4_bits_tested;     /**< Total number of P4 bit bits tested */
 			}
 		#endif
 		}

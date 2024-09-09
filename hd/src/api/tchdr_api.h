@@ -263,6 +263,9 @@ typedef struct {
 	U32 curPN;
 	U32 acqStatus;
 	U32 audioQualityIndicator;
+    U32 frameCount;
+    U32 coreErrors;            /**< Core errors detected */
+    U32 enhErrors;             /**< Enhanced audio errors detected */
 	U32 cnr;
 	U32 digitalAudioGain;
 	U32 blendControl;
@@ -275,6 +278,18 @@ typedef struct {
 	U32 hybridProgram;
 	U32 dsqm;
 	U32 rawSnr;
+    U32 pidsBlockErrors;  /**< Total number of PIDS blocks(80 bits) that had at least one error */
+    U32 pidsBlocksTested; /**< Total number of PIDS blocks(80 bits) tested */
+    U32 pidsBitErrors;    /**< Total number of PIDS bit errors */
+    U32 pidsBitsTested;   /**< Total number of PIDS bits tested */
+    U32 p1BitErrors;      /**< Total number of P1 bit errors */
+    U32 p1BitsTested;     /**< Total number of P1 bit bits tested */
+    U32 p2BitErrors;      /**< Total number of P2 bit errors */
+    U32 p2BitsTested;     /**< Total number of P2 bit bits tested */
+    U32 p3BitErrors;      /**< Total number of P3 bit errors */
+    U32 p3BitsTested;     /**< Total number of P3 bit bits tested */
+    U32 p4BitErrors;      /**< Total number of P4 bit errors */
+    U32 p4BitsTested;     /**< Total number of P4 bit bits tested */
 }stTC_HDR_STATUS_t;
 
 typedef struct{
