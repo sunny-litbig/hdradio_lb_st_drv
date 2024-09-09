@@ -226,7 +226,9 @@ S32 CMD_cb_bbp_get_tune_select(HDR_instance_t* hdr_instance, BBP_tune_select_t* 
 {
 	// API to Get Tuner frequency
 	S32 ret = 0;
+#ifdef DEBUG_ENABLE_FREQUENT_CB_LOG
 	(*pfnHdrLog)(eTAG_CB, eLOG_DBG, "[%s:%d] Instance Number[%d]\n", __func__, __LINE__, hdr_instance->instance_number);
+#endif
     if(hdr_instance->instance_number >= NUM_HDR_INSTANCES) {
         (*pfnHdrLog)(eTAG_CDM, eLOG_ERR, "Invalid instance number for Get Tune Select \n");
         ret = -1;
@@ -391,7 +393,17 @@ S32 CMD_cb_bbp_set_tune_select(HDR_instance_t* hdr_instance, const BBP_tune_sele
 		}
 
 		if(ret == 0) {
+#ifdef USE_HDRLIB_2ND_CHG_VER
+		    if(hdr_instance->instance_type==HDR_FULL_INSTANCE){
+		        S32 blend_transition_frames = get_d2a_blend_holdoff(hdr_instance);
+		        HDR_set_blend_transition_time(frameworkData->blendCrossfade, blend_transition_frames);
+		        HDR_blend_crossfade_reset (frameworkData->blendCrossfade);
+		        HDR_audio_resampler_reset (frameworkData->hdaoutResampler);
+		        frameworkData->digitalAudioStarted = false;
+		    }
+#else
 			frameworkData->digitalAudioStarted = false;
+#endif
 		}
 #endif
 	}
@@ -649,7 +661,9 @@ S32 CMD_cb_bbp_set_dsqm_seek_thresh(U32 thresh)
 
 S32 CMD_cb_bbp_get_dsqm_seek_thresh(U32* thresh)
 {
+#ifdef DEBUG_ENABLE_FREQUENT_CB_LOG
 	(*pfnHdrLog)(eTAG_CB, eLOG_DBG, "[%s:%d]\n", __func__, __LINE__);
+#endif
     *thresh = bbpIbocConfig.dsqm_seek_threshold;
 
     return 0;
@@ -700,7 +714,9 @@ S32 CMD_cb_digital_audio_acquired(HDR_instance_t* hdr_instance, HDBOOL* audio_ac
     const stHDR_FRAMEWORK_DATA_t* frameworkData  = tchdrfwk_getDataStructPtr();
 
 	if(hdr_instance->instance_type == HDR_FULL_INSTANCE) {
+#ifdef DEBUG_ENABLE_FREQUENT_CB_LOG
 		(*pfnHdrLog)(eTAG_CB, eLOG_DBG, "[%s:%d] Instance Number[%d], Digital Audio Acquired[%d]\n", __func__, __LINE__, hdr_instance->instance_number, *audio_acquired);
+#endif
 		*audio_acquired = frameworkData->digitalAudioAcquired;
 	}
 
@@ -744,7 +760,9 @@ S32 CMD_cb_get_auto_alignment_config(HDR_instance_t* hdr_instance, CMD_auto_alig
 		    config->am_auto_level_align_enabled = config_params.am_auto_level_align_enabled;
 		    config->fm_auto_level_align_enabled = config_params.fm_auto_level_align_enabled;
 	    }
+#ifdef DEBUG_ENABLE_FREQUENT_CB_LOG
 		(*pfnHdrLog)(eTAG_CB, eLOG_DBG, "[%s:%d]return[%d], Instance Number[%d]\n", __func__, __LINE__, rc, hdr_instance->instance_number);
+#endif
 	} else {
 		(*pfnHdrLog)(eTAG_CB, eLOG_ERR, "[%s] HDR Instance argument is null pointer.\n", __func__);
 		rc = -1;

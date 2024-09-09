@@ -73,7 +73,7 @@ Agreement between Telechips and Company.
 //#define USE_ALSA_AIN_AS_INPUT_AUDIO
 
 //#define DEBUG_TCRADIO_AUDIO_OUTPUT_DUMP
-//#define DEBUG_TCRADIO_AUDIO_OUTPUT_AVAIL_DUMP
+//#define DEBUG_TCRADIO_AUDIO_OUTPUT_AVAIL_DUMP	// Test on ALSA device hw0,0. It is incorrect on pulsmedia.
 
 /***************************************************
 *           Local constant definitions              *
@@ -391,7 +391,6 @@ RET tcradiosound_setAudio(uint32 fPalyback)
 
 RET tcradiosound_reset(void)
 {
-
 	RET ret = eRET_OK;
 	uint32 faudio = tcradiosound_getPlayback();
 
@@ -609,7 +608,6 @@ void *tcradiosound_mainThread(void *arg)
 #endif
 	stRadioSound.fThreadRunning = 0;
 	tcradiosound_messageDeinit();
-
 	tcradiohal_audiofifo_deinit(AUDIO_FIFO_NUM);
 	tcradio_exitThread(pNULL);
 

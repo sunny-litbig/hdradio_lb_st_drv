@@ -546,6 +546,10 @@ static HDRET tchdrbbinput_reset(eTC_HDR_ID_t hdrID)	// 0: main , 1: mrc, 2: bs
 		if((hdrType == (U32)HDR_1p0_MRC_CONFIG) || (hdrType == (U32)HDR_1p5_MRC_CONFIG) ||
 			(hdrType == (U32)HDR_1p5_DUAL_MRC_CONFIG))
 		{
+		#ifdef USE_RESET_IQ_WHEN_SWITCHING
+			(*stCircFunc.cb_reset)(&stBbInputCtrl[1].iqReadBuffer);
+			(*stCircFunc.cb_reset)(&stBbInputCtrl[1].iqSampleBuffer);
+		#endif
 			if(stBbInputCtrl[1].resamplerEnabled == true) {
 	        	/* Change : Perhaps find a better way of handling hte sample rate in the bb src reset */
 	        	HDR_bb_src_reset(stBbInputCtrl[1].hdrBbSrc, stBbInputCtrl[1].tuneInfo.iqsr, stBbInputCtrl[1].tuneInfo.band);
@@ -1857,26 +1861,37 @@ static HDRET tchdrbbinput_setTuneMain(stTCHDR_TUNE_t inputTune, S32 fChgBand, S3
 {
 	HDRET ret = (HDRET)eTC_HDR_RET_OK;
 	U32 hdrType = tchdrfwk_getHdrType();
+	U32 fMrcType = 0U;
 	stHDR_FRAMEWORK_DATA_t* frameworkData = tchdrfwk_getDataStructPtr();
 
 	if(fChgBand > 0) {
-		U32 fReacq = (U32)OFF;
 		if((hdrType == (U32)HDR_1p0_MRC_CONFIG) || (hdrType == (U32)HDR_1p5_MRC_CONFIG) || (hdrType == (U32)HDR_1p5_DUAL_MRC_CONFIG)) {
-			if(inputTune.band == HDR_BAND_FM){
-				(void)HDR_mrc_enable(&frameworkData->hdrInstance[0]);
-				fReacq = (U32)ON;
-			}
-			else {
-				(void)HDR_mrc_disable(&frameworkData->hdrInstance[0]);
+			fMrcType = 1;
+			if(tchdrfwk_getMrcStatus()) {
+				if(inputTune.band != HDR_BAND_FM) {
+					ret = HDR_mrc_disable(&frameworkData->hdrInstance[0]);
+					(*pfnHdrLog)(eTAG_BBIN, eLOG_DBG, "Disable MRC on main instance. ret[%d]\n", ret);
+				}
 			}
 		}
 
 		ret = HDR_set_band(&frameworkData->hdrInstance[0], stBbInputCtrl[0].tuneInfo.band);
 		if(ret == (HDRET)eTC_HDR_RET_OK) {
 			(void)tchdrbbinput_resetIqDrvAndBbinputSetting(eTC_HDR_ID_MAIN, inputTune);
-			if(fReacq == (U32)ON) {
-				// If I did not call this HDR_reacquire API here, MRC don't work normally.
-				ret = tchdrbbinput_setReacquire(&frameworkData->hdrInstance[0]);
+			if((fMrcType == 1) && (inputTune.band == HDR_BAND_FM)) {
+				HDR_tune_band_t curband;
+				curband = HDR_get_band_select(&frameworkData->hdrInstance[1]);
+				if(curband == HDR_BAND_FM) {
+					ret = HDR_mrc_enable(&frameworkData->hdrInstance[0]);
+					if(ret == (HDRET)eTC_HDR_RET_OK) {
+						(*pfnHdrLog)(eTAG_BBIN, eLOG_DBG, "Enabled MRC on main instance.\n");
+					}
+					else {
+						(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "Failed to enable MRC on main instance. ret[%d]\n", ret);
+					}
+					// If I did not call this HDR_reacquire API here, MRC don't work normally.
+					(void)tchdrbbinput_setReacquire(&frameworkData->hdrInstance[0]);
+				}
 			}
 		}
 		else {
@@ -1911,12 +1926,35 @@ static HDRET tchdrbbinput_setTuneMrc(stTCHDR_TUNE_t inputTune, S32 fChgBand, S32
 
 #if (HDR_CONFIG == HDR_1p0_MRC_CONFIG) || (HDR_CONFIG == HDR_1p5_MRC_CONFIG) || (HDR_CONFIG == HDR_1p5_DUAL_MRC_CONFIG)
 	U32 hdrType = tchdrfwk_getHdrType();
+	stHDR_FRAMEWORK_DATA_t* frameworkData = tchdrfwk_getDataStructPtr();
 
 	// Make sure that MRC instances are connected and enabled. FULL INSTANCE is connected to the DEMOD ONLY instance.
 	if((hdrType == (U32)HDR_1p0_MRC_CONFIG) || (hdrType == (U32)HDR_1p5_MRC_CONFIG) || (hdrType == (U32)HDR_1p5_DUAL_MRC_CONFIG)) {
 		if(inputTune.band == HDR_BAND_FM) {
 			if((fChgBand > 0) || (fChgSR > 0)) {
 				ret = tchdrbbinput_resetIqDrvAndBbinputSetting(eTC_HDR_ID_MRC, inputTune);
+				if(fChgBand > 0 ) {
+					HDR_tune_band_t curband;
+					curband = HDR_get_band_select(&frameworkData->hdrInstance[0]);
+					if(curband == HDR_BAND_FM) {
+						HDBOOL fMrc = FALSE;
+						ret = HDR_mrc_enabled(&frameworkData->hdrInstance[0], &fMrc);
+						if(ret == (HDRET)eTC_HDR_RET_OK) {
+							if(fMrc == FALSE) {
+								ret = HDR_mrc_enable(&frameworkData->hdrInstance[0]);
+								if(ret == (HDRET)eTC_HDR_RET_OK) {
+									(*pfnHdrLog)(eTAG_BBIN, eLOG_DBG, "Enabled MRC on mrc instance.\n");
+								}
+								else {
+									(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "Failed to enable MRC on mrc instance. ret[%d]\n", ret);
+								}
+							}
+						}
+						else {
+							(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "Failed to check MRC status of main instance. ret[%d]\n", ret);
+						}
+					}
+				}
 			}
 			else {
 				// Do nothing because anything is not changed.
@@ -1951,8 +1989,16 @@ static HDRET tchdrbbinput_setTuneBs(stTCHDR_TUNE_t inputTune, S32 fChgBand, S32 
 			}
 		}
 		else if((hdrType == (U32)HDR_1p5_MRC_CONFIG) || (hdrType == (U32)HDR_1p5_DUAL_MRC_CONFIG)) {
+			if(hdrType == (U32)HDR_1p5_DUAL_MRC_CONFIG) {
+				if(tchdrfwk_getBsMrcStatus()) {
+					if(inputTune.band != HDR_BAND_FM) {
+						ret = HDR_mrc_disable(&frameworkData->hdrInstance[2]);
+						(*pfnHdrLog)(eTAG_BBIN, eLOG_DBG, "Disable MRC on bs instance. ret[%d]\n", ret);
+					}
+				}
+			}
 			ret = HDR_set_band(&frameworkData->hdrInstance[2], stBbInputCtrl[2].tuneInfo.band);
-			if(ret != 0) {
+			if(ret != (HDRET)eTC_HDR_RET_OK) {
 				ret = (HDRET)eTC_HDR_RET_NG_SET_BAND;
 			}
 		}
@@ -1973,6 +2019,21 @@ static HDRET tchdrbbinput_setTuneBs(stTCHDR_TUNE_t inputTune, S32 fChgBand, S32 
 
 		if(ret == (HDRET)eTC_HDR_RET_OK) {
 			(void)tchdrbbinput_resetIqDrvAndBbinputSetting(eTC_HDR_ID_BS, inputTune);
+			if((hdrType == (U32)HDR_1p5_DUAL_MRC_CONFIG) && (inputTune.band == HDR_BAND_FM)) {
+				HDR_tune_band_t curband;
+				curband = HDR_get_band_select(&frameworkData->hdrInstance[3]);
+				if(curband == HDR_BAND_FM) {
+					ret = HDR_mrc_enable(&frameworkData->hdrInstance[2]);
+					if(ret == (HDRET)eTC_HDR_RET_OK) {
+						(*pfnHdrLog)(eTAG_BBIN, eLOG_DBG, "Enabled MRC on bs instance.\n");
+					}
+					else {
+						(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "Failed to enable MRC on bs instance. ret[%d]\n", ret);
+					}
+					// If I did not call this HDR_reacquire API here, MRC don't work normally.
+					(void)tchdrbbinput_setReacquire(&frameworkData->hdrInstance[2]);
+				}
+			}
 		}
 	}
 	else {
@@ -2025,12 +2086,35 @@ static HDRET tchdrbbinput_setTuneBsMrc(stTCHDR_TUNE_t inputTune, S32 fChgBand, S
 
 #if HDR_CONFIG == HDR_1p5_DUAL_MRC_CONFIG
 	U32 hdrType = tchdrfwk_getHdrType();
+	stHDR_FRAMEWORK_DATA_t* frameworkData = tchdrfwk_getDataStructPtr();
 
 	// Make sure that MRC instances are connected and enabled. FULL INSTANCE is connected to the DEMOD ONLY instance.
 	if(hdrType == (U32)HDR_1p5_DUAL_MRC_CONFIG) {
 		if(inputTune.band == HDR_BAND_FM) {
 			if((fChgBand > 0) || (fChgSR > 0)) {
 				ret = tchdrbbinput_resetIqDrvAndBbinputSetting(eTC_HDR_ID_BS_MRC, inputTune);
+				if(fChgBand > 0 ) {
+					HDR_tune_band_t curband;
+					curband = HDR_get_band_select(&frameworkData->hdrInstance[2]);
+					if(curband == HDR_BAND_FM) {
+						HDBOOL fMrc = FALSE;
+						ret = HDR_mrc_enabled(&frameworkData->hdrInstance[2], &fMrc);
+						if(ret == (HDRET)eTC_HDR_RET_OK) {
+							if(fMrc == FALSE) {
+								ret = HDR_mrc_enable(&frameworkData->hdrInstance[2]);
+								if(ret == (HDRET)eTC_HDR_RET_OK) {
+									(*pfnHdrLog)(eTAG_BBIN, eLOG_DBG, "Enabled BS MRC on bsmrc instance.\n");
+								}
+								else {
+									(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "Failed to enable BS MRC on bsmrc instance. ret[%d]\n", ret);
+								}
+							}
+						}
+						else {
+							(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "Failed to check BS MRC status of bs instance. ret[%d]\n", ret);
+						}
+					}
+				}
 			}
 			else {
 				// Do nothing because anything is not changed.
@@ -2957,7 +3041,7 @@ static S32 tchdr_readAudioInputProcess(S16 *anaAudioInBuffer, S16 * anaAudioOutB
 		#else
 			ret = (*stCircFunc.cb_write)(&analogAudioBuffer, (void*)anaAudioOutBuffer, (U32)ret);
 			if(ret < 0) {
-				(*pfnHdrLog)(eTAG_AIN, eLOG_ERR, "Analog audio(FM/AM) input buffer overrun! Please check tuner audio I2S sample rate..\n");
+				(*pfnHdrLog)(eTAG_AIN, eLOG_ERR, "Analog audio(FM/AM) input buffer overrun! Please check tuner audio I2S sample rate.\n");
 			}
 		#endif
 		}

@@ -51,6 +51,8 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
+#define MAX_FM_BLEND_TRANSITION_FRAMES  (18)
+
 /***************************************************
 *				Enumeration				*
 ****************************************************/
@@ -113,6 +115,8 @@ S32 tchdraudinput_getReadySemaValue(void);
 S32 tchdrbbinput_getReadySemaValue(U32 instanceNum);
 void tchdrblending_setAAMute(HDBOOL fOnOff);
 HDBOOL tchdrblending_getAAMute(void);
+HDRET tchdrfwk_setExtnalClockOffset(S32 clkOffset);
+S32 tchdrfwk_getExtnalClockOffset(void);
 
 
 /**
@@ -178,6 +182,10 @@ void *tchdr_cmdProcThread(void* arg);
  * param arg: not used
  */
 void *tchdr_loggerReaderThread(void *arg);
+
+#ifdef USE_HDRLIB_2ND_CHG_VER
+U32 get_d2a_blend_holdoff(HDR_instance_t *hdr_instance);
+#endif
 
 #ifdef DEBUG_ENABLE_TRACE_THREAD
 void *tchdr_traceReaderThread(void *arg);

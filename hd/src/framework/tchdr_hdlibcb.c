@@ -365,9 +365,11 @@ void HDLIB_cb_reacq_complete(const HDR_instance_t* hdr_instance, HDR_tune_band_t
 		if(frameworkData->busyFlag[hdr_instance->instance_number] == true) {
 			(*pfnHdrLog)(eTAG_CORE, eLOG_INF, "HDR reacquisition completed [%d].\n", (S32)hdr_instance->instance_number);
 		}
+	#ifdef DEBUG_ENABLE_REACQ_LOG
 		else {
 			(*pfnHdrLog)(eTAG_CORE, eLOG_DBG, "HDR reacquisition completed [%d].\n", (S32)hdr_instance->instance_number);
 		}
+	#endif
 		frameworkData->busyFlag[hdr_instance->instance_number] = false;
 	}
 	else {
