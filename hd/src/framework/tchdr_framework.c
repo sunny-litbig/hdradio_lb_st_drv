@@ -148,6 +148,8 @@ static HDBOOL bBsMrcConnection = false;
 
 static HDBOOL bAAMuteForTune = false;
 
+static S32 extClockOffset = 0U;		// Clock difference between the external I/Q I2S input and the analog audio I2S input.
+
 #ifdef DEBUG_ALL_THREAD_STATUS_DUMP
 static struct timespec primary_ChkTimer, primary_ChkTimeNow, primary_ChkTimeDiff;
 static U32 primary_AccumMs=0, primary_LoopMs=0, primary_DumpCount=0;
@@ -248,6 +250,26 @@ void tchdrfwk_setAnalogAudioMute(U32 fOnOff)
 	else {
 		bAnalogAudioMute = false;
 	}
+}
+
+HDRET tchdrfwk_setExtnalClockOffset(S32 clkOffset)
+{
+	HDRET ret = (HDRET)eTC_HDR_RET_OK;
+
+	// clkOffset range: -/+150.0ppm
+	if((clkOffset <= 0x960000) && (clkOffset >= 0xFF6A0000)) {
+		extClockOffset = clkOffset;
+	}
+	else {
+		ret = (HDRET)eTC_HDR_RET_NG_INVALID_PARAMETERS;
+	}
+
+	return ret;
+}
+
+S32 tchdrfwk_getExtnalClockOffset(void)
+{
+	return extClockOffset;
 }
 
 static HDBOOL tchdrframework_getAnalogAudioMute(void)
@@ -404,22 +426,23 @@ static HDRET tchdrfwk_setConfiguration(U32 numOfHdrInstances)
 #endif
 #endif
 
-#ifdef USE_HDRLIB_2ND_CHG_VER
+// For Silab Tuner Si47962
+#ifdef USE_HDRLIB_2ND_CHG_VER	// 2.10.3
 	// As you decrease the audio delay value, d-audio becomes slower than a-audio.
 	// - = <- left move, + = -> right move
-	hdrConfig.blend_params.fm_mps_dig_audio_delay = 62333;		// 66307
-	hdrConfig.blend_params.am_mps_dig_audio_delay = 13345;		// 23860
-	hdrConfig.blend_params.fm_mps_audio_scaling = 16400;		// 16709
-	hdrConfig.blend_params.fm_all_dig_audio_scaling = 16400;	// 16709
+	hdrConfig.blend_params.fm_mps_dig_audio_delay = 62333;		// silab: 62333, st: 62375
+	hdrConfig.blend_params.am_mps_dig_audio_delay = 13345;		// silab: 13345, st: 13415
+	hdrConfig.blend_params.fm_mps_audio_scaling = 16400;		// silab: 16400, st:
+	hdrConfig.blend_params.fm_all_dig_audio_scaling = 16400;	// silab: 16400, st:
+	hdrConfig.blend_params.am_mps_audio_scaling = 17200;		// silab: 17200, st:
+	hdrConfig.blend_params.am_all_dig_audio_scaling = 17200;	// silab: 17200, st:
+#else	// 2.6.3
+	hdrConfig.blend_params.fm_mps_dig_audio_delay = 64383;		// 64384 <- 64362
+	hdrConfig.blend_params.am_mps_dig_audio_delay = 15398;		// 15400
+	hdrConfig.blend_params.fm_mps_audio_scaling = 16400;
+	hdrConfig.blend_params.fm_all_dig_audio_scaling = 16400;
 	hdrConfig.blend_params.am_mps_audio_scaling = 17200;		// 15107
-	hdrConfig.blend_params.am_all_dig_audio_scaling = 17200;	// 15107
-#else
-    hdrConfig.blend_params.fm_mps_dig_audio_delay = 64383;		// 64384 <- 64362
-    hdrConfig.blend_params.am_mps_dig_audio_delay = 15398;		// 15400
-    hdrConfig.blend_params.fm_mps_audio_scaling = 16400;
-    hdrConfig.blend_params.fm_all_dig_audio_scaling = 16400;
-    hdrConfig.blend_params.am_mps_audio_scaling = 17200;		// 15107
-    hdrConfig.blend_params.am_all_dig_audio_scaling = 17200;
+	hdrConfig.blend_params.am_all_dig_audio_scaling = 17200;
 #endif
 
 	if(auto_align_config.apply_level_adjustment == true){
@@ -531,6 +554,12 @@ static HDRET tchdrfwk_setConfiguration(U32 numOfHdrInstances)
 			}
 		}
 		stHdrFrameworkData.busyFlag[i] = false;
+#ifdef USE_HDRLIB_2ND_CHG_VER
+		if (stHdrFrameworkData.hdrInstance[i].instance_type == HDR_FULL_INSTANCE) {
+            S32 blend_transition_frames = get_d2a_blend_holdoff(&stHdrFrameworkData.hdrInstance[i]);
+            HDR_set_blend_transition_time(stHdrFrameworkData.blendCrossfade, blend_transition_frames);
+        }
+#endif
     }
 
 	return ret;
@@ -714,7 +743,13 @@ HDRET tchdrfwk_open(void)
 
 				// MRC can only be enabled after connection is established
 				if(stTcHdrTuneInfo.mainInstance.band == HDR_BAND_FM) {
-					(void)HDR_mrc_enable(&stHdrFrameworkData.hdrInstance[0]);
+					ret = HDR_mrc_enable(&stHdrFrameworkData.hdrInstance[0]);
+					if(ret != (HDRET)eTC_HDR_RET_OK) {
+						(*pfnHdrLog)(eTAG_CORE, eLOG_ERR, "Failed to enalbe primary MRC when framework is opennig. ret[%d]\n", ret);
+					}
+					else {
+						(*pfnHdrLog)(eTAG_CORE, eLOG_DBG, "Enalbed primary MRC when framework is opennig.\n");
+					}
 				}
 
 				if((typeOfHdr == HDR_1p5_DUAL_MRC_CONFIG) && (bBsMrcConnection == false)) {
@@ -728,7 +763,13 @@ HDRET tchdrfwk_open(void)
 
 					// MRC can only be enabled after connection is established
 					if(stTcHdrTuneInfo.bsInstance.band == HDR_BAND_FM) {
-						(void)HDR_mrc_enable(&stHdrFrameworkData.hdrInstance[2]);
+						ret = HDR_mrc_enable(&stHdrFrameworkData.hdrInstance[2]);
+						if(ret != (HDRET)eTC_HDR_RET_OK) {
+							(*pfnHdrLog)(eTAG_CORE, eLOG_ERR, "Failed to enalbe backscan MRC when framework is opennig. ret[%d]\n", ret);
+						}
+						else {
+							(*pfnHdrLog)(eTAG_CORE, eLOG_DBG, "Enalbed backscan MRC when framework is opennig.\n");
+						}
 					}
 				}
 			}
@@ -1861,7 +1902,8 @@ static void tchdrblending_audioResamplerProcess(HDR_tune_band_t band, U32 *audio
 	// keep updating the sample slips so that we dont drift if RC becomes 0 once in a while when HD Audio is playing.
 	if(stHdrFrameworkData.digitalAudioStarted) {
 #ifdef USE_HDRLIB_2ND_CHG_VER
-		(void)HDR_audio_resample_update_slips(stHdrFrameworkData.hdaoutResampler, bbSampleSlips.num_samples, band, 0, ppmEst);
+		// ex) clk_offset = -28.26ppm x (2^16) = -28.26 x 65536 = -1,852,047.36 ~= -1852047 = 0xFFE3BD71
+		(void)HDR_audio_resample_update_slips(stHdrFrameworkData.hdaoutResampler, bbSampleSlips.num_samples, band, extClockOffset, ppmEst);
 #else
 		(void)HDR_audio_resample_update_slips(stHdrFrameworkData.hdaoutResampler, bbSampleSlips.num_samples, band, ppmEst);
 #endif
@@ -2772,6 +2814,17 @@ void *tchdr_loggerReaderThread(void *arg)
 	}
 	(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, ">>>>>>> Deinit TcHdrLogReader Thread Sequence 10...\n");
 	return pNULL;
+}
+
+U32 get_d2a_blend_holdoff(HDR_instance_t *hdr_instance)
+{
+    U32 blend_transition_frames = 0;
+
+    HDR_blend_get_param(hdr_instance, d2a_blend_holdoff, &blend_transition_frames);
+    if ((HDR_get_band_select(hdr_instance) == HDR_BAND_FM) && (blend_transition_frames > MAX_FM_BLEND_TRANSITION_FRAMES)) {
+        blend_transition_frames = MAX_FM_BLEND_TRANSITION_FRAMES;
+    }
+    return blend_transition_frames;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

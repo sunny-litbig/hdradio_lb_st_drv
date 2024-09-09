@@ -237,6 +237,21 @@ RET tcradioservice_openHdr(eRADIO_MOD_MODE_t init_band, uint32 init_freq, eTC_HD
 		tchdr_setAudioResamplerSlips(0U, -0.0522655, &out_hz);
 	}
 
+	if(tcradiohal_getTunerChip() == eTUNER_IC_T0) {
+#if 0
+		(void)tchdr_setAudioResamplerSlips(0U, 0.0, &out_hz);
+		(void)tchdr_setAudioResamplerSlips(1U, 96.74, &out_hz);
+		(void)tchdr_setDigitalAudioSlips(0xFFE3BD71);                   // -28.26ppm x 65536 ~= 0xFFE3BD71 (Q16.16 format)
+		(void)tchdr_setBlendParam(eBLEND_FM_MPS_DAUD_DELAY, 22430U);    // FM	// Enalbe st tuner blend(DNR)
+		(void)tchdr_setBlendParam(eBLEND_AM_MPS_DAUD_DELAY, 13563U);    // AM	// Enable st tuner blend(DNR)
+#else
+		(void)tchdr_setAudioResamplerSlips(0U, -28.26, &out_hz);        // 24 ~ 26 samples, 44098.754175Hz, on audio input
+		(void)tchdr_setAudioResamplerSlips(1U, 115.00, &out_hz);        // on audio output
+		(void)tchdr_setBlendParam(eBLEND_FM_MPS_DAUD_DELAY, 22420U);    // FM	// Enalbe st tuner blend(DNR)
+		(void)tchdr_setBlendParam(eBLEND_AM_MPS_DAUD_DELAY, 13563U);    // AM	// Enable st tuner blend(DNR)
+#endif
+	}
+
 	ret = tchdr_open(tuneInfo);
 	if(ret != 0) {
 		ret = eRET_NG_NO_RSC;

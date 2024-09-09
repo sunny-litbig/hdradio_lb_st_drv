@@ -54,7 +54,7 @@ libtchdradio_la_SOURCES = \
 	src/support/tchdr_std.c
 
 libtchdradio_la_LDFLAGS = \
-	-version-number 1:6:0 \
+	-version-number 1:6:1 \
 	-shared \
 	-fPIC
 

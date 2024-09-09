@@ -64,7 +64,7 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
-#define HDRADIO_FRAMEWORK_VER				"1.6.0"
+#define HDRADIO_FRAMEWORK_VER				"1.6.1"
 
 #define PTHREAD_32BIT_STACK_MIN				((U32)16*(U32)1024)     // 32bit system's pthread minimum stack size
 #define PTHREAD_64BIT_STACK_MIN				((U32)128*(U32)1024)	// 64bit system's pthread minimum stack size

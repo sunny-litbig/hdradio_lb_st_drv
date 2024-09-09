@@ -1573,8 +1573,9 @@ static CMD_dispatch_rc_t procIbocDiagnostics(HDR_instance_t* hdrInstance, const 
             HDR_audio_quality_report_t audioQualityReport;
             (void)(*stOsal.osmemset)((void*)&audioQualityReport, (S8)0, (U32)sizeof(HDR_audio_quality_report_t));
 
-            (void)HDR_get_audio_quality_report(hdrInstance, &audioQualityReport);
-
+			if(hdrInstance->instance_type == HDR_FULL_INSTANCE) {
+				(void)HDR_get_audio_quality_report(hdrInstance, &audioQualityReport);
+			}
 
             (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)&audioQualityReport.frame_count, 4);
             offset += (U32)4;

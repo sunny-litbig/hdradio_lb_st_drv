@@ -391,6 +391,11 @@ extern HDRET tchdr_getBlendAllAdvParams(stTC_HDR_BLEND_ADV_PARAMS_t *params);
 extern HDRET tchdr_setBlendAdvParam(eTC_HDR_BLEND_ADV_PARAMS_t param, U32 param_value);
 extern HDRET tchdr_getBlendAdvParam(eTC_HDR_BLEND_ADV_PARAMS_t param, U32 *param_value);
 
+extern HDRET tchdr_setAudioResamplerSlips(U32 fInOut, F64 ppm, F64 *out_hz);
+extern HDRET tchdr_getAudioResamplerSlips(U32 fInOut, F64 *ppm, F64 *out_hz);
+extern HDRET tchdr_setDigitalAudioSlips(S32 clkOffset);
+extern HDRET tchdr_getDigitalAudioSlips(S32 *clkOffset);
+
 // AAA
 extern HDRET tchdr_setAutoAudioAlignEnable(U32 fEnable);
 

@@ -126,8 +126,6 @@ static stTC_HDR_THREAD_PR_t stTcHdrThreadPriority[eTHREAD_MAX] = {
 static HDR_instance_t *tchdr_getHdrInstanceAddr(eTC_HDR_ID_t id);
 HDRET tchdr_resetBBP(U32 mainOfBs);
 HDRET tchdr_setMRC(U32 fOnOff);
-HDRET tchdr_setAudioResamplerSlips(U32 fInOut, F64 ppm, F64 *out_hz);
-HDRET tchdr_getAudioResamplerSlips(U32 fInOut, F64 *ppm, F64 *out_hz);
 
 static HDRET tchdr_checkTune(stTCHDR_TUNE_t tune);
 
@@ -1753,6 +1751,36 @@ HDRET tchdr_getAudioResamplerSlips(U32 fInOut, F64 *ppm, F64 *out_hz)
 			else {
 				ret = (HDRET)eTC_HDR_RET_NG_INVALID_PARAMETERS;
 			}
+		}
+		else {
+			ret = (HDRET)eTC_HDR_RET_NG_NULL_POINTER_PARAMETERS;
+		}
+	}
+	return ret;
+}
+
+HDRET tchdr_setDigitalAudioSlips(S32 clkOffset)
+{
+	HDRET ret = tchdr_checkHDRadioInitStatus();
+	if(ret == (HDRET)eTC_HDR_RET_OK) {
+		ret = tchdrfwk_setExtnalClockOffset(clkOffset);
+		if(ret == (HDRET)eTC_HDR_RET_OK) {
+			(*pfnHdrLog)(eTAG_BLD, eLOG_DBG, "Successfully set digital audio clock offset(0x%08x)\n", clkOffset);
+		}
+		else {
+			(*pfnHdrLog)(eTAG_BLD, eLOG_ERR, "Faild to set digital audio clock offset\n");
+		}
+	}
+	return ret;
+}
+
+HDRET tchdr_getDigitalAudioSlips(S32 *clkOffset)	// Q16.16 format
+{
+	HDRET ret = tchdr_checkHDRadioInitStatus();
+	if(ret == (HDRET)eTC_HDR_RET_OK) {
+		if(clkOffset != NULL) {
+			clkOffset = tchdrfwk_getExtnalClockOffset();
+			(*pfnHdrLog)(eTAG_BLD, eLOG_DBG, "Digital audio clock offset is 0x%08x\n", clkOffset);
 		}
 		else {
 			ret = (HDRET)eTC_HDR_RET_NG_NULL_POINTER_PARAMETERS;
