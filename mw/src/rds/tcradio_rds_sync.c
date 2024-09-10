@@ -73,16 +73,162 @@ extern void tcrds_extractBlocks(uint8 block, uint8 block_h, uint8 block_l);
 *			function definition				*
 ****************************************************/
 
+#if 1   // LB RDS code for ST tuner
+typedef struct
+{
+    uint8 err_flag;
+    uint8 val_L;
+    uint8 val_H;
+} rds_block_type_t;
+
+typedef struct
+{
+    rds_block_type_t blockA;
+    rds_block_type_t blockB;
+    rds_block_type_t blockC;
+    rds_block_type_t blockD;
+} rds_message_type_t;
+
+typedef struct
+{
+    int32 num_msg;
+    rds_message_type_t message[4];
+} lb_rds_data_t;
+
+static lb_rds_data_t rcv_rds_data;
+
+static RET LBcreateRDSMessage(uint8 *buff, int32 NumValidBlock)
+{
+    RET ret = eRET_OK;
+    uint32 temp_cnt, msg_cnt_temp;
+    int32 block_id_temp, prev_block_id;
+
+    if (buff == NULL)
+        return eRET_NG_INVALID_PARAM;
+
+    if (NumValidBlock == 0)
+        return eRET_NG_INVALID_PARAM;
+
+    memset(&rcv_rds_data, 0, sizeof(lb_rds_data_t));
+
+    for (temp_cnt = 0; temp_cnt < 4; temp_cnt++)
+    {
+        rcv_rds_data.message[temp_cnt].blockA.err_flag = 1;
+        rcv_rds_data.message[temp_cnt].blockB.err_flag = 1;
+        rcv_rds_data.message[temp_cnt].blockC.err_flag = 1;
+        rcv_rds_data.message[temp_cnt].blockD.err_flag = 1;
+    }
+
 #if 1
+    temp_cnt = 0;
+    msg_cnt_temp = 0;
+    prev_block_id = -1;
+
+    while (temp_cnt < NumValidBlock)
+    {
+        block_id_temp = buff[temp_cnt * 3] & 0x03;   // get block id
+
+        if (block_id_temp <= prev_block_id)
+        {
+            msg_cnt_temp++;
+        }
+
+        if (block_id_temp == 0)
+        {
+             rcv_rds_data.message[msg_cnt_temp].blockA.err_flag = 0;
+             rcv_rds_data.message[msg_cnt_temp].blockA.val_H = buff[(temp_cnt * 3) + 1];
+             rcv_rds_data.message[msg_cnt_temp].blockA.val_L = buff[(temp_cnt * 3) + 2];
+        }
+
+        if (block_id_temp == 1)
+        {
+             rcv_rds_data.message[msg_cnt_temp].blockB.err_flag = 0;
+             rcv_rds_data.message[msg_cnt_temp].blockB.val_H = buff[(temp_cnt * 3) + 1];
+             rcv_rds_data.message[msg_cnt_temp].blockB.val_L = buff[(temp_cnt * 3) + 2];
+        }
+
+        if (block_id_temp == 2)
+        {
+             rcv_rds_data.message[msg_cnt_temp].blockC.err_flag = 0;
+             rcv_rds_data.message[msg_cnt_temp].blockC.val_H = buff[(temp_cnt * 3) + 1];
+             rcv_rds_data.message[msg_cnt_temp].blockC.val_L = buff[(temp_cnt * 3) + 2];
+        }
+
+        if (block_id_temp == 3)
+        {
+             rcv_rds_data.message[msg_cnt_temp].blockD.err_flag = 0;
+             rcv_rds_data.message[msg_cnt_temp].blockD.val_H = buff[(temp_cnt * 3) + 1];
+             rcv_rds_data.message[msg_cnt_temp].blockD.val_L = buff[(temp_cnt * 3) + 2];
+        }
+
+        prev_block_id = block_id_temp;
+        temp_cnt++;
+    }
+
+    if (msg_cnt_temp < 2)
+    {
+        rcv_rds_data.num_msg = msg_cnt_temp + 1;
+    }
+    else
+    {
+        RDS_ERR("[%s] Invalid Received RDS Message : msg_cnt_temp = %d, NumValidBlock = %d\n", __func__, msg_cnt_temp, NumValidBlock);
+
+        for (int temp_cnt = 0; temp_cnt < NumValidBlock; temp_cnt ++)
+        {
+            RDS_ERR("temp_cnt = %d, buffer header = %02x, BLOCKID = %x, DATA_H = %02x, DATA_L = %02x .\n",
+                    temp_cnt, buff[temp_cnt * 3], (buff[temp_cnt * 3] & 0x03),
+                    buff[(temp_cnt * 3) + 1], buff[(temp_cnt * 3) + 2]);
+        }
+        return eRET_NG_INVALID_PARAM;
+    }
+
+#if 1
+    if ((NumValidBlock % 4) != 0)
+    {
+        RDS_ERR("[%s] NumValidBlock = %d\n", __func__, NumValidBlock);
+        for (int temp_cnt = 0; temp_cnt < NumValidBlock; temp_cnt ++)
+        {
+            RDS_ERR("temp_cnt = %d, buffer header = %02x, BLOCKID = %x, DATA_H = %02x, DATA_L = %02x .\n",
+                    temp_cnt, buff[temp_cnt * 3], (buff[temp_cnt * 3] & 0x03),
+                    buff[(temp_cnt * 3) + 1], buff[(temp_cnt * 3) + 2]);
+        }
+
+        RDS_ERR("[%s] Number of Received RDS Message = %d\n", __func__, rcv_rds_data.num_msg);
+        for (temp_cnt = 0; temp_cnt < rcv_rds_data.num_msg; temp_cnt++)
+        {
+            RDS_ERR("RDS MSG[%d], BLOCK_A : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
+                rcv_rds_data.message[temp_cnt].blockA.err_flag, rcv_rds_data.message[temp_cnt].blockA.val_H, rcv_rds_data.message[temp_cnt].blockA.val_L);
+            RDS_ERR("RDS MSG[%d], BLOCK_B : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
+                rcv_rds_data.message[temp_cnt].blockB.err_flag, rcv_rds_data.message[temp_cnt].blockB.val_H, rcv_rds_data.message[temp_cnt].blockB.val_L);
+            RDS_ERR("RDS MSG[%d], BLOCK_C : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
+                rcv_rds_data.message[temp_cnt].blockC.err_flag, rcv_rds_data.message[temp_cnt].blockC.val_H, rcv_rds_data.message[temp_cnt].blockC.val_L);
+            RDS_ERR("RDS MSG[%d], BLOCK_D : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
+                rcv_rds_data.message[temp_cnt].blockD.err_flag, rcv_rds_data.message[temp_cnt].blockD.val_H, rcv_rds_data.message[temp_cnt].blockD.val_L);
+        }
+    }
+#endif
+#endif
+}
+
 void tcrds_fetchRdsDataHandler(void)
 {
-	uint8 tempbuf[20]={0,}, blerA, blerB, blerC, blerD;
-	uint32 i;
+	uint8 tempbuf[16 * 3] = {0,};
 	uint32 NumValidBlock = 0;
+    RET ret = eRET_OK;
 
-	if(stRds.fEnable) {
-		if(++stRds.rdsFetchCounter >= (80 / RDS_THREAD_TIME_INTERVAL)) {	// 80ms		// 1 Group(A+B+C+D) = 104bits = about 87.6ms
+	if (stRds.fEnable) {
+		if (++stRds.rdsFetchCounter >= (80 / RDS_THREAD_TIME_INTERVAL)) {	// 80ms		// 1 Group(A+B+C+D) = 104bits = about 87.6ms
 			tcradiohal_getRdsData(tempbuf, 0, &NumValidBlock);
+
+            if (NumValidBlock > 0)
+            {
+                ret = LBcreateRDSMessage(tempbuf, NumValidBlock);
+
+                if (ret == eRET_OK)
+                {
+                    // parsing routine call
+                }
+            }
 
             stRds.rdsFetchCounter = 0;
 		}

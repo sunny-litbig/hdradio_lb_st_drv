@@ -2175,7 +2175,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
 
     if (tunerStatus != RET_SUCCESS)
     {
-        TDRV_ERR("Audio IF setup fai.l (%d)\n", tunerStatus);
+        TDRV_ERR("Audio IF setup fail. (%d)\n", tunerStatus);
         return eRET_NG_UNKNOWN;
     }
     else
@@ -2270,7 +2270,7 @@ int star_rds_read(unsigned int ntuner, tU8 *blockdata, int *NumValidBlock)
     {
         if (rds_buff_words.validBlockNum > 0)
         {
-#if 1
+#if 0
             TDRV_ERR("[%s] validBlockNum = %d[%d]\n", __func__, rds_buff_words.validBlockNum, RDS_NORMALMODE_NRQST);
 
             for (int aaa = 0; aaa < rds_buff_words.validBlockNum; aaa ++)
@@ -2279,8 +2279,6 @@ int star_rds_read(unsigned int ntuner, tU8 *blockdata, int *NumValidBlock)
                         aaa, rds_buff_words.blockdata[aaa * 3], (rds_buff_words.blockdata[aaa * 3] & 0x03),
                         rds_buff_words.blockdata[(aaa * 3) + 1], rds_buff_words.blockdata[(aaa * 3) + 2]);
             }
-
-            TDRV_ERR("\n\n");
 #endif
             *NumValidBlock = rds_buff_words.validBlockNum;
             memcpy(blockdata, rds_buff_words.blockdata, (3 * rds_buff_words.validBlockNum));
