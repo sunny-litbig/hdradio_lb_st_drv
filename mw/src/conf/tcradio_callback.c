@@ -55,7 +55,7 @@ pfnOnCheckSeekQual_t pfnOnCheckSeekQual;
 	pfnOnGetRdsDataCallBack = pfnGetRdsDataCallBack;
 }
 
-void tcradio_configOnPrecheckSeekQual(int32(*pfnPrecheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata))
+void tcradio_configOnPrecheckSeekQual(int32(*pfnPrecheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 freq, uint32 ntuner))
 {
 	pfnOnPrecheckSeekQual = pfnPrecheckSeekQual;
 }

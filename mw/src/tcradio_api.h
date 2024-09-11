@@ -328,7 +328,7 @@ typedef void(*pfnOnGetNotificationCallBack_t)(uint32 notifyID, uint32 *arg, void
 typedef void(*pfnOnGetStationListCallBack_t)(uint32 totalnum, void *list, int32 errorCode);
 typedef void(*pfnOnGetRdsDataCallBack_t)(void *rdsData, int32 errorCode);
 
-typedef int32(*pfnOnPrecheckSeekQual_t)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata);	// mod_mode : 0 = FM, 1 = AM	// return value  0 = OK, -1 = NG
+typedef int32(*pfnOnPrecheckSeekQual_t)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 freq, uint32 ntuner);	// mod_mode : 0 = FM, 1 = AM	// return value  0 = OK, -1 = NG
 typedef int32(*pfnOnCheckSeekQual_t)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata);		// mod_mode : 0 = FM, 1 = AM	// return value  0 = OK, -1 = NG
 
 /***************************************************
@@ -353,7 +353,7 @@ extern void tcradio_configOnGetNotificationCallBack(void(*pfnGetNotificationCall
 extern void tcradio_configOnGetStationListCallBack(void(*pfnGetStationListCallBack)(uint32 totalnum, void *list, int32 errorCode));
 extern void tcradio_configOnGetRdsDataCallBack(void(*pfnGetRdsDataCallBack)(void *rdsData, int32 errorCode));
 
-extern void tcradio_configOnPrecheckSeekQual(int32(*pfnPrecheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata));
+extern void tcradio_configOnPrecheckSeekQual(int32(*pfnPrecheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 freq, uint32 ntuner));
 extern void tcradio_configOnCheckSeekQual(int32(*pfnCheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata));
 
 extern RET tcradio_init(void);

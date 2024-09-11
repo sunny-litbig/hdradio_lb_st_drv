@@ -762,7 +762,7 @@ static void tcsubrmgr_eventHandler(stSdrIpcBuf_t rxbuf, stSdrIpcBuf_t *txbuf)
 	}
 }
 
-static int tcsubrmgr_precheckSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata)
+static int tcsubrmgr_precheckSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 freq, uint32 ntuner)
 {
 	int32 ret=-1, rssi=0;
 

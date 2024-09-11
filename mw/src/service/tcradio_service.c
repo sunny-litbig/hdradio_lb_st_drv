@@ -1342,7 +1342,7 @@ static void tcradioservice_seekHandler(void)
 			tcradiohal_getQuality(stRadioService.curBand, (stTUNER_QUALITY_t *)&stRadioService.stSchQdata, eRADIO_ID_PRIMARY);
 
 			if(pfnOnPrecheckSeekQual != NULL) {
-				retValid = (*pfnOnPrecheckSeekQual)(stRadioService.curBand, stRadioService.stSchQdata);
+				retValid = (*pfnOnPrecheckSeekQual)(stRadioService.curBand, stRadioService.stSchQdata, stRadioService.curFreq, eRADIO_ID_SECONDARY);
 
 			}
 			else {

@@ -106,7 +106,7 @@ static stRADIO_CONFIG_t radioConf;
 *          Local function prototypes               *
 ****************************************************/
 void tcradiocui_setRadioConfig(stRADIO_CONFIG_t *config);
-int tcradiocui_precheckSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata);
+int tcradiocui_precheckSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 freq, uint32 ntuner);
 int tcradiocui_checkSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata);
 void tcradiocui_getNotificationCallBack(uint32 notifyID, uint32 *arg, void **pData, int32 errorCode);
 void tcradiocui_getStationListCallBack(uint32 totalnum, void * list, int32 errorCode);
@@ -363,7 +363,7 @@ RET tcradiocui_initTcRadioService(void)
 	return ret;
 }
 
-int tcradiocui_precheckSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata)
+int tcradiocui_precheckSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 freq, uint32 ntuner)
 {
 	int32 ret=-1, rssi=0;
 
