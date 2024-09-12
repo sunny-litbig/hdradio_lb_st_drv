@@ -107,6 +107,7 @@ void tcrds_clearData(void)
 		stRds.psbuf[i] = 0xFF;
 }
 
+#if 0
 void tcrds_extractTp(uint8 block_h, uint8 block_l)
 {
 	if (valBit(block_h, RDS_TP_VALUE) == valBit(stRds.tatpStatus, RDS_TP_VALUE)) {
@@ -146,6 +147,7 @@ void tcrds_extractTa(uint8 block_h, uint8 block_l)
 		setBit(stRds.tatpStatus,RDS_TATP_NEW);
 	}
 }
+#endif
 
 void tcrds_extractPty(uint8 block_h, uint8 block_l)
 {
@@ -230,10 +232,32 @@ void tcrds_extractPs(uint8 block_h, uint8 block_l)
 		stRds.psStatus &= 0x0F;        /* Active PS segments become not available.*/
 
 		for (i=0 ; i<MAX_PS ; i++) {
-			if ((stRds.psbuf[i] == 0xFF)	|| (stRds.psbuf[i] < 0x0F))	{		/* non-printable character */
+			if ((stRds.psbuf[i] == 0xFF) || (stRds.psbuf[i] < 0x0F))	{		/* non-printable character */
 				return;
 			}
 		}
+
+#if 0
+        int32 temp = 0;
+
+		for (i=0 ; i<MAX_PS ; i++)
+        {
+			if (stRds.psname[i] != stRds.psbuf[i])
+            {
+                temp ++;
+            }
+		}
+
+        if (temp > 0)
+        {
+            RDS_ERR("[%s] psname and psbuf are not same, so change psname.\n");
+            RDS_ERR("[%s] psname = %s, psbuf = %s\n", __func__, stRds.psname, stRds.psbuf);
+            for (i=0 ; i<MAX_PS ; i++)
+            {
+                RDS_ERR("[%d]th psname = %02x, psbuf = %02x\n", i, stRds.psname[i], stRds.psbuf[i]);
+            }
+        }
+#endif
 
 		for (i=0 ; i<MAX_PS ; i++) {
 			stRds.psname[i] = stRds.psbuf[i];
@@ -244,6 +268,7 @@ void tcrds_extractPs(uint8 block_h, uint8 block_l)
 	}
 }
 
+#if 0
 void tcrds_extractMs(uint8 block_h, uint8 block_l)
 {
 	/* Stored & Current MS are the same.*/
@@ -273,6 +298,7 @@ void tcrds_extractMs(uint8 block_h, uint8 block_l)
 void tcrds_extractAf(uint8 block_h, uint8 block_l)
 {
 }
+#endif
 
 void tcrds_extractBlockB(uint8 block_h, uint8 block_l)
 {
@@ -280,15 +306,16 @@ void tcrds_extractBlockB(uint8 block_h, uint8 block_l)
 	stRds.group = block_h & 0xF8;      /* block B upper : g3 g2 g1 g0 AB X  X  X */
 
 	/* Common in all group */
-	tcrds_extractTp(block_h, block_l);	/* Extract RDS TP information flag.*/
+	//tcrds_extractTp(block_h, block_l);	/* Extract RDS TP information flag.*/
 	tcrds_extractPty(block_h, block_l);	/* Extract RDS PTY information code.*/
 
-
+#if 0
 	/*:::::::::: B Block Information From 0(A/B) or 15B :::::::::*/
 	if (GROUP_0X || GROUP_15B) {
 		tcrds_extractTa(block_h, block_l);	/* Extract RDS TA information flag.*/
 		tcrds_extractMs(block_h, block_l);	/* Extract RDS MS information flag.*/
 	}
+#endif
 
 	/* Extract Program Name Segment */
 	if (GROUP_0X) {
@@ -326,6 +353,7 @@ void tcrds_extractBlockB(uint8 block_h, uint8 block_l)
 #endif
 }
 
+#if 0	// if use, open and make functions.
 void tcrds_extractBlockC (uint8 block_h, uint8 block_l)
 {
 	/*:::::::::::::::: C BLOCK INFORMATION FROM A GROUP 0A ::::::::::::::::::::*/
@@ -334,7 +362,6 @@ void tcrds_extractBlockC (uint8 block_h, uint8 block_l)
 		tcrds_extractAf(block_h, block_l);
 	}
 
-#if 0	// if use, open and make functions.
 	/*:::::::::::::::: C BLOCK INFORMATION FROM A RT GROUP 2A :::::::::::::::::*/
 	if ( GROUP_2A && valBit(stRds.extStatus, RDS_RT_SEG_OK) ) {
 		/* Extract current received text character +0 and +1.....................*/
@@ -356,8 +383,8 @@ void tcrds_extractBlockC (uint8 block_h, uint8 block_l)
 		clrBit(stRds.extStatus,RDS_EONB_SEG_OK);	/* Blk B segment not available.*/
 		setBit(stRds.extStatus,RDS_EONC_SEG_OK);	/* Blk C segment available.*/
 	}
-#endif
 }
+#endif
 
 void tcrds_extractBlockD(uint8 block_h, uint8 block_l)
 {
@@ -401,7 +428,7 @@ void tcrds_extractBlocks(uint8 block, uint8 block_h, uint8 block_l)
 	switch (block) {
 		case eRDS_BLOCK_A:		tcrds_extractPi(block_h, block_l);		break;
 		case eRDS_BLOCK_B:		tcrds_extractBlockB(block_h, block_l);	break;
-		case eRDS_BLOCK_C:		tcrds_extractBlockC(block_h, block_l);	break;
+//		case eRDS_BLOCK_C:		tcrds_extractBlockC(block_h, block_l);	break;
 		case eRDS_BLOCK_c:		tcrds_extractPi(block_h, block_l);		break;
 		case eRDS_BLOCK_D:		tcrds_extractBlockD(block_h, block_l);	break;
 		default:														break;

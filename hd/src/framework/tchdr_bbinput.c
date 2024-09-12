@@ -3028,7 +3028,7 @@ static S32 tchdr_readAudioInputProcess(S16 *anaAudioInBuffer, S16 * anaAudioOutB
 		ret = tcaudio_resampler_exec(tcAudioInputResampler, anaAudioInBuffer, anaAudioOutBuffer, ret/4, anain_hz, anaout_hz);
 		if(ret > 0) {
 			if(prevInputSize != (*stCast.s32tou32)(ret)) {
-				(*pfnHdrLog)(eTAG_AIN, eLOG_DBG, "Changed to %d samples after going through audio resampler.\n", ret);
+				//(*pfnHdrLog)(eTAG_AIN, eLOG_DBG, "Changed to %d samples after going through audio resampler.\n", ret);
 				prevInputSize = (*stCast.s32tou32)(ret);
 			}
 		#ifdef USE_EVALUATION_MODE

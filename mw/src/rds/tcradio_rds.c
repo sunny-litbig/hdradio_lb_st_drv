@@ -166,8 +166,17 @@ static void *tcrds_mainThread(void *arg)
 
 	prctl(PR_SET_NAME, "TCRADIO_RDS",0,0,0);
 
+    uint32 rds_dsp_cnt = 0;
+
 	stRds.fThreadRunning = 1;
 	while(stRds.fThreadRunning > 0) {
+        if (rds_dsp_cnt == 50)
+        {
+            RDS_ERR("Received PI Code = 0x%04x, PTY Code = %d, Ps Name = %s\n",
+                ((uint16)stRds.pih << 8 | (uint16)stRds.pil), (stRds.ptyStatus & 0x1F), stRds.psname);
+            rds_dsp_cnt = 0;
+        }
+
 		tcradiodatasystem_getMessage(&stRecivedMessage);
 		if(stRecivedMessage.fNewMsg == eNEW_MSG_EXIST) {
 			switch(stRecivedMessage.uiSender) {
@@ -182,6 +191,8 @@ static void *tcrds_mainThread(void *arg)
 		tcrds_mainHandler();
 		tcrds_notifyHandler();
 		tcrds_fetchRdsDataHandler();
+
+        rds_dsp_cnt ++;
 		tcradio_mssleep(RDS_THREAD_TIME_INTERVAL);
 	}
 
@@ -362,7 +373,8 @@ static eRDS_STS_t tcrds_event_close(uint32 *uiSendMsg, int32 *iError)
 }
 
 static eRDS_STS_t tcrds_event_deinit(uint32 *uiSendMsg, int32 *iError)
-{
+{
+
 	RET ret;
 	eRDS_STS_t eRdsSt = eRDS_STS_OK_NOTIFY;
 	RDS_DBG("[%s:%d] \n", __func__, __LINE__);

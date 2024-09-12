@@ -161,10 +161,12 @@ typedef struct{
 	uint8 pty;
 	uint8 psname[MAX_PS];
 
+#if 0
 	uint8 af[MAX_AF];
 	uint8 availableAf[MAX_AF];
 	uint8 weightedAf[MAX_WAF];
 	uint8 forbiddenAf[MAX_FAF];
+#endif
 
 	/* for rds parsing */
 	uint8 blockAH;
