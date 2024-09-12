@@ -96,15 +96,25 @@ void tcrds_clearData(void)
 	stRds.tatpStatus = 0;		/* RDS TA and TP info status/control reg. cleared.*/
 	stRds.ptyStatus  = 0;		/* RDS PTY information status/control reg.  reset.*/
 
+#if 0
 	if (stRds.psname[0] == 0xFF)
 		stRds.psStatus = 0;		/* RDS PS information software control reg. reset.*/
 	else {
 		setBit(stRds.psStatus,RDS_PS_VALID);	/* Force PS to be available.*/
 		setBit(stRds.psStatus,RDS_PS_NEW);		/* New PS available for appli.*/
 	}
+#else
+    stRds.pih = NO_PI;
+    stRds.pil = NO_PI;
+
+	stRds.psStatus = 0;		/* RDS PS information software control reg. reset.*/
+#endif
 
 	for (i = 0; i < 8; i++)
+    {
+		stRds.psname[i] = 0x00;
 		stRds.psbuf[i] = 0xFF;
+    }
 }
 
 #if 0

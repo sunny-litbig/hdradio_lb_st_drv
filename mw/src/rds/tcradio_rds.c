@@ -166,16 +166,20 @@ static void *tcrds_mainThread(void *arg)
 
 	prctl(PR_SET_NAME, "TCRADIO_RDS",0,0,0);
 
+#ifdef RDS_DBG_MSG
     uint32 rds_dsp_cnt = 0;
+#endif
 
 	stRds.fThreadRunning = 1;
 	while(stRds.fThreadRunning > 0) {
+#ifdef RDS_DBG_MSG
         if (rds_dsp_cnt == 50)
         {
             RDS_ERR("Received PI Code = 0x%04x, PTY Code = %d, Ps Name = %s\n",
                 ((uint16)stRds.pih << 8 | (uint16)stRds.pil), (stRds.ptyStatus & 0x1F), stRds.psname);
             rds_dsp_cnt = 0;
         }
+#endif
 
 		tcradiodatasystem_getMessage(&stRecivedMessage);
 		if(stRecivedMessage.fNewMsg == eNEW_MSG_EXIST) {
@@ -192,7 +196,9 @@ static void *tcrds_mainThread(void *arg)
 		tcrds_notifyHandler();
 		tcrds_fetchRdsDataHandler();
 
+#ifdef RDS_DBG_MSG
         rds_dsp_cnt ++;
+#endif
 		tcradio_mssleep(RDS_THREAD_TIME_INTERVAL);
 	}
 

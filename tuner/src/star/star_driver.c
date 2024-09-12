@@ -2285,7 +2285,9 @@ int star_rds_read(unsigned int ntuner, tU8 *blockdata, int *NumValidBlock)
         }
         else
         {
+#if 0
             TDRV_ERR("[%s] RDS data not ready.\n", __func__);
+#endif
             *NumValidBlock = 0;
         }
         return eRET_OK;
