@@ -95,6 +95,12 @@ typedef struct
     rds_message_type_t message[4];
 } lb_rds_data_t;
 
+#ifdef RDS_DBG_MSG
+#define NUM_RDS_DBG_MSG 4
+static rds_message_type_t dbg_rds_msg[NUM_RDS_DBG_MSG];;
+uint32 dbg_rds_msg_print = 0;
+#endif
+
 static lb_rds_data_t rcv_rds_data;
 
 static RET LBcreateRDSMessage(uint8 *buff, int32 NumValidBlock)
@@ -109,6 +115,23 @@ static RET LBcreateRDSMessage(uint8 *buff, int32 NumValidBlock)
     if (NumValidBlock == 0)
         return eRET_NG_INVALID_PARAM;
 
+#ifdef RDS_DBG_MSG
+    uint32 aaa = 0;
+
+    if (rcv_rds_data.num_msg > 0)
+    {
+        for (temp_cnt = 0; temp_cnt < rcv_rds_data.num_msg; temp_cnt++)
+        {
+            for (aaa = 0; aaa < (NUM_RDS_DBG_MSG - 1); aaa ++)
+            {
+                memcpy(&dbg_rds_msg[aaa], &dbg_rds_msg[aaa + 1], sizeof(rds_message_type_t));
+            }
+
+            memcpy(&dbg_rds_msg[NUM_RDS_DBG_MSG - 1], &rcv_rds_data.message[temp_cnt], sizeof(rds_message_type_t));
+        }
+    }
+#endif
+
     memset(&rcv_rds_data, 0, sizeof(lb_rds_data_t));
 
     for (temp_cnt = 0; temp_cnt < 4; temp_cnt++)
@@ -119,7 +142,6 @@ static RET LBcreateRDSMessage(uint8 *buff, int32 NumValidBlock)
         rcv_rds_data.message[temp_cnt].blockD.err_flag = 1;
     }
 
-#if 1
     temp_cnt = 0;
     msg_cnt_temp = 0;
     prev_block_id = -1;
@@ -182,36 +204,6 @@ static RET LBcreateRDSMessage(uint8 *buff, int32 NumValidBlock)
         ret = eRET_NG_INVALID_PARAM;
     }
 
-#if 0
-    rds_message_type_t *p_msg;
-
-    if ((NumValidBlock % 4) != 0)
-    {
-        RDS_ERR("[%s] NumValidBlock = %d\n", __func__, NumValidBlock);
-        for (int temp_cnt = 0; temp_cnt < NumValidBlock; temp_cnt ++)
-        {
-            RDS_ERR("temp_cnt = %d, buffer header = %02x, BLOCKID = %x, DATA_H = %02x, DATA_L = %02x .\n",
-                    temp_cnt, buff[temp_cnt * 3], (buff[temp_cnt * 3] & 0x03),
-                    buff[(temp_cnt * 3) + 1], buff[(temp_cnt * 3) + 2]);
-        }
-
-        RDS_ERR("[%s] Number of Received RDS Message = %d\n", __func__, rcv_rds_data.num_msg);
-        for (temp_cnt = 0; temp_cnt < rcv_rds_data.num_msg; temp_cnt++)
-        {
-            p_msg = &rcv_rds_data.message[temp_cnt];
-
-            RDS_ERR("RDS MSG[%d], BLOCK_A : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
-                p_msg->blockA.err_flag, p_msg->blockA.val_H, p_msg->blockA.val_L);
-            RDS_ERR("RDS MSG[%d], BLOCK_B : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
-                p_msg->blockB.err_flag, p_msg->blockB.val_H, p_msg->blockB.val_L);
-            RDS_ERR("RDS MSG[%d], BLOCK_C : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
-                p_msg->blockC.err_flag, p_msg->blockC.val_H, p_msg->blockC.val_L);
-            RDS_ERR("RDS MSG[%d], BLOCK_D : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
-                p_msg->blockD.err_flag, p_msg->blockD.val_H, p_msg->blockD.val_L);
-        }
-    }
-#endif
-#endif
     return ret;
 }
 
@@ -260,6 +252,55 @@ RET LBparsingRDSMessage(void)
     return ret;
 }
 
+#ifdef RDS_DBG_MSG
+void printf_dbg_rds_msg(uint8 *buff, int32 NumValidBlock)
+{
+    uint32 aaa = 0;
+    rds_message_type_t *p_dbg_msg;
+
+    RDS_ERR("Previous received (%d) DBG_SAVE_RDS_MSG.\n", NUM_RDS_DBG_MSG);
+    for (aaa = 0; aaa < NUM_RDS_DBG_MSG; aaa ++)
+    {
+        p_dbg_msg = &dbg_rds_msg[aaa];
+
+        RDS_ERR("DBG_SAVE_RDS_MSG[%d]\n", aaa);
+        RDS_ERR("BLOCK_A : err = %d, val_H = 0x%02x, val_L = 0x%02x\n",
+            p_dbg_msg->blockA.err_flag, p_dbg_msg->blockA.val_H, p_dbg_msg->blockA.val_L);
+        RDS_ERR("BLOCK_B : err = %d, val_H = 0x%02x, val_L = 0x%02x\n",
+            p_dbg_msg->blockB.err_flag, p_dbg_msg->blockB.val_H, p_dbg_msg->blockB.val_L);
+        RDS_ERR("BLOCK_C : err = %d, val_H = 0x%02x, val_L = 0x%02x\n",
+            p_dbg_msg->blockC.err_flag, p_dbg_msg->blockC.val_H, p_dbg_msg->blockC.val_L);
+        RDS_ERR("BLOCK_D : err = %d, val_H = 0x%02x, val_L = 0x%02x\n",
+            p_dbg_msg->blockD.err_flag, p_dbg_msg->blockD.val_H, p_dbg_msg->blockD.val_L);
+    }
+
+    uint32 temp_cnt = 0;
+    rds_message_type_t *p_msg;
+    RDS_ERR("[%s] NumValidBlock = %d\n", __func__, NumValidBlock);
+    for (int temp_cnt = 0; temp_cnt < NumValidBlock; temp_cnt ++)
+    {
+        RDS_ERR("temp_cnt = %d, buffer header = %02x, BLOCKID = %x, DATA_H = %02x, DATA_L = %02x .\n",
+                temp_cnt, buff[temp_cnt * 3], (buff[temp_cnt * 3] & 0x03),
+                buff[(temp_cnt * 3) + 1], buff[(temp_cnt * 3) + 2]);
+    }
+
+    RDS_ERR("[%s] Number of Received RDS Message = %d\n", __func__, rcv_rds_data.num_msg);
+    for (temp_cnt = 0; temp_cnt < rcv_rds_data.num_msg; temp_cnt++)
+    {
+        p_msg = &rcv_rds_data.message[temp_cnt];
+
+        RDS_ERR("RDS MSG[%d], BLOCK_A : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
+            p_msg->blockA.err_flag, p_msg->blockA.val_H, p_msg->blockA.val_L);
+        RDS_ERR("RDS MSG[%d], BLOCK_B : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
+            p_msg->blockB.err_flag, p_msg->blockB.val_H, p_msg->blockB.val_L);
+        RDS_ERR("RDS MSG[%d], BLOCK_C : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
+            p_msg->blockC.err_flag, p_msg->blockC.val_H, p_msg->blockC.val_L);
+        RDS_ERR("RDS MSG[%d], BLOCK_D : err = %d, val_H = 0x%02x, val_L = 0x%02x\n", temp_cnt,
+            p_msg->blockD.err_flag, p_msg->blockD.val_H, p_msg->blockD.val_L);
+    }
+}
+#endif
+
 void tcrds_fetchRdsDataHandler(void)
 {
 	uint8 tempbuf[16 * 3] = {0,};
@@ -280,7 +321,20 @@ void tcrds_fetchRdsDataHandler(void)
                     ret = LBparsingRDSMessage();
                 }
             }
+            else
+            {
+#ifdef RDS_DBG_MSG
+                RDS_DBG("Can't receive RDS Message. (%d).", NumValidBlock);
+#endif
+            }
 
+#ifdef RDS_DBG_MSG
+            if (dbg_rds_msg_print  == 1)
+            {
+                printf_dbg_rds_msg(tempbuf, NumValidBlock);
+                dbg_rds_msg_print = 0;
+            }
+#endif
             stRds.rdsFetchCounter = 0;
 		}
 	}

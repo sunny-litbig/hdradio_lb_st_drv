@@ -247,7 +247,7 @@ void tcrds_extractPs(uint8 block_h, uint8 block_l)
 			}
 		}
 
-#if 0
+#ifdef RDS_DBG_MSG
         int32 temp = 0;
 
 		for (i=0 ; i<MAX_PS ; i++)
@@ -261,11 +261,12 @@ void tcrds_extractPs(uint8 block_h, uint8 block_l)
         if (temp > 0)
         {
             RDS_ERR("[%s] psname and psbuf are not same, so change psname.\n");
-            RDS_ERR("[%s] psname = %s, psbuf = %s\n", __func__, stRds.psname, stRds.psbuf);
+            RDS_ERR("[%s] psname = %s, psbuf = %8s\n", __func__, stRds.psname, stRds.psbuf);
             for (i=0 ; i<MAX_PS ; i++)
             {
                 RDS_ERR("[%d]th psname = %02x, psbuf = %02x\n", i, stRds.psname[i], stRds.psbuf[i]);
             }
+            dbg_rds_msg_print = 1;
         }
 #endif
 

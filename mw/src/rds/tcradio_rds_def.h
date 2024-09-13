@@ -134,6 +134,11 @@ extern "C" {
 #define RDS_CTB_SEG_OK     3		/* CT block B segment availibility bit.*/
 #define RDS_CTC_SEG_OK     2		/* CT block C segment availibility bit.*/
 
+//#define RDS_DBG_MSG
+#ifdef RDS_DBG_MSG
+extern uint32 dbg_rds_msg_print;
+#endif
+
 /***************************************************
 *				Enumeration				*
 ****************************************************/

@@ -2232,8 +2232,6 @@ int star_rds_init(unsigned int ntuner)
     Tun_Status tunerStatus = RET_SUCCESS;
     int channelID;
 
-    TDRV_ERR("[%s] in.", __func__);
-
     if (ntuner > eTUNER_DRV_ID_SECONDARY)
         return eRET_NG_UNKNOWN;
 
