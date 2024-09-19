@@ -1331,11 +1331,11 @@ static HDRET tchdrsvc_buildLotBody(const stTCHDR_LOTPROC_PARAM_t* lpp)
 		Added_written_size = bytes_written;
 
 		while(End == 0U) {
-			(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Body .. (port number: 0x%X, LOT ID: %d) s(%d), PN(%d)\n",llpp->port_number, llpp->lotId, llpp->ServNum, llpp->Program_number);
+			// (*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Body .. (port number: 0x%X, LOT ID: %d) s(%d), PN(%d)\n",llpp->port_number, llpp->lotId, llpp->ServNum, llpp->Program_number);
 
 			ret = HDR_aas_get_lot_object_body(llpp->hdrInstance, llpp->port_number, llpp->lotId, stTcHdrXXXLot[s].body, stTcHdrXXXLot[s].header.file_size, &bytes_written);
 
-			(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Body .. FSize(%d), Written(%d)\n",stTcHdrXXXLot[s].header.file_size, bytes_written);
+			// (*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Body .. FSize(%d), Written(%d)\n",stTcHdrXXXLot[s].header.file_size, bytes_written);
 
 			/*1: End-of-file*/
 			if(ret == 1) {
@@ -1353,8 +1353,8 @@ static HDRET tchdrsvc_buildLotBody(const stTCHDR_LOTPROC_PARAM_t* lpp)
 				uiSendMsg[6] = llpp->Program_number;
 				pData[0] = &stTcHdrXXXLot[s];
 
-				(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Send Event .. (port number: 0x%X, LOT ID: %d) s(%d), PN(%d), BodySize(%d)\n",
-					llpp->port_number, llpp->lotId, llpp->ServNum, llpp->Program_number,Added_written_size);
+                // (*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Send Event .. (port number: 0x%X, LOT ID: %d) s(%d), PN(%d), BodySize(%d)\n",
+				//     llpp->port_number, llpp->lotId, llpp->ServNum, llpp->Program_number,Added_written_size);
 
 				(void)tchdrapp_sendMessage(eTCHDR_SENDER_ID_SERVICE, (U32)eTCHDR_SVC_NOTIFY_LOT, uiSendMsg, pData, 0);
 				End = 1;
@@ -1378,7 +1378,7 @@ static HDRET tchdrsvc_buildLotBody(const stTCHDR_LOTPROC_PARAM_t* lpp)
 		}
 	}
 	else if(ret == 1) {
-		(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Body .. FSize(%d), Written(%d), ret(%d) - Call and Finsh\n", stTcHdrXXXLot[s].header.file_size, bytes_written,ret);
+		// (*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Body .. FSize(%d), Written(%d), ret(%d) - Call and Finsh\n", stTcHdrXXXLot[s].header.file_size, bytes_written,ret);
 	}
 	else {
 		/* Nothing To Do */
@@ -1395,16 +1395,16 @@ static HDRET tchdrsvc_buildLotHeader(const stTCHDR_LOTPROC_PARAM_t* lpp)
 
 	tchdrsvc_tchdrsvc_buildLotFree(llpp);
 
-	(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Complete .. (port number: 0x%X, LOT ID: %d) s(%d), PN(%d)\n",
-		llpp->port_number, llpp->lotId, llpp->ServNum, llpp->Program_number);
+	// (*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Complete .. (port number: 0x%X, LOT ID: %d) s(%d), PN(%d)\n",
+	//     llpp->port_number, llpp->lotId, llpp->ServNum, llpp->Program_number);
 
 	HDR_aas_lot_object_header_t Lot_H;
 	(void)(*stOsal.osmemset)((void*)&Lot_H, (S8)0, (U32)sizeof(HDR_aas_lot_object_header_t));
 
 	ret = HDR_aas_get_lot_object_header(llpp->hdrInstance, llpp->port_number, llpp->lotId, &Lot_H);
 	if(ret == (HDRET)eTC_HDR_RET_OK) {
-		(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Head Complete .. (port number: 0x%X, LOT ID: %d) s(%d), PN(%d)\n",
-			llpp->port_number, llpp->lotId, llpp->ServNum, llpp->Program_number);
+		// (*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "LOT Object Head Complete .. (port number: 0x%X, LOT ID: %d) s(%d), PN(%d)\n",
+		//     llpp->port_number, llpp->lotId, llpp->ServNum, llpp->Program_number);
 
 		if(llpp->id == eTC_HDR_ID_BS) {
 			(void)(*stOsal.osmemcpy)((void*)&stTcHdrBsLot[llpp->ServIdx].header, (void*)&Lot_H, (U32)sizeof(stTC_HDR_AAS_LOT_OBJECT_HEADER_t));
