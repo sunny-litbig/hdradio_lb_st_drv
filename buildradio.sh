@@ -231,9 +231,11 @@ read input6
 
 case $input6 in
 	1)
+        config_hd_build=1
 		config_opt5="--enable-hdradio"
 		config_opt6="USE_HDRADIO=YES";;
 	2)
+        config_hd_build=0
 		config_opt5=""
 		config_opt6="";;
 	*)
@@ -623,8 +625,10 @@ case $input5 in
 		build_tuner
 		cd ../../
 		build_hal
-		cd ../../
-		build_hd
+		if [ ${config_hd_build} -eq 1 ];then
+		    cd ../../
+		    build_hd
+        fi
 		cd ../../
 		build_mw
 		echo -e "\033[36;1m"BUILD COMPLETE!!!"\033[0m"

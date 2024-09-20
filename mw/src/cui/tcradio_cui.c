@@ -608,7 +608,9 @@ void tcradiocui_getNotificationCallBack(uint32 notifyID, uint32 *arg, void **pDa
 			else {
 				current_frequency = arg[1];
 				RAPP_DBG("eRADIO_NOTIFY_SET_SEEK : Done! band[%d], freq[%d], seekmode[%d]\n", arg[0], arg[1], arg[2]);
+#ifdef USE_HDRADIO
 				tcradio_setHdrPsdNotification(0, PSD_BITMASK);
+#endif
 			}
 			if(arg[2] == 3 || arg[2] == 4 || arg[2] == 5) {		// 3: Auto Up, 4: Auto Down, 5: Scan List
 				if(arg[3] == eRADIO_TYPE1)
@@ -758,9 +760,11 @@ void tcradiocui_getNotificationCallBack(uint32 notifyID, uint32 *arg, void **pDa
 			}
 			else {
 				RAPP_DBG("eRADIO_NOTIFY_GET_FREQ : Done! band[%d] freq[%d] seekmode[%d] ntuner[%d]\n", arg[0], arg[1], arg[2], arg[3]);
+#ifdef USE_HDRADIO
 				if(arg[3] == eRADIO_ID_PRIMARY) {
 					tcradio_setHdrPsdNotification(0, PSD_BITMASK);
 				}
+#endif
 			}
 
 			if(arg[3] == eRADIO_ID_PRIMARY) {
@@ -2397,6 +2401,7 @@ int32 tcradiocui_operation(char *argv[], int argc)
 			err = -1;
 		}
 	}
+#ifdef USE_HDRADIO
 	else if(SCMP(p0, "hdlot", MAX_SCMP_LEN) == 0) {
 		if(argc == 3){
 			if (SCMP(p1, "main", MAX_SCMP_LEN) == 0){
@@ -2482,6 +2487,7 @@ int32 tcradiocui_operation(char *argv[], int argc)
 			RAPP_DBG("ea [main/bs] [on/off]\n");
 		}
 	}
+#endif
 	else if(SCMP(p0, "exit", MAX_SCMP_LEN)==0) {
 		tcradio_close();
 		exit = -1;
