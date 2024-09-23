@@ -269,7 +269,6 @@ Tun_Status TUN_Set_Stereo_Mode (tU8 deviceAddress, Stereo_Mode stereoMode);
 Tun_Status TUN_Set_VPAMode(tU8 deviceAddress, Switch_Mode VPAmode);
 Tun_Status TUN_Get_ReceptionQuality (tU8 deviceAddress, int channelID, union Tun_SignalQuality *pQuality);
 Tun_Status TUN_conf_JESD204(tU8 deviceAddress, tU32 mode, tU32 config, tU32 testnum, tU32 testchar, tU32 ilam, tU32 ilak);
-Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode);
 
 Tun_Status TUN_AF_Start (tU8 deviceAddress, int channelID, tU32 alterFreq, tU32 antSelection, AF_SignalQuality *pAFquality);
 Tun_Status TUN_AF_End(tU8 deviceAddress, int channelID, tU32 freqAfterAFEnd, AF_SignalQuality *pAFquality);
@@ -293,6 +292,12 @@ Tun_Status TUN_Read_RDS (tU8 deviceAddress, int channelID, RDS_Buffer *pRDSbuffe
 Tun_Status TUN_conf_BB_SAI(tU8 deviceAddress, tU32 mode, tU32 config);
 Tun_Status TUN_Set_Audio_IF(tU8 deviceAddress, tU8 SAIMode, tU32 SAIConfig);
 Tun_Status TUN_Set_BB_IF(tU8 deviceAddress, tU32 BBConfig);
+
+#if 0
+Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode);
+#else
+Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode, tU8 fOnOff);
+#endif
 
 #if 0
 Tun_Status TUN_Download_BootCode(tU8 deviceAddress, Device_Type deviceType);

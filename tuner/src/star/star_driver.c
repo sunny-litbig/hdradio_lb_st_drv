@@ -713,51 +713,6 @@ Tun_Status TUN_conf_JESD204(tU8 deviceAddress, tU32 mode, tU32 config, tU32 test
 
 
 /*************************************************************************************
-Function        : TUN_Set_Blend
-Description    : This function is used to set the audio blend operation mode for digital reception standards in case the I2S audio 
-            from an external digital decoder is brought back into the TDA7707. In case of HD reception, 
-            the output from the audio blend block is fed outside in an analog format through the on-board DACs and in digital format via I2S. 
-            In case of any other standards (DAB and DRM) the output from the audio blend block is fed outside only in an analog format through the on-board DACs.
-            The function sets the way audio is selected.
-            
-Parameters    :
-        deviceAddress :  star tuner I2C address.
-        blendMode :  Blend mode
-            00: automatic via GPIO
-            01: force analog signal
-            10:force digital source input (HD)
-            11: force digital source input (non-HD)
-                
-Return Value    : None                        
-*************************************************************************************/
-Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode)
-{
-    Tun_Status tunerStatus = RET_ERROR;
-    int cmdID = CMD_CODE_TUNER_SET_HD_BLEND;
-    int cmdParamNum = 1;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
-    int realAnsParamNum;
-    tU8 paramData[cmdParamNum * 3];
-    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
-
-    memset(paramData, 0x00, cmdParamNum * 3);
-    paramData[2] = blendMode;
-
-#ifdef STAR_COMM_BUS_I2C
-    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
-
-#ifdef TRACE_STAR_CMD_CONF_BB_SAI
-    TDRV_ERR("Star_Command_Communicate = %s, blendMode = 0x%06x", RetStatusName[tunerStatus].Name, blendMode);
-#endif
-
-#else
-#endif    
-
-    return tunerStatus;
-}
-
-
-/*************************************************************************************
 Function        : TUN_AF_Start
 Description    : This function is used to start the verification of the quality of a series of AF frequencies. 
             It is always terminated by a function TUN_AF_End.
@@ -1614,6 +1569,59 @@ Tun_Status TUN_Read_RDS (tU8 deviceAddress, int channelID, RDS_Buffer *pRDSbuffe
 
 
 /*************************************************************************************
+Function        : TUN_Set_Blend
+Description    : This function is used to set the audio blend operation mode for digital reception standards in case the I2S audio 
+            from an external digital decoder is brought back into the TDA7707. In case of HD reception, 
+            the output from the audio blend block is fed outside in an analog format through the on-board DACs and in digital format via I2S. 
+            In case of any other standards (DAB and DRM) the output from the audio blend block is fed outside only in an analog format through the on-board DACs.
+            The function sets the way audio is selected.
+            
+Parameters    :
+        deviceAddress :  star tuner I2C address.
+        blendMode :  Blend mode
+            00: automatic via GPIO
+            01: force analog signal
+            10:force digital source input (HD)
+            11: force digital source input (non-HD)
+                
+Return Value    : None                        
+*************************************************************************************/
+#if 0
+Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode)
+#else
+Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode, tU8 fOnOff)
+#endif
+{
+    Tun_Status tunerStatus = RET_ERROR;
+    int cmdID = CMD_CODE_TUNER_SET_HD_BLEND;
+#if 0
+    int cmdParamNum = 1;
+#else
+    int cmdParamNum = 2;
+#endif
+    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    int realAnsParamNum;
+    tU8 paramData[cmdParamNum * 3];
+    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
+
+    memset(paramData, 0x00, cmdParamNum * 3);
+    paramData[2] = blendMode;
+
+    if (fOnOff != 0) {
+        paramData[5] = 0x01;
+    }
+
+    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
+
+#ifdef TRACE_STAR_CMD_CONF_BB_SAI
+    TDRV_ERR("Star_Command_Communicate = %s, blendMode = 0x%06x", RetStatusName[tunerStatus].Name, blendMode);
+#endif
+
+    return tunerStatus;
+}
+
+
+/*************************************************************************************
 Function        : TUN_conf_BB_SAI
 Description    : This function is used to configure the baseband SAI interface.
             The SAI is configured either in MUX mode or AFE mode.
@@ -2181,6 +2189,19 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     else
     {
         TDRV_ERR("Audio IF setup is complete.\n");
+    }
+
+    // blendMode: 0x01 force analog source signal, fOnOff: 0x01 enabled Internal DNR filter
+    tunerStatus = TUN_Set_Blend(I2C_SLAVE_ADDRESS, 0x01, 0x01);
+
+    if (tunerStatus != RET_SUCCESS)
+    {
+        TDRV_ERR("Set Blend fail. (%d)\n", tunerStatus);
+        return eRET_NG_UNKNOWN;
+    }
+    else
+    {
+        TDRV_ERR("Set Blend is complete.\n");
     }
 
     // initial tune
