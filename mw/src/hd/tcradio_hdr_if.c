@@ -245,8 +245,13 @@ RET tcradioservice_openHdr(eRADIO_MOD_MODE_t init_band, uint32 init_freq, eTC_HD
 		(void)tchdr_setBlendParam(eBLEND_FM_MPS_DAUD_DELAY, 22430U);    // FM	// Enalbe st tuner blend(DNR)
 		(void)tchdr_setBlendParam(eBLEND_AM_MPS_DAUD_DELAY, 13563U);    // AM	// Enable st tuner blend(DNR)
 #else
+#ifdef TC_RESAMPLER_OFF
+		(void)tchdr_setAudioResamplerSlips(0U, 0.0, &out_hz);        // 24 ~ 26 samples, 44098.754175Hz, on audio input
+		(void)tchdr_setAudioResamplerSlips(1U, 0.0, &out_hz);        // on audio output
+#else
 		(void)tchdr_setAudioResamplerSlips(0U, -28.26, &out_hz);        // 24 ~ 26 samples, 44098.754175Hz, on audio input
 		(void)tchdr_setAudioResamplerSlips(1U, 115.00, &out_hz);        // on audio output
+#endif
 		(void)tchdr_setBlendParam(eBLEND_FM_MPS_DAUD_DELAY, 22420U);    // FM	// Enalbe st tuner blend(DNR)
 		(void)tchdr_setBlendParam(eBLEND_AM_MPS_DAUD_DELAY, 13563U);    // AM	// Enable st tuner blend(DNR)
 #endif
