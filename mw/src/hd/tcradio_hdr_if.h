@@ -83,7 +83,7 @@ extern "C" {
 
 #endif // #ifdef __ANDROID__
 
-#define TC_RESAMPLER_OFF
+// #define TC_RESAMPLER_OFF
 /***************************************************
 *				Enumeration				*
 ****************************************************/
