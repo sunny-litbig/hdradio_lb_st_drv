@@ -142,9 +142,7 @@ extern "C" {
 //#define USE_EVALUATION_MODE                      	// Evaluation mode that only works while LIMIT_EVALUATION_TIME.
 //#define DISABLE_TCHDR_DATA_API              	   	// DISABLE THE DATA ACCESS FROM TC API FOR XPERI TESTING.
 #define USE_AUTO_AUDIO_ALIGN                       	// Enable auto audio alignment(AAA)
-// temporary use to LGE ccnc
-#define USE_RESET_IQ_WHEN_SWITCHING              	// Reset IQ driver and buffer when the frequency or the band is switched.
-// ~temporary use to LGE ccnc
+//#define USE_RESET_IQ_WHEN_SWITCHING              	// Reset IQ driver and buffer when the frequency or the band is switched.
 #define USE_AUDIO_BUFFER_FILL_ZERO_BEFORE_START    	// At the start of audio, the audio output buffer is filled with zeros and started.
 //#define USE_AUTO_MUTE_WHEN_ONLY_ANALOG_AUDIO_MODE	// If current program is all-digital program and force-analog is requested, play mute. for JVCK.
 #define USE_AUDIO_OUTPUT_RESAMPLER                 	// Use an audio resampler developed internally.

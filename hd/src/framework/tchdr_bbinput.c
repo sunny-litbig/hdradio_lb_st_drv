@@ -1899,11 +1899,9 @@ static HDRET tchdrbbinput_setTuneMain(stTCHDR_TUNE_t inputTune, S32 fChgBand, S3
 		}
 	}
 	else if((fChgFreq > 0) || (fChgSR > 0)) {
-// temporary use to LGE ccnc
-		// if(fChgSR > 0) {
+        if(fChgSR > 0) {
 			(void)tchdrbbinput_resetIqDrvAndBbinputSetting(eTC_HDR_ID_MAIN, inputTune);
-		// }
-// ~temporary use to LGE ccnc
+        }
 	    ret = tchdrbbinput_setReacquire(&frameworkData->hdrInstance[0]);
 		if(ret != (HDRET)eTC_HDR_RET_OK) {
 			ret = (HDRET)eTC_HDR_RET_NG_RSC;
@@ -2222,7 +2220,35 @@ static HDRET tchdrbbinput_openIQandAudio(void)
 {
 	HDRET ret;
 
+    // struct timespec evalTimerStart;
+    // struct timespec evalTimerEnd;
+    // struct timespec evalTimerDiff;
+    // clock_gettime(LINUX_CLOCK_TIMER_TYPE,&evalTimerStart);
+
 	ret = tchdriqinput_open();
+
+    // clock_gettime(LINUX_CLOCK_TIMER_TYPE,&evalTimerEnd);
+    // evalTimerDiff.tv_sec = evalTimerEnd.tv_sec - evalTimerStart.tv_sec;
+    // evalTimerDiff.tv_nsec = evalTimerEnd.tv_nsec - evalTimerStart.tv_nsec;
+    // (*pfnHdrLog)(eTAG_SYS, eLOG_INF, ">>>>>>>>>>>>>>>>>>>> 1st tchdriqinput_open spends %d.%d msecs!!! <<<<<<<<<<<<<<<<<<<<\n"
+    //         , evalTimerDiff.tv_nsec/1000000, evalTimerDiff.tv_nsec%1000000);
+
+	if(ret == (HDRET)eTC_HDR_RET_OK) {
+		ret = tchdriqinput_close();
+    // clock_gettime(LINUX_CLOCK_TIMER_TYPE,&evalTimerEnd);
+    // evalTimerDiff.tv_sec = evalTimerEnd.tv_sec - evalTimerStart.tv_sec;
+    // evalTimerDiff.tv_nsec = evalTimerEnd.tv_nsec - evalTimerStart.tv_nsec;
+    // (*pfnHdrLog)(eTAG_SYS, eLOG_INF, ">>>>>>>>>>>>>>>>>>>> 2nd tchdriqinput_close spends %d.%d msecs!!! <<<<<<<<<<<<<<<<<<<<\n"
+    //         , evalTimerDiff.tv_nsec/1000000, evalTimerDiff.tv_nsec%1000000);
+
+		ret = tchdriqinput_open();
+    // clock_gettime(LINUX_CLOCK_TIMER_TYPE,&evalTimerEnd);
+    // evalTimerDiff.tv_sec = evalTimerEnd.tv_sec - evalTimerStart.tv_sec;
+    // evalTimerDiff.tv_nsec = evalTimerEnd.tv_nsec - evalTimerStart.tv_nsec;
+    // (*pfnHdrLog)(eTAG_SYS, eLOG_INF, ">>>>>>>>>>>>>>>>>>>> 3rd tchdriqinput_open spends %d.%d msecs!!! <<<<<<<<<<<<<<<<<<<<\n"
+    //         , evalTimerDiff.tv_nsec/1000000, evalTimerDiff.tv_nsec%1000000);
+
+    }
 
 	if(ret == (HDRET)eTC_HDR_RET_OK) {
 		ret = tchdraudinput_open();
