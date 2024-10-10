@@ -715,7 +715,7 @@ static void tcradiobg_stateHandler(void)
 			tcradiohal_getQuality(stRadioBG.curBand, (stTUNER_QUALITY_t *)&stRadioBG.stSchQdata, eRADIO_ID_SECONDARY);
 
 			if(pfnOnCheckSeekQual != NULL) {
-				retValid = (*pfnOnCheckSeekQual)(stRadioBG.curBand, stRadioBG.stSchQdata);
+				retValid = (*pfnOnCheckSeekQual)(stRadioBG.curBand, stRadioBG.stSchQdata, eRADIO_ID_SECONDARY);
 			}
 			else {
 				retValid = tcradiobg_checkSignalQuality(stRadioBG.stSchQdata);

@@ -34,33 +34,33 @@ Agreement between Telechips and Company.
 #include "tcradio_api.h"
 
 pfnOnGetNotificationCallBack_t pfnOnGetNotificationCallBack;
-pfnOnGetStationListCallBack_t pfnOnGetStationListCallBack;
-pfnOnGetRdsDataCallBack_t pfnOnGetRdsDataCallBack;
+pfnOnGetStationListCallBack_t pfnOnGetStationListCallBack;
+pfnOnGetRdsDataCallBack_t pfnOnGetRdsDataCallBack;
 pfnOnPrecheckSeekQual_t pfnOnPrecheckSeekQual;
 pfnOnCheckSeekQual_t pfnOnCheckSeekQual;
 
-/*==================================================
-		Callback Function Configuration
-====================================================*/
-void tcradio_configOnGetNotificationCallBack(void(*pfnGetNotificationCallBack)(uint32 notifyID, uint32 *arg, void **pData, int32 errorCode))
-{
-	pfnOnGetNotificationCallBack = pfnGetNotificationCallBack;
-}
-void tcradio_configOnGetStationListCallBack(void(*pfnGetStationListCallBack)(uint32 totalnum, void *list, int32 errorCode))
-{
-	pfnOnGetStationListCallBack = pfnGetStationListCallBack;
-}
-void tcradio_configOnGetRdsDataCallBack(void(*pfnGetRdsDataCallBack)(void *rdsData, int32 errorCode))
-{
-	pfnOnGetRdsDataCallBack = pfnGetRdsDataCallBack;
-}
+/*==================================================
+		Callback Function Configuration
+====================================================*/
+void tcradio_configOnGetNotificationCallBack(void(*pfnGetNotificationCallBack)(uint32 notifyID, uint32 *arg, void **pData, int32 errorCode))
+{
+	pfnOnGetNotificationCallBack = pfnGetNotificationCallBack;
+}
+void tcradio_configOnGetStationListCallBack(void(*pfnGetStationListCallBack)(uint32 totalnum, void *list, int32 errorCode))
+{
+	pfnOnGetStationListCallBack = pfnGetStationListCallBack;
+}
+void tcradio_configOnGetRdsDataCallBack(void(*pfnGetRdsDataCallBack)(void *rdsData, int32 errorCode))
+{
+	pfnOnGetRdsDataCallBack = pfnGetRdsDataCallBack;
+}
 
 void tcradio_configOnPrecheckSeekQual(int32(*pfnPrecheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 freq, uint32 ntuner))
 {
 	pfnOnPrecheckSeekQual = pfnPrecheckSeekQual;
 }
 
-void tcradio_configOnCheckSeekQual(int32(*pfnCheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata))
+void tcradio_configOnCheckSeekQual(int32(*pfnCheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 ntuner))
 {
 	pfnOnCheckSeekQual = pfnCheckSeekQual;
 }
