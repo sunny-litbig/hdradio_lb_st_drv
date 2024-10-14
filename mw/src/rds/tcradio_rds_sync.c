@@ -39,6 +39,7 @@ Agreement between Telechips and Company.
 #include "tcradio_service.h"
 #include "tcradio_rds_api.h"
 #include "tcradio_rds_def.h"
+#include <string.h>
 
 /***************************************************
 *        Global variable definitions               *
@@ -52,6 +53,7 @@ Agreement between Telechips and Company.
 *        Imported function declartions              *
 ****************************************************/
 extern void tcrds_extractBlocks(uint8 block, uint8 block_h, uint8 block_l);
+extern void tcrds_extractRT(uint32 group_ind, uint8 *chardata);
 
 /***************************************************
 *             Local preprocessor                   *
@@ -212,6 +214,7 @@ RET LBparsingRDSMessage(void)
     RET ret = eRET_OK;
     uint32 temp_cnt = 0;
     rds_message_type_t *p_msg;
+    uint8 chardata[4];
 
     if (rcv_rds_data.num_msg <= 0)
         return eRET_NG_INVALID_PARAM;
@@ -243,6 +246,23 @@ RET LBparsingRDSMessage(void)
             if (p_msg->blockD.err_flag == 0)
             {
                 tcrds_extractBlocks(eRDS_BLOCK_D, p_msg->blockD.val_H, p_msg->blockD.val_L);
+
+                if ((p_msg->blockC.err_flag == 0) && ((stRds.group & 0xF8) == GRP_2A)){
+                    chardata[0] = p_msg->blockC.val_H;
+                    chardata[1] = p_msg->blockC.val_L;
+                    chardata[2] = p_msg->blockD.val_H;
+                    chardata[3] = p_msg->blockD.val_L;
+
+                    tcrds_extractRT(0, chardata);
+                }
+                else if ((stRds.group & 0xF8) == GRP_2B){
+                    chardata[0] = p_msg->blockD.val_H;
+                    chardata[1] = p_msg->blockD.val_L;
+                    chardata[2] = 0x00;
+                    chardata[3] = 0x00;
+
+                    tcrds_extractRT(1, chardata);
+                }
             }
         }
 

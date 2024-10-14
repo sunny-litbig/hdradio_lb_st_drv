@@ -115,6 +115,23 @@ void tcrds_clearData(void)
 		stRds.psname[i] = 0x00;
 		stRds.psbuf[i] = 0xFF;
     }
+
+    // clear values for Radio Text
+    stRds.rt_prev_flag = 0x00;
+    stRds.rt_prev_group = 0x00;
+    stRds.rt_rcvseg_status = 0x0000;
+    stRds.rt_strlen = 0;
+    stRds.rt_endseg = 0xFF;
+    stRds.rt_new_needed = 0x01;
+    for (i = 0; i < MAX_RT_TEXT_2A; i++) {
+        stRds.rt_buf[i] = 0x00;
+        stRds.rt_display[i] = 0x00;
+    }
+
+    stRds.rt_disp_updated = 0;
+
+    stRds.rt_textABFlag = 0x00;
+    stRds.rt_segaddr = 0x00;
 }
 
 #if 0
@@ -334,6 +351,12 @@ void tcrds_extractBlockB(uint8 block_h, uint8 block_l)
 		setBit(stRds.extStatus, RDS_PS_SEG_OK);            /* PS segment available.*/
 	}
 
+    if (GROUP_2X) {
+        stRds.rt_textABFlag = (block_l & 0x10) >> 4;
+        stRds.rt_segaddr = (block_l & 0x0F);
+        setBit(stRds.extStatus, RDS_RT_SEG_OK);            /* Radio Text segment available.*/
+    }
+
 #if 0	// if use, open and make functions.
 	/*:::::::::::::::: B BLOCK INFORMATION FROM A RT GROUP 2(A/B) :::::::::::::*/
     /* Extract current received text segment address.........................*/
@@ -446,3 +469,129 @@ void tcrds_extractBlocks(uint8 block, uint8 block_h, uint8 block_l)
 	}
 }
 
+void tcrds_extractRT(uint32 group_ind, uint8 *chardata)
+{
+    uint32 temp_end_status = 0;
+    uint32 i = 0;
+
+    if ((stRds.rt_prev_flag != stRds.rt_textABFlag) || (stRds.rt_prev_group != group_ind)) {
+        stRds.rt_prev_flag = stRds.rt_textABFlag;
+        stRds.rt_prev_group = group_ind;
+        stRds.rt_rcvseg_status = 0x0000;
+        //stRds.rt_buf[64];
+        for (i = 0; i < MAX_RT_TEXT_2A; i++) {
+            stRds.rt_buf[i] = 0x00;
+        }
+
+        stRds.rt_strlen = 0;
+        stRds.rt_endseg = 0xFF;
+        stRds.rt_new_needed = 0x01;
+
+#ifdef RDS_DBG_MSG
+        RDS_DBG("[RT] The Text AB flag or Group Type has changed and need to receive a new Radio Text.");
+#endif
+    }
+
+    stRds.rt_rcvseg_status |= (uint16)(0x0001 << stRds.rt_segaddr);
+
+    if (group_ind == 0) {
+        stRds.rt_buf[stRds.rt_segaddr * 4] = chardata[0];
+        stRds.rt_buf[(stRds.rt_segaddr * 4) + 1] = chardata[1];
+        stRds.rt_buf[(stRds.rt_segaddr * 4) + 2] = chardata[2];
+        stRds.rt_buf[(stRds.rt_segaddr * 4) + 3] = chardata[3];
+
+        if (chardata[0] == RDS_RT_END_CODE) {
+            stRds.rt_endseg = stRds.rt_segaddr;
+            stRds.rt_strlen = stRds.rt_segaddr * 4;
+        }
+        else if (chardata[1] == RDS_RT_END_CODE) {
+            stRds.rt_endseg = stRds.rt_segaddr;
+            stRds.rt_strlen = (stRds.rt_segaddr * 4) + 1;
+        }
+        else if (chardata[2] == RDS_RT_END_CODE) {
+            stRds.rt_endseg = stRds.rt_segaddr;
+            stRds.rt_strlen = (stRds.rt_segaddr * 4) + 2;
+        }
+        else if (chardata[3] == RDS_RT_END_CODE) {
+            stRds.rt_endseg = stRds.rt_segaddr;
+            stRds.rt_strlen = (stRds.rt_segaddr * 4) + 3;
+        }
+
+        if ((stRds.rt_endseg == 0xFF) && (stRds.rt_segaddr == MAX_RT_SEG_CNT)) {
+            stRds.rt_endseg = 0x0F;
+            stRds.rt_strlen = MAX_RT_TEXT_2A;
+        }
+    }
+    else if(group_ind == 1) {
+        stRds.rt_buf[stRds.rt_segaddr * 2] = chardata[0];
+        stRds.rt_buf[(stRds.rt_segaddr * 2) + 1] = chardata[1];
+
+        if (chardata[0] == RDS_RT_END_CODE) {
+            stRds.rt_endseg = stRds.rt_segaddr;
+            stRds.rt_strlen = stRds.rt_segaddr * 2;
+        }
+        else if (chardata[1] == RDS_RT_END_CODE) {
+            stRds.rt_endseg = stRds.rt_segaddr;
+            stRds.rt_strlen = (stRds.rt_segaddr * 2) + 1;
+        }
+
+        if ((stRds.rt_endseg == 0xFF) && (stRds.rt_segaddr == MAX_RT_SEG_CNT)) {
+            stRds.rt_endseg = 0x0F;
+            stRds.rt_strlen = MAX_RT_TEXT_2B;
+        }
+    }
+    else {
+        (void) chardata;
+    }
+
+#ifdef RDS_DBG_MSG
+    if (stRds.rt_new_needed == 0x01) {
+        RDS_DBG("[RT] Type %s, AB flag = %02X, seg_addr = %02X, data_0 = %02X(%c), data_1 = %02X(%c), data_2 = %02X(%c), data_3 = %02X(%c)",
+            (group_ind == 0) ? "2A":"2B", stRds.rt_textABFlag, stRds.rt_segaddr,
+            chardata[0], chardata[0], chardata[1], chardata[1], chardata[2], chardata[2], chardata[3], chardata[3]);
+        RDS_DBG("[RT] rcvseg_status = %04X, endseg = %02X (end_status = %X)",
+            stRds.rt_rcvseg_status, stRds.rt_endseg, (stRds.rt_endseg <= MAX_RT_SEG_CNT) ? ((0x00000002 << stRds.rt_endseg) - 1):0x00000000);
+    }
+#endif
+
+    if (stRds.rt_endseg <= MAX_RT_SEG_CNT) {
+        temp_end_status = (0x00000002 << stRds.rt_endseg) - 1;
+
+        if (temp_end_status == stRds.rt_rcvseg_status) {
+            // got the entire string.
+            if (stRds.rt_new_needed == 0x01) {
+                stRds.rt_disp_updated = 1;
+                stRds.rt_new_needed = 0x00;
+
+                for (i = 0; i < MAX_RT_TEXT_2A; i++) {
+                    stRds.rt_display[i] = 0x00;
+                }
+
+                for (i = 0; i < stRds.rt_strlen; i++) {
+                    if ((stRds.rt_buf[i] > 0x1F) && (stRds.rt_buf[i] < 0x7F)) {
+                        stRds.rt_display[i] = stRds.rt_buf[i];
+                    }
+                    else {
+                        // non-printable ASCII characters
+                        stRds.rt_display[i] = ' ';
+                    }
+                }
+
+                RDS_DBG("[RT] Radio Text (%d) : %s", stRds.rt_strlen, stRds.rt_display);
+            }
+
+            // clear variables for next Radio Text
+            stRds.rt_rcvseg_status = 0x0000;
+            stRds.rt_strlen = 0;
+            stRds.rt_endseg = 0xFF;
+
+            for (i = 0; i < MAX_RT_TEXT_2A; i++) {
+                stRds.rt_buf[i] = 0x00;
+            }
+        }
+    }
+
+    stRds.rt_textABFlag = 0x00;
+    stRds.rt_segaddr = 0x00;
+    clrBit(stRds.extStatus, RDS_RT_SEG_OK);            /* clear Radio Text segment available.*/
+}

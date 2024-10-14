@@ -134,6 +134,12 @@ extern "C" {
 #define RDS_CTB_SEG_OK     3		/* CT block B segment availibility bit.*/
 #define RDS_CTC_SEG_OK     2		/* CT block C segment availibility bit.*/
 
+// for Radio Text
+#define MAX_RT_TEXT_2A  64
+#define MAX_RT_TEXT_2B  32
+#define MAX_RT_SEG_CNT  0x0F
+#define RDS_RT_END_CODE 0x0D
+
 //#define RDS_DBG_MSG
 #ifdef RDS_DBG_MSG
 extern uint32 dbg_rds_msg_print;
@@ -192,6 +198,22 @@ typedef struct{
 	uint8 ptyStatus;
 	uint8 msStatus;
 	uint8 extStatus;
+
+    // value for every type2 message
+    uint8 rt_textABFlag;
+    uint8 rt_segaddr;
+
+    // value for decoding Radio Text
+    uint8 rt_prev_flag;
+    uint8 rt_prev_group;
+    uint16 rt_rcvseg_status;
+    uint8 rt_buf[MAX_RT_TEXT_2A];
+    uint8 rt_strlen;
+    uint8 rt_endseg;
+    uint8 rt_new_needed;
+
+    uint8 rt_disp_updated;
+    uint8 rt_display[MAX_RT_TEXT_2A];
 }stRDS_t;
 
 /***************************************************

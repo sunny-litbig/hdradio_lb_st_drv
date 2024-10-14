@@ -393,6 +393,7 @@ extern int32 tcradio_getRdsEnable(void);
 extern RET tcradio_getRdsPi(uint16 *pi);
 extern RET tcradio_getRdsPty(uint8 *pty);
 extern RET tcradio_getRdsPsn(uint8 *psn);
+extern RET tcradio_getRdsRT(uint8 *rt);
 
 
 /***************************************************

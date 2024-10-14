@@ -132,6 +132,8 @@ extern uint16 tcrds_getPi(void);
 extern uint8 tcrds_getPty (void);
 extern uint8 tcrds_getPsValid(void);
 extern uint8 tcrds_getPs(uint8 tcrds_psidx);
+extern uint8 tcrds_getRTValid(void);
+extern void tcrds_getRT(uint8 *rt);
 
 
 #ifdef __cplusplus

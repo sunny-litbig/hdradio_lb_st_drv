@@ -609,6 +609,27 @@ RET tcradio_getRdsPsn(uint8 *psn)
 	return ret;
 }
 
+RET tcradio_getRdsRT(uint8 *rt)
+{
+	int i;
+
+	RET ret = checkRadioOpenStatus();
+	if(ret == eRET_OK) {
+		if(tcrds_getEnable()) {
+			if(tcrds_getRTValid()) {
+                tcrds_getRT(rt);
+			}
+			else {
+				ret = eRET_NG_INVALID_RESP;
+			}
+		}
+		else {
+			ret = eRET_NG_NOT_ENABLE;
+		}
+	}
+	return ret;
+}
+
 /********************************************************/
 /*			Debugging Hidden Functions					*/
 /********************************************************/

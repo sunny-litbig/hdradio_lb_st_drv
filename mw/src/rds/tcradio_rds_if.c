@@ -127,3 +127,17 @@ void tcrds_setResetPsNew(void)
 	clrBit(stRds.psStatus,RDS_PS_NEW);
 }
 
+uint8 tcrds_getRTValid(void)
+{
+	return stRds.rt_disp_updated;
+}
+
+void tcrds_getRT(uint8 *rt)
+{
+    int i = 0;
+
+    for(i=0; i<MAX_RT_TEXT_2A; i++) {
+        rt[i] = stRds.rt_display[i];
+    }
+}
+
