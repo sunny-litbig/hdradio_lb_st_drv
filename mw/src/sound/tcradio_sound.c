@@ -232,8 +232,8 @@ RET tcradiosound_open(uint32 samplerate, eSOUND_SOURCE_t src)
 						stRadioSound.soundSource = eSOUND_SOURCE_TC_I2S;
 					}
 				}
-				else if(pfnBlendAudioI2sOpen != NULL && pfnBlendAudioI2sSetParams != NULL && pfnBlendAudioI2sStart != NULL) {
-					ret == eRET_NG_NO_RSC;		// It's return value for eSOUND_SOURCE_I2S
+				else if((pfnBlendAudioI2sOpen != NULL) && (pfnBlendAudioI2sSetParams != NULL) && (pfnBlendAudioI2sStart != NULL)) {
+					ret = eRET_NG_NO_RSC;		// It's return value for eSOUND_SOURCE_I2S
 					stRadioSound.soundSource = eSOUND_SOURCE_TC_I2S;
 				}
 				else {
@@ -264,7 +264,7 @@ RET tcradiosound_open(uint32 samplerate, eSOUND_SOURCE_t src)
 			}
 			else if(tcradiosound_getSoundSource() == eSOUND_SOURCE_TC_I2S)
 			{
-				if(pfnBlendAudioI2sOpen != NULL && pfnBlendAudioI2sSetParams != NULL && pfnBlendAudioI2sStart != NULL) {
+				if((pfnBlendAudioI2sOpen != NULL) && (pfnBlendAudioI2sSetParams != NULL) && (pfnBlendAudioI2sStart != NULL)) {
 					ret = (*pfnBlendAudioI2sOpen)();
 					if(ret == eRET_OK) {
 						ret = (*pfnBlendAudioI2sSetParams)(2, 16, 44100, 16, 1024);

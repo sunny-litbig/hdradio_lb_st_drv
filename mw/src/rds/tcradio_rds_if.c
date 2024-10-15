@@ -91,7 +91,9 @@ uint8 tcrds_getTaTp (void)
 uint8 tcrds_getPty (void)
 {
   if ((stRds.ptyStatus & RDS_PTY_VALID) == 0)	/* If the PTY is not available.*/
+  {
     return(NO_PTY);								/* => return no PTY (0x00).*/
+  }
 
   return((stRds.ptyStatus & 0x1F));				/* Return PTY code value.*/
 }
@@ -134,7 +136,7 @@ uint8 tcrds_getRTValid(void)
 
 void tcrds_getRT(uint8 *rt)
 {
-    int i = 0;
+    uint32 i = 0;
 
     for(i=0; i<MAX_RT_TEXT_2A; i++) {
         rt[i] = stRds.rt_display[i];

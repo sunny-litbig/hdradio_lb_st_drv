@@ -74,8 +74,9 @@ void setRadioInitStatus(uint32 sts)
 static int32 getRadioInitStatus(void)
 {
 	int32 ret = 0;
-	if(fradioInit)
+	if(fradioInit) {
 		ret = 1;
+	}
 	return fradioInit;
 }
 
@@ -92,8 +93,9 @@ static RET checkRadioInitStatus(void)
 static int32 getRadioOpenStatus(void)
 {
 	int32 ret = 0;
-	if(stRadioService.fRadioOpened)
+	if(stRadioService.fRadioOpened) {
 		ret = 1;
+	}
 	return ret;
 }
 
@@ -490,7 +492,8 @@ uint32 tcradio_getMiddlewareVersion(void)
 	uint32 ret = 0;
 	if(checkRadioInitStatus() == eRET_OK) {
 		ret = (((uint32)__RADIO_MIDDLEWARE_VER_PREFIX__<<24) | ((uint32)__RADIO_MIDDLEWARE_VER_RELEASE_NUMBER__<<16) |
-				((uint32)__RADIO_MIDDLEWARE_VER_MAJOR_NUMBER__<<8) | ((uint32)__RADIO_MIDDLEWARE_VER_MINOR_NUMBER__<<0));
+				((uint32)__RADIO_MIDDLEWARE_VER_MAJOR_NUMBER__<<8) | ((uint32)__RADIO_MIDDLEWARE_VER_MINOR_NUMBER__<<0));
+
 	}
 	return ret;
 }
@@ -595,8 +598,9 @@ RET tcradio_getRdsPsn(uint8 *psn)
 	if(ret == eRET_OK) {
 		if(tcrds_getEnable()) {
 			if(tcrds_getPsValid()) {
-				for(i=0; i<MAX_PS; i++)
+				for(i=0; i<MAX_PS; i++) {
 					*(psn+i) = tcrds_getPs(i);
+				}
 			}
 			else {
 				ret = eRET_NG_INVALID_RESP;
@@ -617,7 +621,7 @@ RET tcradio_getRdsRT(uint8 *rt)
 	if(ret == eRET_OK) {
 		if(tcrds_getEnable()) {
 			if(tcrds_getRTValid()) {
-                tcrds_getRT(rt);
+				tcrds_getRT(rt);
 			}
 			else {
 				ret = eRET_NG_INVALID_RESP;
@@ -635,12 +639,12 @@ RET tcradio_getRdsRT(uint8 *rt)
 /********************************************************/
 long long tcradio_getSystemTime(void)
 {
- long long systime;
- struct timespec tspec;
- clock_gettime(CLOCK_MONOTONIC, &tspec);
- systime = (long long) tspec.tv_sec * 1000 + tspec.tv_nsec / 1000000;
+	long long systime;
+	struct timespec tspec;
+	clock_gettime(CLOCK_MONOTONIC, &tspec);
+	systime = (long long) tspec.tv_sec * 1000 + tspec.tv_nsec / 1000000;
 
- return systime;
+	return systime;
 }
 
 #if 0
@@ -891,7 +895,7 @@ RET tcradio_dumpIQ(uint32 nbit, uint32 bufsize_kbyte, uint32 readsize_byte, uint
 
 //	tcradiohal_setTune(1, 530, 0, 0);	// for test // drm am agc comperation issue
 
-	if(bufsize_kbyte >= 1024 && bufsize_kbyte <= 2048 && (nbit == 16 || nbit == 20)) {
+	if((bufsize_kbyte >= 1024) && (bufsize_kbyte <= 2048) && (nbit == 16 || nbit == 20)) {
 		(*pfnIQ01I2sOpen)();
 		(*pfnIQ01I2sSetParams)(4, nbit, tcradiohal_getIqSampleRate(eRADIO_ID_PRIMARY)/2, bufsize_kbyte, bufsize_kbyte*1024/64);
 		(*pfnIQ01I2sStart)();

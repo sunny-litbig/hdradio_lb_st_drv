@@ -408,8 +408,10 @@ static eRDS_STS_t tcrds_event_reset(uint32 *uiSendMsg, int32 *iError)
 
 void tcrds_setEnable(int32 fonoff)
 {
-	if(fonoff)
+	if(fonoff) {
 		stRds.fEnable = 1;
-	else
+	}
+	else {
 		stRds.fEnable = 0;
+	}
 }

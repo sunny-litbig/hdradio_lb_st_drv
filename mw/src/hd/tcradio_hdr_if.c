@@ -637,7 +637,9 @@ RET tcradio_setTcHdrApiTest(uint32 num, uint32 *cmd)
 	stTC_HDR_PSD_FORM_t psd_form;
 #ifdef USE_HDRADIO
 	switch(num) {
-		case 0:	ret = tchdr_setProgram(eTC_HDR_ID_MAIN, num);	break;
+		case 0:	
+			ret = tchdr_setProgram(eTC_HDR_ID_MAIN, num);
+			break;
 
 		case 1:
 			ret = tchdr_psd_getTitle(eTC_HDR_ID_MAIN, eTC_HDR_PROGRAM_HD1, &psd_form);

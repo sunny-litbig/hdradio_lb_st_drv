@@ -206,9 +206,9 @@ static RET tcsubrmgr_setSdrIpcMessage(stSdrIpcBuf_t txbuf)
 {
 	RET ret = eRET_OK;
 	uint8 tempbuf[IPC_DATA_LEN+10] = {0,};
-	int32 len = 0;
+	uint32 len = 0;
 	int32 crc_ret;
-	int32 i;
+	uint32 i;
 
 	if(txbuf.length >= (uint16)IPC_MIN_LEN) {
 		txbuf.fNewMsg = IPC_SDR_SIGNATURE;
@@ -250,13 +250,13 @@ static void tcsubrmgr_getSdrIpcMessage(stSdrIpcBuf_t *rxbuf)
 	uint8 tempbuf[IPC_DATA_LEN+10] = {0,};
 	int32 len = 0;
 	int32 crc_ret;
-	int32 i;
+	uint32 i;
 
 	if(rxbuf != NULL) {
 		rxbuf->fNewMsg = 0;
 		len = dev_ipcSdrSubRx(tempbuf, sizeof(tempbuf));
 
-		if(len >= 10 && len <= sizeof(tempbuf)) {
+		if((len >= 10) && (len <= sizeof(tempbuf))) {
 			crc_ret = tcsubrmgr_checkCRC16(tempbuf);
 			if(crc_ret == 0) {
 				rxbuf->fNewMsg = tcsubrmgr_8bto16b(tempbuf);
@@ -838,7 +838,7 @@ static int tcsubrmgr_checkSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t
 			rssi = (int32)temp_qdata.fm.Rssi;
 			snr = (int32)temp_qdata.fm.Snr;
 			offs = (int32)temp_qdata.fm.Offs;
-			if(rssi >= 20 && snr > 4 && offs > -6 && offs < 6)
+			if((rssi >= 20) && (snr > 4) && (offs > -6) && (offs < 6))
 			{
 				ret = 0;
 			}
@@ -847,7 +847,7 @@ static int tcsubrmgr_checkSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t
 			rssi = (int32)temp_qdata.am.Rssi;
 			snr = (int32)temp_qdata.am.Snr;
 			offs = (int32)temp_qdata.am.Offs;
-			if(rssi >= 38 && snr > 6 && offs > -6 && offs < 6)
+			if((rssi >= 38) && (snr > 6) && (offs > -6) && (offs < 6))
 			{
 				ret = 0;
 			}
@@ -856,7 +856,7 @@ static int tcsubrmgr_checkSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t
 			rssi = (int32)temp_qdata.dab.Rssi;
 			sqi = (int32)temp_qdata.dab.Sqi;
 			detect = (int32)temp_qdata.dab.Detect;
-			if(rssi >= -107 && sqi > 8 && detect > 0)
+			if((rssi >= -107) && (sqi > 8) && (detect > 0))
 			{
 				ret = 0;
 			}
@@ -875,7 +875,7 @@ static int tcsubrmgr_checkSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t
 			offs = (int32)temp_qdata.fm.Offs;
 			usn = temp_qdata.fm.Usn;
 			mpth = temp_qdata.fm.Mpth;
-			if(rssi >= 280 && offs > -100 && offs < 100 && usn < 120 && mpth < 200)
+			if((rssi >= 280) && (offs > -100) && (offs < 100) && (usn < 120) && (mpth < 200))
 			{
 				ret = 0;
 			}
@@ -884,7 +884,7 @@ static int tcsubrmgr_checkSeekQual(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t
 			rssi = (int32)temp_qdata.am.Rssi;
 			offs = (int32)temp_qdata.am.Offs;
 			noise = temp_qdata.am.Hfn;
-			if(rssi >= 630 && offs > -50 && offs < 50 && noise < 100)
+			if((rssi >= 630) && (offs > -50) && (offs < 50) && (noise < 100))
 			{
 				ret = 0;
 			}
@@ -1436,7 +1436,7 @@ static int32 tcsubrmgr_checkCRC16(uint8 *rxbuf)
 	uint16 crc = 0xffff;
 	uint8 data;
 	uint32 crc_index;
-	int32 i;
+	uint32 i;
 
 	crc_index = 2 + (((uint32)rxbuf[2]<<8) | (uint32)rxbuf[3]);
 
@@ -1449,9 +1449,9 @@ static int32 tcsubrmgr_checkCRC16(uint8 *rxbuf)
 	}
 	crc = ~crc;
 
-	if( crc != crc_val)
+	if( crc != crc_val) {
 		crc_error = -1;
-
+	}
 	return crc_error;
 }
 
@@ -1460,7 +1460,7 @@ static uint16 tcsubrmgr_makeCRC16(uint8 *rxbuf)
 	uint16 crc = 0xffff;
 	uint8 data;
 	uint32 crc_index;
-	int32 i;
+	uint32 i;
 
 	crc_index = 2 + (((uint32)rxbuf[2]<<8) | (uint32)rxbuf[3]);
 

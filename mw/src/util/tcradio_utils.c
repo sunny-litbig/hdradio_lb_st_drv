@@ -88,9 +88,9 @@ void *tcradio_memset(void *pdst, uint8 ch, uint32 len)
 
 	pW = (uint8 *)pdst;
 
-	if(len == 0)
+	if(len == 0) {
 		return (void *)pW;
-
+	}
 	for(i=0; i<len; i++)
 	{
 		*pW++ = ch;
@@ -107,9 +107,9 @@ void *tcradio_memcpy(void *pdst, void *psrc, uint32 len)
 	pW = (uint8 *)pdst;
 	pR = (uint8 *)psrc;
 
-	if(len == 0)
+	if(len == 0) {
 		return (void *)pW;
-
+	}
 	for(i = 0; i < len; i++)
 	{
 		*pW++ = *pR++;

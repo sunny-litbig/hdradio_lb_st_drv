@@ -93,7 +93,7 @@ typedef struct
 
 typedef struct
 {
-    int32 num_msg;
+    uint32 num_msg;
     rds_message_type_t message[4];
 } lb_rds_data_t;
 
@@ -105,17 +105,18 @@ uint32 dbg_rds_msg_print = 0;
 
 static lb_rds_data_t rcv_rds_data;
 
-static RET LBcreateRDSMessage(uint8 *buff, int32 NumValidBlock)
+static RET LBcreateRDSMessage(uint8 *buff, uint32 NumValidBlock)
 {
     RET ret = eRET_OK;
     uint32 temp_cnt, msg_cnt_temp;
     int32 block_id_temp, prev_block_id;
 
-    if (buff == NULL)
+    if (buff == NULL) {
         return eRET_NG_INVALID_PARAM;
-
-    if (NumValidBlock == 0)
+    }
+    if (NumValidBlock == 0) {
         return eRET_NG_INVALID_PARAM;
+    }
 
 #ifdef RDS_DBG_MSG
     uint32 aaa = 0;
@@ -197,7 +198,7 @@ static RET LBcreateRDSMessage(uint8 *buff, int32 NumValidBlock)
     {
         RDS_ERR("[%s] Invalid Received RDS Message : msg_cnt_temp = %d, NumValidBlock = %d\n", __func__, msg_cnt_temp, NumValidBlock);
 
-        for (int temp_cnt = 0; temp_cnt < NumValidBlock; temp_cnt ++)
+        for ( temp_cnt = 0; temp_cnt < NumValidBlock; temp_cnt ++)
         {
             RDS_ERR("temp_cnt = %d, buffer header = %02x, BLOCKID = %x, DATA_H = %02x, DATA_L = %02x .\n",
                     temp_cnt, buff[temp_cnt * 3], (buff[temp_cnt * 3] & 0x03),
@@ -216,9 +217,9 @@ RET LBparsingRDSMessage(void)
     rds_message_type_t *p_msg;
     uint8 chardata[4];
 
-    if (rcv_rds_data.num_msg <= 0)
+    if (rcv_rds_data.num_msg <= 0) {
         return eRET_NG_INVALID_PARAM;
-
+    }
     temp_cnt = 0;
 
     while (temp_cnt < rcv_rds_data.num_msg)

@@ -627,9 +627,13 @@ static void tcradiobg_stateHandler(void)
 	uint32 uiSendMsg[MSGQ_DATA_LENGTH] = {0,};
 	int32 retValid;
 
-	if(uiBGStateCnt)	uiBGStateCnt--;
+	if(uiBGStateCnt) {
+		uiBGStateCnt--;
+	}	
 
-	if(uiBGRestartCnt)	uiBGRestartCnt--;
+	if(uiBGRestartCnt) {
+		uiBGRestartCnt--;
+	}
 
 	switch(eRadioBGState)
 	{
@@ -749,8 +753,9 @@ static void tcradiobg_stateHandler(void)
 				}
 			}
 
-			if(tcradiobg_getSeekMode() != eRADIO_SEEK_SCAN_STATION && tcradiobg_getSeekMode() != eRADIO_SEEK_SCAN_PI)
+			if((tcradiobg_getSeekMode() != eRADIO_SEEK_SCAN_STATION) && (tcradiobg_getSeekMode() != eRADIO_SEEK_SCAN_PI)) {
 				eRadioSt = eRADIO_BG_STS_DOING_NOTIFY;			// for returning current frequency quality values
+			}
 
 			break;
 
@@ -960,7 +965,6 @@ int32 tcradiobg_precheckSignalQuality(stRADIO_QUALITY_t qdata)
 	{
 		stRADIO_TYPE0_QUALITY_t temp_qdata;
 		tcradio_memcpy((void *)&temp_qdata, (void *)(&qdata.qual), sizeof(temp_qdata));
-		;
 	}
 	return ret;
 }
@@ -980,7 +984,7 @@ int32 tcradiobg_checkSignalQuality(stRADIO_QUALITY_t qdata)
 			rssi = (int32)temp_qdata.fm.Rssi;
 			snr = (int32)temp_qdata.fm.Snr;
 			offs = (int32)temp_qdata.fm.Offs;
-			if(rssi >= 20 && snr > 4 && offs > -6 && offs < 6)
+			if((rssi >= 20) && (snr > 4) && (offs > -6) && (offs < 6))
 			{
 				ret = 0;
 			}
@@ -989,7 +993,7 @@ int32 tcradiobg_checkSignalQuality(stRADIO_QUALITY_t qdata)
 			rssi = (int32)temp_qdata.am.Rssi;
 			snr = (int32)temp_qdata.am.Snr;
 			offs = (int32)temp_qdata.am.Offs;
-			if(rssi >= 38 && snr > 6 && offs > -6 && offs < 6)
+			if((rssi >= 38) && (snr > 6) && (offs > -6) && (offs < 6))
 			{
 				ret = 0;
 			}
@@ -1008,7 +1012,7 @@ int32 tcradiobg_checkSignalQuality(stRADIO_QUALITY_t qdata)
 			offs = (int32)temp_qdata.fm.Offs;
 			usn = temp_qdata.fm.Usn;
 			mpth = temp_qdata.fm.Mpth;
-			if(rssi >= 280 && offs > -100 && offs < 100 && usn < 120 && mpth < 200)
+			if((rssi >= 280) && (offs > -100) && (offs < 100) && (usn < 120) && (mpth < 200))
 			{
 				ret = 0;
 			}
@@ -1017,7 +1021,7 @@ int32 tcradiobg_checkSignalQuality(stRADIO_QUALITY_t qdata)
 			rssi = (int32)temp_qdata.am.Rssi;
 			offs = (int32)temp_qdata.am.Offs;
 			noise = temp_qdata.am.Hfn;
-			if(rssi >= 630 && offs > -50 && offs < 50 && noise < 100)
+			if((rssi >= 630) && (offs > -50) && (offs < 50) && (noise < 100))
 			{
 				ret = 0;
 			}
@@ -1132,15 +1136,17 @@ void tcradiobg_setValueBGRestart(void)
 int32 tcradiobg_isFmBand(void)
 {
 	int32 ret = -1;
-	if(stRadioBG.curBand == eRADIO_FM_MODE)
+	if(stRadioBG.curBand == eRADIO_FM_MODE) {
 		ret = 0;
+	}
 	return ret;
 }
 
 int32 tcradiobg_isAmBand(void)
 {
 	int32 ret = -1;
-	if(stRadioBG.curBand == eRADIO_AM_MODE)
+	if(stRadioBG.curBand == eRADIO_AM_MODE) {
 		ret = 0;
+	}
 	return ret;
 }

@@ -207,13 +207,15 @@ void tcrds_extractPty(uint8 block_h, uint8 block_l)
 
 void tcrds_extractPi(uint8 block_h, uint8 block_l)
 {
-	if ((block_h == NO_PI) || (block_l == NO_PI))
+	if ((block_h == NO_PI) || (block_l == NO_PI)) {
 		return;
+	}
 
 	/* The new PI is the same that the previous stored one.*/
 	if ((stRds.pih == block_h) && (stRds.pil == block_l)) {
-		if(stRds.piCounter < 10)
+		if(stRds.piCounter < 10) {
 			stRds.piCounter++;
+		}
 	}
 	else {
 		if (stRds.piCounter == 0) {
@@ -240,17 +242,20 @@ void tcrds_extractPs(uint8 block_h, uint8 block_l)
 	if ( (stRds.psbuf[tcrds_psnseg]   != block_h)		/* Different new and */
 		|| (stRds.psbuf[tcrds_psnseg+1] != block_l) )	/* previous char.*/
 	{
-		if (valBit(stRds.psStatus, tcrds_psnflg))			/* PS segment Already received.*/
+		if (valBit(stRds.psStatus, tcrds_psnflg)) {			/* PS segment Already received.*/
 			stRds.psStatus &= 0x0F;						/* This is the 1st reception for a new PS.*/
+		}
 														/* The active PS becomes not available.*/
 		stRds.psbuf[tcrds_psnseg]   = block_h;			/* Extract character 1.*/
 		stRds.psbuf[tcrds_psnseg+1] = block_l;			/* Extract character 2.*/
 		setBit(stRds.psStatus, tcrds_psnflg);				/* 2 1st new available PSN char.*/
 	}
 	else												/* New and previous characters are equal.*/
-		if (stRds.psStatus & 0xF0)						/* One of the PS segment is already available.*/
+	{
+		if (stRds.psStatus & 0xF0) {						/* One of the PS segment is already available.*/
 			setBit(stRds.psStatus, tcrds_psnflg);			/* 2 1st new available PSN char.*/
-
+		}
+	}
 	clrBit(stRds.extStatus, RDS_PS_SEG_OK);				/* PS segment not more available.*/
 
 	/* Storing of the active PS in the store one...............................*/

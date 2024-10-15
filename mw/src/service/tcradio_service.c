@@ -334,10 +334,10 @@ void tcradioservice_initVariable(void)
 RET tcradioservice_checkConfig(stRADIO_CONFIG_t *config)
 {
 	RET ret = eRET_OK;
-	if ( (config->numTuners != 1 && config->numTuners != 2 && config->numTuners != 3 && config->numTuners != 4) ||
-	   (config->fPhaseDiversity != 0 && config->fPhaseDiversity != 1) ||
-	   (config->numTuners == 1 && config->fPhaseDiversity == 1) ||
-	   (config->audioSamplerate != 44100 && config->audioSamplerate != 48000))
+	if ( ((config->numTuners != 1) && (config->numTuners != 2) && (config->numTuners != 3) && (config->numTuners != 4)) ||
+	   ((config->fPhaseDiversity != 0) && (config->fPhaseDiversity != 1)) ||
+	   ((config->numTuners == 1) && (config->fPhaseDiversity == 1)) ||
+	   ((config->audioSamplerate != 44100) && (config->audioSamplerate != 48000)))
 	{
 		ret = eRET_NG_INVALID_PARAM;
 	}
@@ -643,26 +643,42 @@ static void tcradioservice_eventHandler(void)
 
 		case eRADIO_EVT_SET_TUNE:
 			switch(tcradioservice_getNumberOfTuners()) {
-				case eRADIO_CONF_TYPE_SINGLE:	if(stRadioRcvMsgQ.uiData[3] != eRADIO_ID_PRIMARY)	ret = eRET_NG_NOT_SUPPORT;	break;
+				case eRADIO_CONF_TYPE_SINGLE:
+					if(stRadioRcvMsgQ.uiData[3] != eRADIO_ID_PRIMARY) {
+						ret = eRET_NG_NOT_SUPPORT;
+					}
+					break;
 				case eRADIO_CONF_TYPE_DUAL:
 					if(stRadioRcvMsgQ.uiData[3] <= eRADIO_ID_SECONDARY) {
-						if(stRadioRcvMsgQ.uiData[3] == eRADIO_ID_SECONDARY && (tcradioservice_is2ndTunerMRC() == YES || tcradioservice_is2ndTunerPD() == YES))
+						if((stRadioRcvMsgQ.uiData[3] == eRADIO_ID_SECONDARY) && (tcradioservice_is2ndTunerMRC() == YES || tcradioservice_is2ndTunerPD() == YES))
+						{
 							ret = eRET_NG_NOT_SUPPORT;
+						}
 					}
 					else {
 						ret = eRET_NG_NOT_SUPPORT;
 					}
 					break;
-				case eRADIO_CONF_TYPE_TRIPLE:	if(stRadioRcvMsgQ.uiData[3] > eRADIO_ID_TERTIARY)	ret = eRET_NG_NOT_SUPPORT;	break;
-				case eRADIO_CONF_TYPE_QUAD:		if(stRadioRcvMsgQ.uiData[3] > eRADIO_ID_QUATERNARY) ret = eRET_NG_NOT_SUPPORT;	break;
-				default:						ret = eRET_NG_NOT_SUPPORT;														break;
+				case eRADIO_CONF_TYPE_TRIPLE:
+					if(stRadioRcvMsgQ.uiData[3] > eRADIO_ID_TERTIARY) {
+						ret = eRET_NG_NOT_SUPPORT;
+					}
+					break;
+				case eRADIO_CONF_TYPE_QUAD:
+					if(stRadioRcvMsgQ.uiData[3] > eRADIO_ID_QUATERNARY) {
+						ret = eRET_NG_NOT_SUPPORT;
+					}
+					break;
+				default:
+					ret = eRET_NG_NOT_SUPPORT;
+					break;
 			}
 
 			if(ret == eRET_OK) {
 				if(stRadioRcvMsgQ.uiData[0] == eRADIO_FM_MODE || stRadioRcvMsgQ.uiData[0] == eRADIO_AM_MODE ||
-					(stRadioRcvMsgQ.uiData[0] == eRADIO_DAB_MODE && stTunerConfig.sdr == eRADIO_SDR_DAB))
+					((stRadioRcvMsgQ.uiData[0] == eRADIO_DAB_MODE) && (stTunerConfig.sdr == eRADIO_SDR_DAB)))
 				{
-					if(tcradioservice_isSeeking() == 0 && stRadioRcvMsgQ.uiData[3] == eRADIO_ID_PRIMARY) {
+					if((tcradioservice_isSeeking() == 0) && (stRadioRcvMsgQ.uiData[3] == eRADIO_ID_PRIMARY)) {
 						tcradioservice_setSeekStep(eSEEK_STEP_ON_AIR);
 						tcradioservice_stopSeek(0);
 						uiSendMsg[0] = stRadioService.curBand;
@@ -674,7 +690,7 @@ static void tcradioservice_eventHandler(void)
 					}
 					ret = tcradioservice_checkValidFreq(stRadioRcvMsgQ.uiData[0], stRadioRcvMsgQ.uiData[1]);
 					if(ret == eRET_OK) {
-						if(tcradioservice_isHdRadio() == YES && stTunerConfig.sdr == eRADIO_SDR_HD) {
+						if((tcradioservice_isHdRadio() == YES) && (stTunerConfig.sdr == eRADIO_SDR_HD)) {
 						#ifdef USE_HDRADIO
 							// HD Radio
 							if(tcradioservice_is2ndTunerMRC()) {
@@ -813,7 +829,8 @@ static void tcradioservice_eventHandler(void)
 			break;
 
 		case eRADIO_EVT_SET_SEEK:
-			if(stRadioService.curBand != eRADIO_FM_MODE && stRadioService.curBand != eRADIO_AM_MODE && stRadioService.curBand != eRADIO_DAB_MODE) {
+			if((stRadioService.curBand != eRADIO_FM_MODE) && (stRadioService.curBand != eRADIO_AM_MODE) && (stRadioService.curBand != eRADIO_DAB_MODE))
+			{
 				tcradioservice_setSeekStep(eSEEK_STEP_ON_AIR);
 				tcradioservice_stopSeek(0);
 				ret = eRET_NG_NOT_SUPPORT;
@@ -941,8 +958,9 @@ RET tcradioservice_setHdrTuneTo(eRADIO_MOD_MODE_t mod_mode, uint32 freq, uint32 
 
 		case eRADIO_CONF_TYPE_DUAL:
 			if(ntuner <= eRADIO_ID_SECONDARY) {
-				if(ntuner == eRADIO_ID_SECONDARY && stTunerConfig.fPhaseDiversity == 1)
+				if(ntuner == eRADIO_ID_SECONDARY && stTunerConfig.fPhaseDiversity == 1) {
 					ret = eRET_NG_NOT_SUPPORT;
+				}
 			}
 			else {
 				ret = eRET_NG_NOT_SUPPORT;
@@ -967,7 +985,7 @@ RET tcradioservice_setHdrTuneTo(eRADIO_MOD_MODE_t mod_mode, uint32 freq, uint32 
 	}
 	if(ret == eRET_OK) {
 		if(mod_mode == eRADIO_FM_MODE || mod_mode == eRADIO_AM_MODE) {
-			if(tcradioservice_isSeeking() == 0 && ntuner == eRADIO_ID_PRIMARY) {
+			if((tcradioservice_isSeeking() == 0) && (ntuner == eRADIO_ID_PRIMARY)) {
 				tcradioservice_setSeekStep(eSEEK_STEP_ON_AIR);
 				tcradioservice_stopSeek(0);
 				uiSendMsg[0] = stRadioService.curBand;
@@ -1033,7 +1051,7 @@ void tcradioservice_callbackAppFunction(stMsgBuf_t *pstMsg)
             {
 				(*pfnOnGetNotificationCallBack)(pstMsg->uiMode, pstMsg->uiData, pstMsg->pData, pstMsg->iError);
 
-                if((pstMsg->uiData[4] == 1) && pstMsg->uiMode == eRADIO_NOTIFY_SEEK_MODE)
+                if((pstMsg->uiData[4] == 1) && (pstMsg->uiMode == eRADIO_NOTIFY_SEEK_MODE))
                 {
                     if(pfnOnGetStationListCallBack)
                     {
@@ -1065,7 +1083,7 @@ RET tcradioservice_setBandFreqConfig(eRADIO_MOD_MODE_t mod_mode, uint32 start_fr
 {
 	RET ret = eRET_OK;
 
-	if(tcradioservice_getSeekMode() > eRADIO_SEEK_STOP && tcradioservice_getSeekMode() < eRADIO_SEEK_END) {
+	if((tcradioservice_getSeekMode() > eRADIO_SEEK_STOP) && (tcradioservice_getSeekMode() < eRADIO_SEEK_END)) {
 		ret = eRET_NG_BUSY;		// Seek Mode
 	}
 	else {
@@ -1196,7 +1214,7 @@ RET tcradioservice_checkValidBandFreqConfig(eRADIO_MOD_MODE_t mod_mode, uint32 s
 		if( (tcradioservice_checkValidFreq(mod_mode, start_freq) != eRET_OK) ||
 			(tcradioservice_checkValidFreq(mod_mode, end_freq) != eRET_OK) ||
 			(start_freq >= end_freq) ||
-			(step != 200 && step != 100 && step != 50 && step != 10) ||
+			((step != 200) && (step != 100) && (step != 50) && (step != 10)) ||
 			((end_freq-start_freq)%step != 0) )
 		{
 			ret = eRET_NG_INVALID_PARAM;
@@ -1206,7 +1224,7 @@ RET tcradioservice_checkValidBandFreqConfig(eRADIO_MOD_MODE_t mod_mode, uint32 s
 		if( (tcradioservice_checkValidFreq(mod_mode, start_freq) != eRET_OK) ||
 			(tcradioservice_checkValidFreq(mod_mode, end_freq) != eRET_OK) ||
 			(start_freq >= end_freq) ||
-			(step != 10 && step != 9 && step != 1) ||
+			((step != 10) && (step != 9) && (step != 1)) ||
 			((end_freq-start_freq)%step != 0) )
 		{
 			ret = eRET_NG_INVALID_PARAM;
@@ -1376,7 +1394,7 @@ static void tcradioservice_seekHandler(void)
 					eRadioSeekStep = eSEEK_STEP_SET_FREQ;
 				}
 
-				if(tcradioservice_getSeekMode() != eRADIO_SEEK_SCAN_STATION && tcradioservice_getSeekMode() != eRADIO_SEEK_SCAN_PI) {
+				if((tcradioservice_getSeekMode() != eRADIO_SEEK_SCAN_STATION) && (tcradioservice_getSeekMode() != eRADIO_SEEK_SCAN_PI)) {
 					eRadioSt = eRADIO_STS_DOING_NOTIFY;			// for returning current frequency quality values
 				}
 			}
@@ -1457,9 +1475,10 @@ static void tcradioservice_seekHandler(void)
 				}
 			}
 
-			if(tcradioservice_getSeekMode() != eRADIO_SEEK_SCAN_STATION && tcradioservice_getSeekMode() != eRADIO_SEEK_SCAN_PI)
+			if((tcradioservice_getSeekMode() != eRADIO_SEEK_SCAN_STATION) && (tcradioservice_getSeekMode() != eRADIO_SEEK_SCAN_PI))
+			{
 				eRadioSt = eRADIO_STS_DOING_NOTIFY;			// for returning current frequency quality values
-
+			}
 			break;
 
 		case eSEEK_STEP_CHK_PI:
@@ -1743,7 +1762,7 @@ int32 tcradioservice_checkSignalQuality(stRADIO_QUALITY_t qdata)
 			rssi = (int32)temp_qdata.fm.Rssi;
 			snr = (int32)temp_qdata.fm.Snr;
 			offs = (int32)temp_qdata.fm.Offs;
-			if(rssi >= 20 && snr > 4 && offs > -6 && offs < 6)
+			if((rssi >= 20) && (snr > 4) && (offs > -6) && (offs < 6))
 			{
 				ret = 0;
 			}
@@ -1752,7 +1771,7 @@ int32 tcradioservice_checkSignalQuality(stRADIO_QUALITY_t qdata)
 			rssi = (int32)temp_qdata.am.Rssi;
 			snr = (int32)temp_qdata.am.Snr;
 			offs = (int32)temp_qdata.am.Offs;
-			if(rssi >= 38 && snr > 6 && offs > -6 && offs < 6)
+			if((rssi >= 38) && (snr > 6) && (offs > -6) && (offs < 6))
 			{
 				ret = 0;
 			}
@@ -1761,7 +1780,7 @@ int32 tcradioservice_checkSignalQuality(stRADIO_QUALITY_t qdata)
 			rssi = (int32)temp_qdata.dab.Rssi;
 			sqi = (int32)temp_qdata.dab.Sqi;
 			detect = (int32)temp_qdata.dab.Detect;
-			if(rssi >= -107 && sqi > 8 && detect > 0)
+			if((rssi >= -107) && (sqi > 8) && (detect > 0))
 			{
 				ret = 0;
 			}
@@ -1780,7 +1799,7 @@ int32 tcradioservice_checkSignalQuality(stRADIO_QUALITY_t qdata)
 			offs = (int32)temp_qdata.fm.Offs;
 			usn = temp_qdata.fm.Usn;
 			mpth = temp_qdata.fm.Mpth;
-			if(rssi >= 280 && offs > -100 && offs < 100 && usn < 120 && mpth < 200)
+			if((rssi >= 280) && (offs > -100) && (offs < 100) && (usn < 120) && (mpth < 200))
 			{
 				ret = 0;
 			}
@@ -1789,7 +1808,7 @@ int32 tcradioservice_checkSignalQuality(stRADIO_QUALITY_t qdata)
 			rssi = (int32)temp_qdata.am.Rssi;
 			offs = (int32)temp_qdata.am.Offs;
 			noise = temp_qdata.am.Hfn;
-			if(rssi >= 630 && offs > -50 && offs < 50 && noise < 100)
+			if((rssi >= 630) && (offs > -50) && (offs < 50) && (noise < 100))
 			{
 				ret = 0;
 			}
@@ -1808,7 +1827,7 @@ int32 tcradioservice_checkSignalQuality(stRADIO_QUALITY_t qdata)
 
 void tcradioservice_saveAllPresetMemory(void)
 {
-	int32 i;
+	uint32 i;
 
 	for(i=0; i < _MaxPresetNum; i++) {
 		if(stRadioList[i].uiFreq != 0) {
@@ -1828,8 +1847,9 @@ void tcradioservice_saveAllPresetMemory(void)
 void tcradioservice_savePresetMemory(uint8 pnum)
 {
 	if (pnum >= _MaxPresetNum || stRadioService.currentBandPresetFreq[stRadioService.curBand][pnum] == stRadioService.curFreq)
+	{
 		return;
-
+	}
 	if (tcradioservice_getMainMode() == eRADIO_EVT_SET_SEEK) {
 		tcradioservice_stopSeek(1);
 	}
@@ -2018,32 +2038,36 @@ void tcradioservice_initSeek(eRADIO_SEEK_MODE_t nextSeekMode)
 int32 tcradioservice_isFmBand(void)
 {
 	int32 ret = -1;
-	if(stRadioService.curBand == eRADIO_FM_MODE)
+	if(stRadioService.curBand == eRADIO_FM_MODE) {
 		ret = 0;
+	}
 	return ret;
 }
 
 int32 tcradioservice_isAmBand(void)
 {
 	int32 ret = -1;
-	if(stRadioService.curBand == eRADIO_AM_MODE)
+	if(stRadioService.curBand == eRADIO_AM_MODE) {
 		ret = 0;
+	}
 	return ret;
 }
 
 int32 tcradioservice_isDabBand(void)
 {
 	int32 ret = -1;
-	if(stRadioService.curBand == eRADIO_DAB_MODE)
+	if(stRadioService.curBand == eRADIO_DAB_MODE) {
 		ret = 0;
+	}
 	return ret;
 }
 
 int32 tcradioservice_isSeeking(void)
 {
 	int32 ret = -1;
-	if(tcradioservice_getSeekMode() > eRADIO_SEEK_STOP && tcradioservice_getSeekMode() < eRADIO_SEEK_END)
+	if((tcradioservice_getSeekMode() > eRADIO_SEEK_STOP) && (tcradioservice_getSeekMode() < eRADIO_SEEK_END)) {
 		ret = 0;
+	}
 	return ret;
 }
 
