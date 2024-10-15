@@ -454,8 +454,8 @@ Tun_Status TUN_Seek_Continue (tU8 deviceAddress, int channelID, Seek_Direction s
 
 /*************************************************************************************
 Function         : TUN_Ping
-Description    : This function is used to verify the "health status¡± of the tuner. 
-            The car-radio MCU needs to periodically verify that the tuner is still operating correctly and is not "stuck¡±
+Description    : This function is used to verify the "health statusï¿½ï¿½ of the tuner. 
+            The car-radio MCU needs to periodically verify that the tuner is still operating correctly and is not "stuckï¿½ï¿½
             (for example as a consequence of an ESD to the car-radio in case the layout does not sufficiently protect the tuner): 
             to do so, the present command can be sent with an arbitrary 24 bit word as its parameter. 
             If the tuner is still operating correctly, it replies with a bit-inversed version of the word sent by the MCU.
@@ -1158,8 +1158,8 @@ Tun_Status TUN_Cmd_Write(tU8 deviceAddress, tU32 regAddress, tU32 regData)
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_WRITE;    
-    int cmdParamNum = 3;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    tU32 cmdParamNum = 3;
+    tU8 ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1230,8 +1230,8 @@ Parameters    :
             0x00000B: not used
             0x00000C: not used
             0x00000D: not used
-            0x00000E: Reserved ¨C do not use
-            0x00000F: Reserved ¨C do not use
+            0x00000E: Reserved ï¿½C do not use
+            0x00000F: Reserved ï¿½C do not use
             
         maxFreq  : Upper band limit [kHz]
         minFreq   : Lower band limit [kHz]
@@ -1243,8 +1243,8 @@ Tun_Status TUN_Change_Band (tU8 deviceAddress, int channelID, int bandMode, tU32
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_CHANGE_BAND;
-    int cmdParamNum = 6;
-    int ansParmNum = 0;                    /* if it's 0, means only return answer header and check sum */
+    tU32 cmdParamNum = 6;
+    tU8 ansParmNum = 0;                    /* if it's 0, means only return answer header and check sum */
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1302,8 +1302,8 @@ Tun_Status TUN_Change_Frequency (tU8 deviceAddress, int channelID, tU32 frequenc
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_TUNE;
-    int cmdParamNum = 3;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    tU32 cmdParamNum = 3;
+    tU8 ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1360,8 +1360,8 @@ Tun_Status TUN_Get_ChannelQuality (tU8 deviceAddress, int channelID, tBool bVPAM
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_GET_CHANNEL_QUALITY;    
-    int cmdParamNum = 1;
-    int ansParmNum = 3;
+    tU32 cmdParamNum = 1;
+    tU8 ansParmNum = 3;
     int ansParamOffset = 0;
     int realAnsParamNum;
     
@@ -1432,8 +1432,8 @@ Tun_Status TUN_Mute (tU8 deviceAddress, Mute_Action muteAction)
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_MUTE;    
-    int cmdParamNum = 1;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    tU32 cmdParamNum = 1;
+    tU8 ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1469,8 +1469,8 @@ Tun_Status TUN_Set_RDS (tU8 deviceAddress, int channelID, RDS_Action rdsAction)
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_RDSBUFFER_SET;
-    int cmdParamNum = 3;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    tU32 cmdParamNum = 3;
+    tU8 ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1526,8 +1526,8 @@ Tun_Status TUN_Read_RDS (tU8 deviceAddress, int channelID, RDS_Buffer *pRDSbuffe
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_RDSBUFFER_READ;
-    int cmdParamNum = 1;
-    int ansParmNum = 16 + 1;             /* The maximum block num is 16 in the DSP RDS Buffer, plus 1 RNR */
+    tU32 cmdParamNum = 1;
+    tU8 ansParmNum = 16 + 1;             /* The maximum block num is 16 in the DSP RDS Buffer, plus 1 RNR */
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1597,9 +1597,9 @@ Tun_Status TUN_Set_Blend(tU8 deviceAddress, tU8 blendMode, tU8 fOnOff)
 #if 0
     int cmdParamNum = 1;
 #else
-    int cmdParamNum = 2;
+    tU32 cmdParamNum = 2;
 #endif
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    tU8 ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1646,8 +1646,8 @@ Tun_Status TUN_conf_BB_SAI(tU8 deviceAddress, tU32 mode, tU32 config)
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_CONF_BB_SAI;
-    int cmdParamNum = 2;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    tU32 cmdParamNum = 2;
+    tU8 ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1710,8 +1710,8 @@ Tun_Status TUN_Set_Audio_IF(tU8 deviceAddress, tU8 SAIMode, tU32 SAIConfig)
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_SET_AUDIO_IF;
-    int cmdParamNum = 2;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    tU32 cmdParamNum = 2;
+    tU8 ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1750,8 +1750,8 @@ Tun_Status TUN_Set_BB_IF(tU8 deviceAddress, tU32 BBConfig)
 {
     Tun_Status tunerStatus = RET_ERROR;
     int cmdID = CMD_CODE_TUNER_SET_BB_IF;
-    int cmdParamNum = 1;
-    int ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
+    tU32 cmdParamNum = 1;
+    tU8 ansParmNum = 0;                    /*if it's 0, means only return answer header and check sum*/
     int realAnsParamNum;
     tU8 paramData[cmdParamNum * 3];
     tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
@@ -1815,7 +1815,9 @@ Tun_Status TUN_Download_BootCode(tU8 deviceAddress)
             byteNum = (*(pBootCode + i + 3)) * 256 + (*(pBootCode + i + 4));   //bytes number (data)
 
             tunerStatus = Star_I2C_Direct_Write(deviceAddress, addr, pBootCode + i + 5, byteNum);
-            if (tunerStatus != RET_SUCCESS) return tunerStatus;
+            if (tunerStatus != RET_SUCCESS) {
+                return tunerStatus;
+            }
 
             i += 5 + byteNum;
         }
@@ -1938,9 +1940,9 @@ int starhal_getTunerCh(unsigned int ntuner)
 {
     int val = 1;
 
-    if(ntuner == eTUNER_DRV_ID_SECONDARY || ntuner == eTUNER_DRV_ID_QUATERNARY)
+    if(ntuner == eTUNER_DRV_ID_SECONDARY || ntuner == eTUNER_DRV_ID_QUATERNARY) {
         val = 2;
-
+    }
     return val;
 }
 
@@ -1954,12 +1956,12 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
 
     TDRV_DBG("[%s:%d] mod_mode[%d], freq[%d], tune_mode[%d], star_drv_current_band[%d] : %d\n", __func__, __LINE__
             , mod_mode, freq, tune_mode, ntuner, star_drv_current_band[ntuner]);
-    if (mod_mode > eTUNER_DRV_AM_MODE)
+    if (mod_mode > eTUNER_DRV_AM_MODE) {
         return eRET_NG_UNKNOWN;
-
-    if (ntuner > eTUNER_DRV_ID_SECONDARY)
+    }
+    if (ntuner > eTUNER_DRV_ID_SECONDARY) {
         return eRET_NG_UNKNOWN;
-
+    }
     channelID = starhal_getTunerCh(ntuner);
 
     if(star_drv_current_band[ntuner] != mod_mode)
@@ -2037,9 +2039,9 @@ int star_getQuality(unsigned int mod_mode, stSTAR_DRV_QUALITY_t *qdata, unsigned
 
     (void)mod_mode;
 
-    if (ntuner > eTUNER_DRV_ID_SECONDARY)
+    if (ntuner > eTUNER_DRV_ID_SECONDARY) {
         return eRET_NG_UNKNOWN;
-
+    }
     channelID = starhal_getTunerCh(ntuner);
 
     tunerStatus = TUN_Get_ChannelQuality(I2C_SLAVE_ADDRESS, channelID, 0, qdata);
@@ -2060,11 +2062,11 @@ int star_setMute(unsigned int fOnOff, unsigned int ntuner)
 
     (void)ntuner;
 
-    if (fOnOff != 0)
+    if (fOnOff != 0) {
         tunerStatus = TUN_Mute(I2C_SLAVE_ADDRESS, MUTE);    // 0x000000: mute audio
-    else
+    } else {
         tunerStatus = TUN_Mute(I2C_SLAVE_ADDRESS, UNMUTE);    // 0x000003: unmute audio
-
+    }
     if (tunerStatus == RET_SUCCESS)
     {
         return eRET_OK;
@@ -2091,9 +2093,9 @@ int star_open(stTUNER_DRV_CONFIG_t type)
 
     ret = star_i2c_open();
 
-    if (ret < 0)
+    if (ret < 0) {
         return eRET_NG_UNKNOWN;
-
+    }
     star_tuner_reset();
 
     // for Tunner communication check
@@ -2226,9 +2228,9 @@ int star_close(void)
 
     ret = star_i2c_close();
 
-    if (ret < 0)
+    if (ret < 0) {
         return eRET_NG_UNKNOWN;
-    
+    }
     star_tuner_reset();
     
     star_drv_initialized = 0;
@@ -2253,9 +2255,9 @@ int star_rds_init(unsigned int ntuner)
     Tun_Status tunerStatus = RET_SUCCESS;
     int channelID;
 
-    if (ntuner > eTUNER_DRV_ID_SECONDARY)
+    if (ntuner > eTUNER_DRV_ID_SECONDARY) {
         return eRET_NG_UNKNOWN;
-
+    }
     channelID = starhal_getTunerCh(ntuner);
 
     tunerStatus = TUN_Set_RDS(I2C_SLAVE_ADDRESS, channelID, RDSBUFFER_ENABLE);
@@ -2276,9 +2278,9 @@ int star_rds_read(unsigned int ntuner, tU8 *blockdata, int *NumValidBlock)
     int channelID;
     RDS_Buffer rds_buff_words;
 
-    if (ntuner > eTUNER_DRV_ID_SECONDARY)
+    if (ntuner > eTUNER_DRV_ID_SECONDARY) {
         return eRET_NG_UNKNOWN;
-
+    }
     channelID = starhal_getTunerCh(ntuner);
     rds_buff_words.validBlockNum = 0;
     memset(rds_buff_words.blockdata, 0x00 , (RDSBUFFER_WORDS_MAXNUM * 3));

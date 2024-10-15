@@ -76,7 +76,9 @@ static tU32 Command_CalculateCheckSum(tU8 *pData, int wordNum)
 {
     tU32  checkSum = 0;
     
-    for (int i = 0; i <  wordNum * 3; i++)   checkSum += (tU32)(*pData++) << ((2 - i%3) * 8);     
+    for (int i = 0; i <  wordNum * 3; i++) {
+        checkSum += (tU32)(*pData++) << ((2 - i%3) * 8);
+    }
     
     return checkSum & 0x00FFFFFF;
 }
@@ -139,7 +141,9 @@ static Tun_Status Command_Send(tU32 deviceAddress, tU8 cmdID, int paramNum, tU8*
     ret = star_i2c_write(deviceAddress, dataBuffer, byteNum);
 #endif
 
-    if (ret >= 0) tunerStatus = RET_SUCCESS;
+    if (ret >= 0) {
+        tunerStatus = RET_SUCCESS;
+    }
 
     return tunerStatus;
 }
@@ -203,10 +207,14 @@ static Tun_Status Command_GetAnswer(int deviceAddress, int ansParamNum, tU8 *pAn
 #else   // LB i2c
         ret = star_i2c_read(deviceAddress, cmdAddr, 3, pAnswer, (ansParamNum + 2) * 3);
 #endif
-        if (ret >= 0) *pAnswerParamNum = ansParamNum;
+        if (ret >= 0) {
+            *pAnswerParamNum = ansParamNum;
+        }
     }
 
-    if (ret >= 0) tunerStatus = RET_SUCCESS;
+    if (ret >= 0) {
+        tunerStatus = RET_SUCCESS;
+    }
     
     return tunerStatus;
 }
@@ -277,7 +285,9 @@ Tun_Status Star_Command_Communicate(int deviceAddress, tU8 cmdID, int paramNum, 
                 checkSumInAnswer |= (tU32)(*(pAnswer + offsetCheckSum + 1)) << 8;
                 checkSumInAnswer |= (tU32)(*(pAnswer + offsetCheckSum + 2));
 
-                if (checkSumInAnswer != Command_CalculateCheckSum(pAnswer, *(pAnswer + 2) + 1)) tunerStatus = RET_ERR_CMD_ANWSER_CHECKSUM;
+                if (checkSumInAnswer != Command_CalculateCheckSum(pAnswer, *(pAnswer + 2) + 1)) {
+                    tunerStatus = RET_ERR_CMD_ANWSER_CHECKSUM;
+                }
             }
         }
     }
@@ -322,7 +332,9 @@ Tun_Status Star_I2C_Direct_Write(int deviceAddress, tU32 regAddress, tU8 *pData,
     TPROC_ERR("i2c_writing = %d, dataBuffer = 0x%02x%02x%02x ~~, regAddress = 0x%06x, size = %d", ret, dataBuffer[0], dataBuffer[1], dataBuffer[2], regAddress, dataSize);
 #endif
 
-    if (ret >= 0) tunerStatus = RET_SUCCESS;
+    if (ret >= 0) {
+        tunerStatus = RET_SUCCESS;
+    }
 
     return tunerStatus;
 }
@@ -362,8 +374,9 @@ Tun_Status Star_I2C_Direct_Read(int deviceAddress, tU32 regAddress, tU8* pData, 
     TPROC_ERR("i2c_reading = %d, write buffer = 0x%02x%02x%02x, read out data size = %d, out data = 0x%02x%02x%02x%02x", ret, dataBuffer[0], dataBuffer[1], dataBuffer[2], dataSize, *pData, *(pData + 1), *(pData + 2), *(pData + 3));
 #endif
 
-    if (ret >= 0) tunerStatus = RET_SUCCESS;
-    
+    if (ret >= 0) {
+        tunerStatus = RET_SUCCESS;
+    }
     return tunerStatus;
 }
 
