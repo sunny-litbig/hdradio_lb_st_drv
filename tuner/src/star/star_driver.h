@@ -323,6 +323,7 @@ int star_close(void);
 int star_setIQTestPattern(unsigned int fOnOff, unsigned int sel);
 int star_rds_init(unsigned int ntuner);
 int star_rds_read(unsigned int ntuner, tU8 *blockdata, int *NumValidBlock);
+int star_checkTuner(uint32 ntuner, uint32 cmd, uint8 *rx, uint8 len);
 
 #endif /* H_STAR_DRIVER */
 

@@ -36,6 +36,7 @@
 
 #define I2C_SLAVE_ADDRESS   0x61
 #define STAR_MAX_TUNER_IC_NUM   (4)
+#define CHECKWORD   0x123456
 
 #define    STAR_DRIVER_VER_PREFIX__            'T'
 #define    STAR_DRIVER_VER_RELEASE_NUMBER__    0x01U
@@ -447,61 +448,6 @@ Tun_Status TUN_Seek_Continue (tU8 deviceAddress, int channelID, Seek_Direction s
     
 #else
 #endif    
-
-    return tunerStatus;
-}
-
-
-/*************************************************************************************
-Function         : TUN_Ping
-Description    : This function is used to verify the "health status�� of the tuner. 
-            The car-radio MCU needs to periodically verify that the tuner is still operating correctly and is not "stuck��
-            (for example as a consequence of an ESD to the car-radio in case the layout does not sufficiently protect the tuner): 
-            to do so, the present command can be sent with an arbitrary 24 bit word as its parameter. 
-            If the tuner is still operating correctly, it replies with a bit-inversed version of the word sent by the MCU.
-            
-Parameters    :
-        deviceAddress :  star tuner I2C address.
-            
-Return Value    : Tun_Status
-*************************************************************************************/
-Tun_Status TUN_Ping (tU8 deviceAddress)
-{
-    Tun_Status tunerStatus = RET_ERROR;
-    int cmdID = CMD_CODE_TUNER_PING;    
-    int cmdParamNum = 1;
-    int ansParmNum = 1;                    /*if it's 0, means only return answer header and check sum*/
-    int realAnsParamNum;
-    tU8 paramData[cmdParamNum * 3];
-    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
-    static tU32 checkData = 0x0;
-    tU32 biData = 0;
-
-    checkData++;
-    if (checkData > 0xFFFFFF) checkData = 0x0;
-    biData = (~checkData) & 0xFFFFFF;
-
-    memset(paramData, 0x00, cmdParamNum * 3);
-    paramData[0] = (checkData >> 16) & 0xFF;
-    paramData[1] = (checkData >> 8) & 0xFF;
-    paramData[2] = (checkData & 0xFF) ;
-    
-#ifdef STAR_COMM_BUS_I2C
-    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
-    
-#ifdef TRACE_STAR_CMD_PING    
-    TDRV_ERR("Star_Command_Communicate = %s, cmdParamNum = %d, checkData = 0x%06x", RetStatusName[tunerStatus].Name, cmdParamNum, checkData);
-#endif
-    
-    if (tunerStatus == RET_SUCCESS)
-    {
-        biData   = answerData[3] << 16;
-        biData |= answerData[4] << 8;
-        biData |= answerData[5];
-        if  (biData != ( (~checkData) & 0xFFFFFF))  tunerStatus = RET_ERR_SYS_FAILURE;
-    }
-#else
-#endif
 
     return tunerStatus;
 }
@@ -1197,6 +1143,78 @@ Tun_Status TUN_Cmd_Write(tU8 deviceAddress, tU32 regAddress, tU32 regData)
     TDRV_ERR("[%s] Star_Command_Communicate = %d, regAddress= 0x%06x, cmdParamNum= %d, data= 0x%06x \n",
         __func__, tunerStatus, regAddress, cmdParamNum, regData);
 #endif
+
+    return tunerStatus;
+}
+
+
+/*************************************************************************************
+Function         : TUN_Ping
+Description    : This function is used to verify the "health status¡± of the tuner. 
+            The car-radio MCU needs to periodically verify that the tuner is still operating correctly and is not "stuck¡±
+            (for example as a consequence of an ESD to the car-radio in case the layout does not sufficiently protect the tuner): 
+            to do so, the present command can be sent with an arbitrary 24 bit word as its parameter. 
+            If the tuner is still operating correctly, it replies with a bit-inversed version of the word sent by the MCU.
+            
+Parameters    :
+        deviceAddress :  star tuner I2C address.
+            
+Return Value    : Tun_Status
+*************************************************************************************/
+Tun_Status TUN_Ping (tU8 deviceAddress)
+{
+    Tun_Status tunerStatus = RET_ERROR;
+    int cmdID = CMD_CODE_TUNER_PING;    
+    int cmdParamNum = 1;
+    int ansParmNum = 1;                    /*if it's 0, means only return answer header and check sum*/
+    int realAnsParamNum;
+    tU8 paramData[cmdParamNum * 3];
+    tU8 answerData[(ansParmNum + 2) * 3];    /* answer data include asnwer header, answer param and check sum */
+    static tU32 checkData = 0x0;
+    tU32 biData = 0;
+
+#if 0
+    checkData++;
+    if (checkData > 0xFFFFFF) checkData = 0x0;
+    biData = (~checkData) & 0xFFFFFF;
+#else
+    checkData = CHECKWORD;
+#endif
+
+    memset(paramData, 0x00, cmdParamNum * 3);
+    paramData[0] = (checkData >> 16) & 0xFF;
+    paramData[1] = (checkData >> 8) & 0xFF;
+    paramData[2] = (checkData & 0xFF) ;
+    
+    tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
+    
+#ifdef TRACE_STAR_CMD_PING    
+    TDRV_ERR("Star_Command_Communicate = %s, cmdParamNum = %d, checkData = 0x%06x", RetStatusName[tunerStatus].Name, cmdParamNum, checkData);
+#endif
+    
+#if 0
+    if (tunerStatus == RET_SUCCESS)
+    {
+        biData  = answerData[3] << 16;
+        biData |= answerData[4] << 8;
+        biData |= answerData[5];
+        if  (biData != ( (~checkData) & 0xFFFFFF))  tunerStatus = RET_ERR_SYS_FAILURE;
+    }
+#else
+    if (tunerStatus == RET_SUCCESS) {
+        biData = 0;
+        biData  = answerData[3] << 16;
+        biData |= answerData[4] << 8;
+        biData |= answerData[5];
+
+        if (biData != ((~checkData) & 0xFFFFFF)) {
+            tunerStatus = RET_ERR_SYS_FAILURE;
+        }
+    }
+#endif
+
+    TDRV_INF("[%s] checkData = %X, ~checkData = %X, biData = %X. (%d)\n",
+        __func__, checkData, ((~checkData) & 0xFFFFFF), biData, tunerStatus);
 
     return tunerStatus;
 }
@@ -2318,3 +2336,23 @@ int star_rds_read(unsigned int ntuner, tU8 *blockdata, int *NumValidBlock)
         return eRET_NG_UNKNOWN;
     }
 }
+
+int star_checkTuner(uint32 ntuner, uint32 cmd, uint8 *rx, uint8 len)
+{
+    RET ret = eRET_OK;
+    Tun_Status tunerStatus = RET_SUCCESS;
+    (void) ntuner;
+    (void) cmd;
+    (void) rx;
+    (void) len;
+
+    tunerStatus = TUN_Ping(I2C_SLAVE_ADDRESS);
+
+    if (tunerStatus == RET_SUCCESS) {
+        return eRET_OK;
+    }
+    else {
+        return eRET_NG_UNKNOWN;
+    }
+}
+

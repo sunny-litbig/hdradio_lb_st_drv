@@ -935,6 +935,7 @@ RET tcradiohal_getTunerStatus(uint32 cmd, uint8 *buf, uint32 len, uint32 ntuner)
 	#endif
 	#ifdef USE_T0_TUNER
 				case eTUNER_IC_T0:
+                    ret = star_checkTuner(ntuner, cmd, buf, (uint8)len);
 					break;
 	#endif
 				default:
