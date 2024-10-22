@@ -2027,6 +2027,17 @@ void tcradioservice_initSeek(eRADIO_SEEK_MODE_t nextSeekMode)
         RSRV_DBG("<<<<<<<< (nextSeekMode == eRADIO_SEEK_STOP) eRadioSeekStep : eSEEK_STEP_STOP >>>>>>>>>>\n");
 		tcradioservice_setSeekStep(eSEEK_STEP_STOP);
 	}
+	else if(((nextSeekMode == eRADIO_SEEK_MAN_UP) 
+                || (nextSeekMode == eRADIO_SEEK_MAN_DOWN) 
+                || (nextSeekMode == eRADIO_SEEK_AUTO_UP)
+                || (nextSeekMode == eRADIO_SEEK_AUTO_DOWN)) 
+            && ((tcradioservice_getSeekMode() == eRADIO_SEEK_MAN_UP) 
+                || (tcradioservice_getSeekMode() == eRADIO_SEEK_MAN_DOWN) 
+                || (tcradioservice_getSeekMode() == eRADIO_SEEK_AUTO_UP)
+                || (tcradioservice_getSeekMode() == eRADIO_SEEK_AUTO_DOWN))) {
+        RSRV_DBG("<<<<<<<< (nextSeekMode[%d (1~4)]) tcradioservice_getSeekMode()[%d (1~4)] ==> eRadioSeekStep : eSEEK_STEP_STOP >>>>>>>>>>\n", nextSeekMode, tcradioservice_getSeekMode());
+		tcradioservice_setSeekStep(eSEEK_STEP_STOP);
+	}
 	else if(nextSeekMode < eRADIO_SEEK_END) {
 	#ifdef USE_HDRADIO
 	//	if(tcradioservice_isHdRadio() == YES) {
