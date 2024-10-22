@@ -151,6 +151,7 @@ typedef enum{
     eSEEK_STEP_CHK_QDATA 	= 5,
     eSEEK_STEP_STOP			= 6,
     eSEEK_STEP_CHK_PI		= 7,
+    eSEEK_STEP_LISTEN   	= 8,
 	eSEEK_STEP_END
 }eSEEK_STEP_t;
 
@@ -164,6 +165,7 @@ typedef struct{
 	eSEEK_STEP_t eSeekStep;
 	eRADIO_SEEK_MODE_t eSeekMode;
 	uint32 curSeekResult;
+	uint32 curSeekListeningCount;
 
 	uint32 curBand;		// eRADIO_MOD_MODE_t
 	uint32 curFreq;

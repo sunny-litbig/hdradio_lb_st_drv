@@ -1418,7 +1418,7 @@ static void tcradioservice_seekHandler(void)
 			tcradiohal_getQuality(stRadioService.curBand, (stTUNER_QUALITY_t *)&stRadioService.stSchQdata, eRADIO_ID_PRIMARY);
 
 			if(pfnOnCheckSeekQual != NULL) {
-				retValid = (*pfnOnCheckSeekQual)(stRadioService.curBand, stRadioService.stSchQdata, eRADIO_ID_PRIMARY);
+				retValid = (*pfnOnCheckSeekQual)(stRadioService.curBand, stRadioService.stSchQdata, stRadioService.curFreq, eRADIO_ID_PRIMARY);
 			}
 			else {
 				retValid = tcradioservice_checkSignalQuality(stRadioService.stSchQdata);
@@ -1431,8 +1431,11 @@ static void tcradioservice_seekHandler(void)
 						eRadioSeekStep = eSEEK_STEP_STOP;
 					}
 					else {
-						stRadioService.curSeekResult++;
-						eRadioSeekStep = eSEEK_STEP_SET_FREQ;
+                        stRadioService.curSeekResult++;
+						// eRadioSeekStep = eSEEK_STEP_SET_FREQ;
+                        stRadioService.curSeekListeningCount = 0;
+                        eRadioSeekStep = eSEEK_STEP_LISTEN;
+                        tcradiohal_setMute(0, 0);		//Mute Off
 					}
 				}
 				else if(tcradioservice_getSeekMode() == eRADIO_SEEK_SCAN_PI) {
@@ -1480,6 +1483,15 @@ static void tcradioservice_seekHandler(void)
 				eRadioSt = eRADIO_STS_DOING_NOTIFY;			// for returning current frequency quality values
 			}
 			break;
+
+        case eSEEK_STEP_LISTEN:
+            stRadioService.curSeekListeningCount++;
+            if(stRadioService.curSeekListeningCount >= 500) {
+                // RSRV_DBG("<<<<<<<< eRadioSeekStep : eSEEK_STEP_SET_FREQ >>>>>>>>>>\n");
+                tcradiohal_setMute(1, 0);		//Mute On
+                eRadioSeekStep = eSEEK_STEP_SET_FREQ;
+            }
+            break;
 
 		case eSEEK_STEP_CHK_PI:
 			if (uiSeek5msCnt <= 0) {
@@ -2012,6 +2024,7 @@ void tcradioservice_initSeek(eRADIO_SEEK_MODE_t nextSeekMode)
 	stRadioService.curStartFreq = stRadioService.curFreq;
 
 	if(nextSeekMode == eRADIO_SEEK_STOP) {
+        RSRV_DBG("<<<<<<<< (nextSeekMode == eRADIO_SEEK_STOP) eRadioSeekStep : eSEEK_STEP_STOP >>>>>>>>>>\n");
 		tcradioservice_setSeekStep(eSEEK_STEP_STOP);
 	}
 	else if(nextSeekMode < eRADIO_SEEK_END) {

@@ -60,7 +60,7 @@ void tcradio_configOnPrecheckSeekQual(int32(*pfnPrecheckSeekQual)(eRADIO_MOD_MOD
 	pfnOnPrecheckSeekQual = pfnPrecheckSeekQual;
 }
 
-void tcradio_configOnCheckSeekQual(int32(*pfnCheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 ntuner))
+void tcradio_configOnCheckSeekQual(int32(*pfnCheckSeekQual)(eRADIO_MOD_MODE_t mod_mode, stRADIO_QUALITY_t qdata, uint32 freq, uint32 ntuner))
 {
 	pfnOnCheckSeekQual = pfnCheckSeekQual;
 }
