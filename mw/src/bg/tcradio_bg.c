@@ -741,8 +741,8 @@ static void tcradiobg_stateHandler(void)
 					eRadioBGState = eRADIO_BG_STATE_STOP;
 				}
 
-                RBG_DBG("[%s] eRADIO_BG_STATE_CHK_QDATA : SeekMode = %d BGState = %d, curFreq = %d \n", __func__,
-                    tcradiobg_getSeekMode(), tcradiobg_getState(), stRadioBG.curFreq);
+                // RBG_DBG("[%s] eRADIO_BG_STATE_CHK_QDATA : SeekMode = %d BGState = %d, curFreq = %d \n", __func__,
+                //     tcradiobg_getSeekMode(), tcradiobg_getState(), stRadioBG.curFreq);
 			}
 			else {	// nok
 				if(stRadioBG.curFreq == stRadioBG.curStartFreq) {

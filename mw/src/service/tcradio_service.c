@@ -1334,6 +1334,7 @@ static void tcradioservice_seekHandler(void)
 			eRadioSeekStep = eSEEK_STEP_SET_FREQ;
 
 		case eSEEK_STEP_SET_FREQ :
+            RSRV_DBG("<<<<<<<< case eSEEK_STEP_SET_FREQ >>>>>>>>>>\n");
 			if(tcradioservice_getSeekMode() == eRADIO_SEEK_MAN_DOWN || tcradioservice_getSeekMode() == eRADIO_SEEK_AUTO_DOWN) {
 				tcradioservice_getFreqCounter((eRADIO_MOD_MODE_t)stRadioService.curBand, &stRadioService.curFreq, DN);
 			}
@@ -1359,6 +1360,7 @@ static void tcradioservice_seekHandler(void)
 		case eSEEK_STEP_PRECHK_QDATA:
 			tcradiohal_getQuality(stRadioService.curBand, (stTUNER_QUALITY_t *)&stRadioService.stSchQdata, eRADIO_ID_PRIMARY);
 
+            RSRV_DBG("<<<<<<<< case eSEEK_STEP_PRECHK_QDATA >>>>>>>>>>\n");
 			if(pfnOnPrecheckSeekQual != NULL) {
 				retValid = (*pfnOnPrecheckSeekQual)(stRadioService.curBand, stRadioService.stSchQdata, stRadioService.curFreq, eRADIO_ID_PRIMARY);
 
