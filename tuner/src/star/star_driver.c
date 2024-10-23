@@ -1856,9 +1856,22 @@ Return Value    : Tun_Status
 Tun_Status TUN_Download_CustomizedCoeffs(tU8 deviceAddress)
 {
     Tun_Status tunerStatus = RET_SUCCESS;
+    // for FM input split
+    tunerStatus = TUN_Cmd_Write(deviceAddress, TDA7707_systemConfig_RFFlags, 0x000003);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_agcY_ch1_pinDiode_rfGainPtrIdxEn, 0x000028);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_regMaskNot27High, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_agcY_ch1_pinDiode_gainCompSNR, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_agcY_ch1_pinDiode_gainComp, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_agcY_ch1_pinDiode_rfGainPtrIdxDis, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_agcY_ch1_pinDiode_gpioMask, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_regMaskNot26Low, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_agcY_ch1_pinDiode_flags, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_regMaskNot26High, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_regMaskNot27Low, 0x000000);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_agcY_ch1_pinDiode_rfGainPtrIdxBump, 0x000000);
 
     // for IQ sample rate
-    tunerStatus = TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___syscoReg06High, 0x70409B);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___syscoReg06High, 0x70409B);
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___syscoReg06Low, 0x409B0A);
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___syscoReg07High, 0x80C60A);
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___syscoReg07Low, 0xC60A00);
