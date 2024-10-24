@@ -45,7 +45,7 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
-#define TC_AUDIO_RESAMPLER_MEM_SIZE        (16U * sizeof(S32))
+#define TC_AUDIO_RESAMPLER_MEM_SIZE        ((16U * sizeof(S32)) + (2048U*8U) + ((2048U*8U) + 128U) + (1024U))
 
 /***************************************************
 *				Enumeration				*
