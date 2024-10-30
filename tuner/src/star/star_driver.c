@@ -37,6 +37,7 @@
 #define I2C_SLAVE_ADDRESS   0x61
 #define STAR_MAX_TUNER_IC_NUM   (4)
 #define CHECKWORD   0x123456
+#define PRECHECKING_RETRY_MAX   5
 
 #define    STAR_DRIVER_VER_PREFIX__            'T'
 #define    STAR_DRIVER_VER_RELEASE_NUMBER__    0x01U
@@ -2113,6 +2114,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     Tun_Status tunerStatus = RET_ERROR;
     unsigned char read_data[4];
     int ret = 0;
+    int retry_cnt = 0;
 
     gStarConf = type;
 
@@ -2127,19 +2129,33 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     if (ret < 0) {
         return eRET_NG_UNKNOWN;
     }
-    star_tuner_reset();
 
-    // for Tunner communication check
-    memset(read_data, 0, 4);
-    tunerStatus = Star_I2C_Direct_Read(I2C_SLAVE_ADDRESS, STAR_ADDRESS_PRECHECKING, read_data, 4);
+    while (retry_cnt < PRECHECKING_RETRY_MAX) {
+        star_tuner_reset();
+
+        // for Tunner communication check
+        memset(read_data, 0, 4);
+        tunerStatus = Star_I2C_Direct_Read(I2C_SLAVE_ADDRESS, STAR_ADDRESS_PRECHECKING, read_data, 4);
+
+        retry_cnt ++;
+
+        if ((tunerStatus == RET_SUCCESS) || (retry_cnt == PRECHECKING_RETRY_MAX)) {
+            break;
+        }
+        else {
+            usleep(200 * 1000);     // 200ms wait
+            TDRV_ERR("STAR_ADDRESS_PRECHECKING Star_I2C_Direct_Read retry : %d\n", retry_cnt);
+        }
+    }
 
     if (tunerStatus != RET_SUCCESS)
     {
-        TDRV_ERR("STAR_ADDRESS_PRECHECKING Star_I2C_Direct_Read fail\n");
+        TDRV_ERR("STAR_ADDRESS_PRECHECKING Star_I2C_Direct_Read fail (%d)\n", retry_cnt);
         return eRET_NG_UNKNOWN;
     }
 
-    TDRV_ERR("STAR_ADDRESS_PRECHECKING read result : %02x %02x %02x %02x\n", read_data[0], read_data[1], read_data[2], read_data[3]);
+    TDRV_ERR("STAR_ADDRESS_PRECHECKING read result (%d): %02x %02x %02x %02x\n",
+            retry_cnt, read_data[0], read_data[1], read_data[2], read_data[3]);
 
     tunerStatus = TUN_Download_BootCode(I2C_SLAVE_ADDRESS);
 
