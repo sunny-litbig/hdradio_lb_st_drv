@@ -1292,7 +1292,7 @@ Tun_Status TUN_Change_Band (tU8 deviceAddress, int channelID, int bandMode, tU32
 
 #ifdef TRACE_STAR_CMD_CHANGE_BAND                
     //PRINTF("Star_Command_Communicate = %s, channelID = %d, band = %d, freqMax = %d, freqMin = %d, VPA_enable = %d", RetStatusName[tunerStatus].Name, channelID, bandMode, maxFreq, minFreq, VPAMode);
-    TDRV_ERR("[%s] Star_Command_Communicate = %d, channelID = %d, band = %d, freqMax = %d, freqMin = %d \n",
+    TDRV_INF("[%s] Star_Command_Communicate = %d, channelID = %d, band = %d, freqMax = %d, freqMin = %d \n",
             __func__, tunerStatus, channelID, bandMode, maxFreq, minFreq);
 #endif
 
@@ -1999,12 +1999,14 @@ int star_setTune(unsigned int mod_mode, unsigned int freq, unsigned int tune_mod
     if(star_drv_current_band[ntuner] != mod_mode)
     {
         tunerStatus = star_setBand(mod_mode, channelID);
-        TDRV_ERR("[%s:%d] star_setBand(%d, %d) returns : %d\n", __func__, __LINE__, mod_mode, channelID, tunerStatus);
 
         if (tunerStatus == RET_SUCCESS)
         {
             usleep(15*1000);    // LB wait 15 ms (wait > 10 ms @ 6.2. Band change sequence)
             star_drv_current_band[ntuner] = mod_mode;
+        }
+        else {
+            TDRV_ERR("[%s:%d] star_setBand(%d, %d) returns : %d\n", __func__, __LINE__, mod_mode, channelID, tunerStatus);
         }
     }
 
@@ -2115,6 +2117,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     unsigned char read_data[4];
     int ret = 0;
     int retry_cnt = 0;
+    int cmdbuf_checked = 0;
 
     gStarConf = type;
 
@@ -2154,7 +2157,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
         return eRET_NG_UNKNOWN;
     }
 
-    TDRV_ERR("STAR_ADDRESS_PRECHECKING read result (%d): %02x %02x %02x %02x\n",
+    TDRV_INF("STAR_ADDRESS_PRECHECKING read result (%d): %02x %02x %02x %02x\n",
             retry_cnt, read_data[0], read_data[1], read_data[2], read_data[3]);
 
     tunerStatus = TUN_Download_BootCode(I2C_SLAVE_ADDRESS);
@@ -2165,6 +2168,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
         return eRET_NG_UNKNOWN;
     }
 
+#if 0
     usleep(130 * 1000);  // LB wait 130 ms (120 ms + 10ms margin)
 
     memset(read_data, 0 ,4);
@@ -2182,6 +2186,38 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     {
         return eRET_NG_UNKNOWN;
     }
+#else
+    usleep(100 * 1000);  // wait 100 ms
+
+    retry_cnt = 0;
+
+    while (retry_cnt < 10) {
+        memset(read_data, 0 ,4);
+        tunerStatus = Star_I2C_Direct_Read(I2C_SLAVE_ADDRESS, STAR_ADDRESS_CMDBUFFER, read_data, 4);
+
+        if (tunerStatus != RET_SUCCESS) {
+            TDRV_ERR("STAR_ADDRESS_CMDBUFFER Star_I2C_Direct_Read fail[%d].\n", retry_cnt);
+        }
+        else {
+            TDRV_INF("STAR_ADDRESS_CMDBUFFER read result[%d] : %02x %02x %02x %02x\n",
+                retry_cnt, read_data[0], read_data[1], read_data[2], read_data[3]);
+
+            if ((read_data[0] == 0xAF) && (read_data[1] == 0xFE) && (read_data[2] == 0x42) && (read_data[3] == 0x00)) {
+                cmdbuf_checked = 1;
+                TDRV_INF("Tuner DSP has been successfully initialized.(%d ms.)\n", (100 + retry_cnt * 10));
+                break;
+            }
+        }
+
+        retry_cnt ++;
+        usleep(10 * 1000);  // wait 10 ms
+    }
+
+    if (cmdbuf_checked == 0) {
+        TDRV_ERR("Tuner DSP initialization failed.(%d ms.)\n", (100 + retry_cnt * 10));
+        return eRET_NG_UNKNOWN;
+    }
+#endif
 
     tunerStatus = TUN_Download_CustomizedCoeffs(I2C_SLAVE_ADDRESS);
 
@@ -2192,7 +2228,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     }
     else
     {
-        TDRV_ERR("CustomizedCoeffs has been successfully downloaded.\n");
+        TDRV_INF("CustomizedCoeffs has been successfully downloaded.\n");
     }
 
     // BB SAI setting
@@ -2207,7 +2243,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     }
     else
     {
-        TDRV_ERR("BB SAI setup is complete.\n");
+        TDRV_INF("BB SAI setup is complete.\n");
     }
 
     // set BB IF
@@ -2222,7 +2258,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     }
     else
     {
-        TDRV_ERR("BB IF setup is complete.\n");
+        TDRV_INF("BB IF setup is complete.\n");
     }
 
     // set Audio IF
@@ -2237,7 +2273,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     }
     else
     {
-        TDRV_ERR("Audio IF setup is complete.\n");
+        TDRV_INF("Audio IF setup is complete.\n");
     }
 
     // blendMode: 0x01 force analog source signal, fOnOff: 0x01 enabled Internal DNR filter
@@ -2250,7 +2286,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     }
     else
     {
-        TDRV_ERR("Set Blend is complete.\n");
+        TDRV_INF("Set Blend is complete.\n");
     }
 
     // initial tune
@@ -2264,7 +2300,7 @@ int star_open(stTUNER_DRV_CONFIG_t type)
     }
     else
     {
-        TDRV_ERR("initial tune success.\n");
+        TDRV_INF("initial tune success.\n");
         return eRET_OK;
     }
 }
