@@ -82,6 +82,11 @@ static U32 expectedMessageCount = 0;
 static U32 expectedSegmentNumber = 0;
 static CMD_opcode_t prevOpcode = (CMD_opcode_t)0;
 
+// The following static variable is added as a temporary fix for long message responses.
+// It works fine with CDM, but if the Host is capable of interlacing message segments
+// from multiple instances, this will not be enough to track number of segments correctly.
+static uint_t savedNumberOfSegments = 0;
+
 static CMD_dispatch_rc_t dispatchMessage(HDR_instance_t* hdrInstance, CMD_opcode_t opCode, U8* dataIn, U32 inLength,
                                          U8* dataOut, U32* outLength);
 static S32 waitForHostCommand(void);
@@ -98,7 +103,11 @@ S32 commandProcessorInit(const COMMAND_PROC_CONFIG_T* config)
 	    (void)(*stOsal.osmemcpy)(&commandProcConfig, config, (U32)sizeof(COMMAND_PROC_CONFIG_T));
 
 	    headerAsmBuffer = &commandProcConfig.msgBuffer[0];
+#ifdef USE_HDRLIB_2ND_CHG_VER
+        rxMsgBuffer = &commandProcConfig.msgBuffer[0];
+#else
 	    rxMsgBuffer = &commandProcConfig.msgBuffer[12];
+#endif
 	}
 
     return rc;
@@ -192,7 +201,7 @@ void commandProcessorExec(void)
     }
 
     // Determine if the message from the host is of type that can have more than one data segment
-    HDBOOL longHostMsg;
+    HDBOOL longHostMsg = false;
     switch(opCode){
         LONG_HOST_MSG_GROUP
             longHostMsg = true;
@@ -228,15 +237,14 @@ void commandProcessorExec(void)
 
     expectedMessageCount = ((messageCount + (U32)1) & (U32)0x00FF);
 
-#ifndef AVOID_CODESONAR_REDUNDANT_CONDITION_WARNING
-    if(CMD_cb_bbp_busy(hdrInstance) == true){
+	HDBOOL rcbool = CMD_cb_bbp_busy(hdrInstance);
+    if(rcbool == true){
         // The bbp instance is busy and can't process the command
         replyStatus.field.b5b6b7 = 4;
         sendErrorResponse(replyStatus);
         expectedSegmentNumber = 0;
         return;
     }
-#endif
 
     if(segmentNumber == (U32)0){
         dataIn = rxMsgBuffer + DATA_START_OFFSET;
@@ -268,6 +276,7 @@ void commandProcessorExec(void)
         } else {
             numberOfSegments = 1;
         }
+		savedNumberOfSegments = numberOfSegments;
 
         dataBytesSent = 0;
     }
@@ -284,10 +293,10 @@ void commandProcessorExec(void)
     rxMsgBuffer[CMD_HEADER_MSG_LENGTH_OFFSET + 1] = (U8)((messageLength >> 8U) & 0xffU);
 
     rxMsgBuffer[CMD_HEADER_STATUS_OFFSET] = replyStatus.all;
-    rxMsgBuffer[CMD_HEADER_NUM_SEGS_OFFSET] = (U8)(numberOfSegments & 0xffU);
-    rxMsgBuffer[CMD_HEADER_NUM_SEGS_OFFSET + 1] = (U8)((numberOfSegments >> 8U) & 0xffU);
+    rxMsgBuffer[CMD_HEADER_NUM_SEGS_OFFSET] = (U8)(savedNumberOfSegments & 0xffU);
+    rxMsgBuffer[CMD_HEADER_NUM_SEGS_OFFSET + 1] = (U8)((savedNumberOfSegments >> 8U) & 0xffU);
 
-    if((numberOfSegments > (U32)1) && (expectedSegmentNumber < (numberOfSegments - (U32)1))){
+    if((savedNumberOfSegments > (U32)1) && (expectedSegmentNumber < (savedNumberOfSegments - (U32)1))){
         // Next host message must specify the correct segment number
         expectedSegmentNumber = segmentNumber + (U32)1;
     } else{

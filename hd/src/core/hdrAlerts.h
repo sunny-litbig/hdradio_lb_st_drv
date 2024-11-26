@@ -51,7 +51,11 @@
 /**
  * @brief Maximum length of an alert message payload
  */
+#ifdef USE_HDRLIB_3RD_CHG_VER
+#define HDR_MAX_ALERT_PAYLOAD_LENGTH            (381)
+#else
 #define HDR_MAX_ALERT_PYALOAD_LENGTH            (381)
+#endif
 
 /**
  * @brief Text encoding type for alert message strings
@@ -71,12 +75,16 @@ typedef enum HDR_alert_text_encoding_t{
 typedef struct HDR_alert_message_t{
     uint_t payload_crc;                    /**< 7-bit payload CRC value */
     uint_t payload_length;                 /**< Total payload length (7 - 381 bytes) */
-    uint_t cnt_length;                     /**< CNT length(in byte pairs) */
+    uint_t cnt_length;                     /**< CNT length in bytes */
     bool cnt_crc_pass;                           /**< CNT CRC check status. 12-bit CRC that covers all of the CNT bits */
     HDR_alert_text_encoding_t text_encoding;     /**< Text Encoding of the message string */
     uint_t text_length;                          /**< The length of the text string portion of the payload */
     char* text_message;                          /**< Pointer to the text message of the emergency alert. Set to NULL if not applicable. */
+#ifdef USE_HDRLIB_3RD_CHG_VER
+	char payload[HDR_MAX_ALERT_PAYLOAD_LENGTH];  /**< Payload Length */
+#else
     char payload[HDR_MAX_ALERT_PYALOAD_LENGTH];  /**< Payload Length */
+#endif
 }HDR_alert_message_t;
 
 /**

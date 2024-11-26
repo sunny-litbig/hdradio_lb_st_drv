@@ -139,13 +139,13 @@ int_t HDR_get_demod_raw_snr(const HDR_instance_t* hdr_instance, uint_t* raw_snr)
  *           52.2 for MP3
  *           52.9 for MP5 / MP6 / MP11
  * For AM:
- * C/No = [10*log10(SNR/Ts)] + K
+ * C/No = [10*log10(SNR)] + K
  *
- * Where Ts=0.005805s is the OFDM symbol period and K is the difference between the main carrier level and
- * the digital sideband that is actually measured.
+ * Where K=10*log10(fs/(4*256))+Sd where fs=44100*135/128 Hz is the OFDM sampling frequency and Sd is the difference between the main carrier level and
+ * the level of the reference carriers. For MA1 Sd=26dB and for MA3 Sd=15dB.
  *
- *       K = 30 for MA1
- *           15 for MA3
+ *       K = 42.58 for MA1
+ *           31.58 for MA3
  *
  * Final result is rounded to the nearest dB.
  * </pre>

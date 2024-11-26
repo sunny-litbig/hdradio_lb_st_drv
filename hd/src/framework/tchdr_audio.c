@@ -168,6 +168,10 @@ HDRET tchdraudoutput_init(void)
 			(*pfnHdrLog)(eTAG_AOUT, eLOG_ERR, "Failed to initialize audio output resampler.\n");
 			ret = (HDRET)eTC_HDR_RET_NG_AUD_RESAMPLER_INIT;
 		}
+	#else
+		(*stCircFunc.cb_init)(&digitalAudioBuffer, (void*)digitalAudBufData, MAX_AUDIO_BUFFER_SIZE, (U32)sizeof(HDR_pcm_stereo_t));
+		(void)(*stOsal.mutexinit)(&gTcHdrDAudBufMutex, NULL);
+		digitalAudioBuffer.mutex = &gTcHdrDAudBufMutex;
 	#endif
 		if(ret == (HDRET)eTC_HDR_RET_OK) {
 			tchdraudoutput_initFader();

@@ -132,8 +132,15 @@ typedef struct {
      * call to HDRLIB_cb_enter_critical_section().
      *
      * @param [in] hdr_instance Pointer to the current HDR instance.
+     * @returns
+     *      0    Success <br>
+     *     <0    Failure
      */
+#ifdef USE_HDRLIB_3RD_CHG_VER
+	int_t (*exit_critical_section)(const HDR_instance_t* hdr_instance);
+#else
     void (*exit_critical_section)(const HDR_instance_t* hdr_instance);
+#endif
 
     /**
      * @brief Signals completion of HDR re-acquisition
@@ -440,13 +447,18 @@ struct HDR_config_t{
      */
     HDR_hw_vit_enabled_t hw_vit_enabled;
     /**
-     * @brief Enables/Disables tx digital audio gain for MPS program
+     * @brief Enables/Disables tx digital audio gain
      *
-     * It is recommended that MPS tx audio gain is disabled when automatic level alignment is used.
-     * If this flag is set to true, #HDR_get_tx_dig_audio_gain() will always return 0 when MPS(Program 1)
-     * program is selected.
+     * It is recommended that tx audio gain is disabled when automatic level alignment is used.
+     * When this flag is set to true, the HDR Library will apply the TX Gain received OTA to digital audio and
+     * #HDR_get_tx_dig_audio_gain() will always return 0.  When false, TX Gain will not be applied by HDR
+     * Library and #HDR_get_tx_dig_audio_gain() will return the TX Gain received OTA.
      */
+#ifdef USE_HDRLIB_3RD_CHG_VER
+	bool tx_audio_gain_enabled;
+#else
     bool mps_tx_audio_gain_enabled;
+#endif
     /**
      * @brief Disables internal time alignment
      *

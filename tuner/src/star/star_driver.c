@@ -1878,10 +1878,10 @@ Tun_Status TUN_Download_CustomizedCoeffs(tU8 deviceAddress)
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___syscoReg07Low, 0xC60A00);
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___syscoReg08High, 0x00F000);
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___syscoReg08Low, 0xF00000);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___saiBBReg00DisHigh, 0x810006);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___saiBBReg00DisLow, 0x000611);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___saiBBReg00EnHigh, 0x810016);
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___saiBBReg00EnLow, 0x001611);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___saiBBReg00DisHigh, 0x810007);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___saiBBReg00DisLow, 0x000711);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___saiBBReg00EnHigh, 0x810017);
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___saiBBReg00EnLow, 0x001711);
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_saiConfig__7___flags, 0x000002);
         
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_bbifY_srcConfig__7___srcBBReg00DisHigh, 0x010000);

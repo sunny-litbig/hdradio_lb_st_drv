@@ -300,12 +300,20 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
 
                         (*numTypes)++;
                         dataOut[offset] = 0x00; // station id
-						offset++;
+                        offset++;
                         dataOut[offset] = (U8)stationId.status;
 						offset++;
                         dataOut[offset] = (U8)length;
-						offset++;
-                        (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)&stationId.all, length);
+                        offset++;
+                        if(length > 0U) {
+                        #ifdef USE_HDRLIB_3RD_CHG_VER
+                            // Reverse byte order as required by 2206
+                            U32 tempId = REVERSE_BYTES_32(stationId.all);
+                            (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)&tempId, length);
+						#else
+                            (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)&stationId.all, length);
+                        #endif
+                        }
                         offset += length;
                     }
 
@@ -334,10 +342,12 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
 
                             if(univName.length <= HDR_SIS_SHORT_NAME_MAX_LENGTH){
                                 dataOut[offset] = (U8)univName.status;
-								offset++;
+                                offset++;
                                 dataOut[offset] = (U8)(univName.length & 0xffU);
-								offset++;
-                                (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)univName.text, univName.length);
+                                offset++;
+                                if(univName.length > 0) {
+                                    (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)univName.text, univName.length);
+                                }
                                 offset = (*stArith.u32add)(offset, univName.length);
                             }else {
                                 dataOut[offset] = (U8)HDR_SIS_NO_DATA;
@@ -351,7 +361,7 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                     if(enabledTypes.location == (U8)1){
                         U32 length = 0;
                         U32 locationWord = 0;
-                        HDR_sis_station_location_t location;
+                        HDR_sis_station_location_t location = {0,};
                         U32 locationReadCount = 0;
                         HDR_sis_status_t status = HDR_SIS_NO_DATA;
 
@@ -370,11 +380,19 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                             // shift altitude 4 bits to left before adding to the location word to get the expected units
                             if((locationReadCount & (U32)0x1) == (U32)1){
                                 // Give high portion when count is odd
+                            #ifdef USE_HDRLIB_3RD_CHG_VER
+                                locationWord = ((U32)1U << 31U) | ((((U32)location.latitude << 4U) | (((U32)location.altitude >> 8U) & 0x0FU)) << 5U);
+							#else
                                 locationWord = ((U32)1U << 31U) | ((((U32)location.latitude << 4U) | ((location.altitude >> 4U) & 0x0FU)) << 5U);
+							#endif
                             } else {
                                 // Give low portion when count is even
                                 // Location fields are sign extended; make sure we account for that
+                            #ifdef USE_HDRLIB_3RD_CHG_VER
+                                locationWord = ((((U32)location.longitude << 4U) | (((U32)location.altitude >> 4U) & 0x0FU)) << 5U) & 0x7FFFFFFF;
+							#else
                                 locationWord = ((((U32)location.longitude << 4U) | ((((U32)location.altitude >> 4U) >> 4U) & 0x0FU)) << 5U) & (U32)0x7FFFFFFF;
+							#endif
                             }
 
                             if(locationReadCount > (U32)2){
@@ -864,11 +882,13 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                             dataOut[offset] = 0; // byte 5 is reserved
 							offset++;
                             dataOut[offset] = (U8)psdData.data_type;
-							offset++;
+                            offset++;
                             dataOut[offset] = (U8)psdData.length;
-							offset++;
-                            (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
-                            offset += psdData.length;
+                            offset++;
+                            if(psdData.length > 0) {
+                                (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
+                            }
+                            offset = (*stArith.u32add)(offset, psdData.length);
                         }
 
                         // Artist
@@ -886,13 +906,15 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                             dataOut[offset] = 0; // Subfield
 							offset++;
                             dataOut[offset] = 0; // byte 5 is reserved
-							offset++;
+                            offset++;
                             dataOut[offset] = (U8)psdData.data_type;
-							offset++;
+                            offset++;
                             dataOut[offset] = (U8)psdData.length;
-							offset++;
-                            (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
-                            offset += psdData.length;
+                            offset++;
+                            if(psdData.length > 0) {
+                                (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
+                            }
+                            offset = (*stArith.u32add)(offset, psdData.length);
                         }
 
                         // Album
@@ -910,13 +932,15 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                             dataOut[offset] = 0; // Subfield
 							offset++;
                             dataOut[offset] = 0; // byte 5 is reserved
-							offset++;
+                            offset++;
                             dataOut[offset] = (U8)psdData.data_type;
-							offset++;
+                            offset++;
                             dataOut[offset] = (U8)psdData.length;
-							offset++;
-                            (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
-                            offset += psdData.length;
+                            offset++;
+                            if(psdData.length > 0) {
+                                (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
+                            }
+                            offset = (*stArith.u32add)(offset, psdData.length);
                         }
 
                         // Genre
@@ -936,11 +960,13 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                             dataOut[offset] = 0; // byte 5 is reserved
 							offset++;
                             dataOut[offset] = (U8)psdData.data_type;
-							offset++;
+                            offset++;
                             dataOut[offset] = (U8)psdData.length;
-							offset++;
-                            (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
-                            offset += psdData.length;
+                            offset++;
+                            if(psdData.length > 0) {
+                                (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
+                            }
+                            offset = (*stArith.u32add)(offset, psdData.length);
                         }
 
                         // Comment
@@ -967,11 +993,13 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                                 dataOut[offset] = 0; // byte 5 is reserved
 								offset++;
                                 dataOut[offset] = (U8)psdData.data_type;
-								offset++;
+                                offset++;
                                 dataOut[offset] = (U8)psdData.length;
-								offset++;
-                                (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
-                                offset += psdData.length;
+                                offset++;
+                                if(psdData.length > 0) {
+                                    (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
+                                }
+                                offset = (*stArith.u32add)(offset, psdData.length);
                             }
                         }
 
@@ -1001,11 +1029,13 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                                     dataOut[offset] = 0; // byte 5 is reserved
 									offset++;
                                     dataOut[offset] = (U8)psdData.data_type;
-									offset++;
+                                    offset++;
                                     dataOut[offset] = (U8)psdData.length;
-									offset++;
-                                    (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
-                                    offset += psdData.length;
+                                    offset++;
+                                    if(psdData.length > 0) {
+                                        (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
+                                    }
+                                    offset = (*stArith.u32add)(offset, psdData.length);
                                 }
                             }
                         }
@@ -1034,11 +1064,13 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                                 dataOut[offset] = 0; // byte 5 is reserved
 								offset++;
                                 dataOut[offset] = (U8)psdData.data_type;
-								offset++;
+                                offset++;
                                 dataOut[offset] = (U8)psdData.length;
-								offset++;
-                                (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
-                                offset += psdData.length;
+                                offset++;
+                                if(psdData.length > 0) {
+                                    (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
+                                }
+                                offset = (*stArith.u32add)(offset, psdData.length);
                             }
                         }
 
@@ -1061,11 +1093,13 @@ CMD_dispatch_rc_t SIS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                                 dataOut[offset] = 0; // byte 5 is reserved
 								offset++;
                                 dataOut[offset] = (U8)psdData.data_type;
-								offset++;
+                                offset++;
                                 dataOut[offset] = (U8)psdData.length;
-								offset++;
-                                (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
-                                offset += psdData.length;
+                                offset++;
+                                if(psdData.length > 0) {
+                                    (void)(*stOsal.osmemcpy)((void*)&dataOut[offset], (void*)psdData.data, psdData.length);
+                                }
+                                offset = (*stArith.u32add)(offset, psdData.length);
                             }
                         }
 

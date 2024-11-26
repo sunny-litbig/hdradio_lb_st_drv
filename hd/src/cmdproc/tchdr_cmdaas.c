@@ -60,6 +60,8 @@
 #define GET_HEADER                          (0x06)
 #define GET_BODY                            (0x07)
 #define FLUSH_OBJECT                        (0x08)
+#define GET_LOT_TIMEOUT                     (0x09)
+#define GET_LOT_OPEN_PORTS                  (0x0A)
 
 // Table L-1: Sig_Get_Data Command Functions OpCode 0x4D
 #define SIG_GET_ALL_SERVICES_LIST           (0x00)
@@ -150,16 +152,16 @@ CMD_dispatch_rc_t AAS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
             	{
                     U32 i;
                     U8* ptr;
-					HDR_aas_port_list_t portList;
+                    HDR_aas_port_list_t portList = {0,};
 
-					LOG(CMD,32768U, "Received AAS_GET_ENABLED_PORTS->AAS_GET_ENABLED_PORTS");
-					dataOut[0] = GET_ENABLED_PORTS;
-					ptr = &dataOut[1];
+                    LOG(CMD,32768U, "Received AAS_GET_ENABLED_PORTS->AAS_GET_ENABLED_PORTS");
+                    dataOut[0] = GET_ENABLED_PORTS;
+                    ptr = &dataOut[1];
 
                     (void)HDR_aas_get_enabled_ports(hdrInstance, &portList);
 
                     *ptr = (U8)portList.num_ports;
-					ptr++;
+                    ptr++;
 
                     for(i = 0; i < portList.num_ports; i++){
                         *ptr = (U8)(portList.port[i].number & 0xffU);
@@ -534,6 +536,48 @@ CMD_dispatch_rc_t AAS_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t 
                     (void)HDR_aas_flush_lot_object(hdrInstance, portNumber, lotId);
                     break;
                 }
+#ifdef USE_HDRLIB_3RD_CHG_VER
+                case GET_LOT_TIMEOUT:
+                {
+                    LOG(CMD,1U, "Received AAS_PROC_LOT->GET_LOT_TIMEOUT");
+                    uint_t lotTimeout;
+                    dataOut[0] = GET_LOT_TIMEOUT;
+
+                    if(HDR_aas_get_lot_timeout(hdrInstance, &lotTimeout) < 0){
+                        *outLength = 1;
+                        break;
+                    }
+                    dataOut[1] = (uint8_t)lotTimeout;
+                    dataOut[2] = (uint8_t)(lotTimeout >> 8);
+                    *outLength = 3;
+                    break;
+                }
+                case GET_LOT_OPEN_PORTS:
+                {
+                    LOG(CMD,1U, "Received AAS_PROC_LOT->GET_LOT_OPEN_PORTS");
+                    dataOut[0] = GET_LOT_OPEN_PORTS;
+                    uint_t i;
+                    uint8_t* ptr = &dataOut[1];
+
+                    HDR_aas_lot_port_list_t portList;
+                    if(HDR_aas_get_lot_ports(hdrInstance, &portList) < 0){
+                        *ptr = 0;
+                        *outLength = 2;
+                        break;
+                    }
+                    *ptr++ = (uint8_t)portList.num_ports;
+
+                    for(i = 0; i < portList.num_ports; i++){
+                        *ptr++ = (uint8_t)portList.port[i].number;
+                        *ptr++ = (uint8_t)(portList.port[i].number >> 8);
+                        *ptr++ = (uint8_t)portList.port[i].service;
+                        *ptr++ = (uint8_t)(portList.port[i].service >> 8);
+                    }
+
+                    *outLength = 2U + portList.num_ports * 4U;
+                    break;
+                }
+#endif	// #ifdef USE_HDRLIB_3RD_CHG_VER
                 default:
                     LOG(CMD,1U, "AAS_PROC_LOT: function code 0x%x not recognised", funcCode);
                     return CMD_UNSUPPORTED_OPCODE;

@@ -72,7 +72,12 @@ typedef struct {
      * If enabled, AAA will scale(in-place) digital audio frame to match analog when
      * misalignment is successfully determined.
      */
+#ifdef USE_HDRLIB_3RD_CHG_VER
+	bool am_auto_level_correction_enabled;
+    bool fm_auto_level_correction_enabled;
+#else
     bool apply_level_adjustment;
+#endif
 }HDR_auto_align_config_t;
 
 /**

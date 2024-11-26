@@ -173,29 +173,29 @@ static sem_t iqInputThreadSem;
 static struct timespec evalTimerStart;
 static struct timespec evalTimerEnd;
 static struct timespec evalTimerDiff;
-static U32 evalAccumulatedTimerCount=0;
-static U32 evalMode=0;
+static U32 evalAccumulatedTimerCount=0U;
+static U32 evalMode=0U;
 #endif
 
 #ifdef DEBUG_IQ_BUF_FILE_DUMP
-static U32 fIqdumpEnable=0;
-static FILE *gDumpIBuf;
-static FILE *gDumpQBuf;
-static FILE *gDumpIqBuf;
+static U32 fIqdumpEnable=0U;
+static FILE *gDumpIBuf=NULL;
+static FILE *gDumpQBuf=NULL;
+static FILE *gDumpIqBuf=NULL;
 #endif
 
 #ifdef DEBUG_ALL_THREAD_STATUS_DUMP
 static struct timespec bbinput_ChkTimer, bbinput_ChkTimeNow, bbinput_ChkTimeDiff;
-static U32 bbinput_AccumMs=0, bbinput_LoopMs=0, bbinput_DumpCount=0;
-static FILE *bbinput_DumpFile;
+static U32 bbinput_AccumMs=0U, bbinput_LoopMs=0U, bbinput_DumpCount=0U;
+static FILE *bbinput_DumpFile=NULL;
 
 static struct timespec audinput_ChkTimer, audinput_ChkTimeNow, audinput_ChkTimeDiff;
-static U32 audinput_AccumMs=0, audinput_LoopMs=0, audinput_DumpCount=0;
-static FILE *audinput_DumpFile;
+static U32 audinput_AccumMs=0U, audinput_LoopMs=0U, audinput_DumpCount=0U;
+static FILE *audinput_DumpFile=NULL;
 
 static struct timespec iqinput_ChkTimer, iqinput_ChkTimeNow, iqinput_ChkTimeDiff;
-static U32 iqinput_AccumMs=0, iqinput_LoopMs=0, iqinput_DumpCount=0;
-static FILE *iqinput_DumpFile;
+static U32 iqinput_AccumMs=0U, iqinput_LoopMs=0U, iqinput_DumpCount=0U;
+static FILE *iqinput_DumpFile=NULL;
 #endif
 
 
@@ -1899,19 +1899,37 @@ static HDRET tchdrbbinput_setTuneMain(stTCHDR_TUNE_t inputTune, S32 fChgBand, S3
 		}
 	}
 	else if((fChgFreq > 0) || (fChgSR > 0)) {
-        if(fChgSR > 0) {
+		HDR_program_t curPn = HDR_PROGRAM_HD1;
+		if(fChgSR > 0) {
+			if(fChgFreq <= 0) {
+				(void)HDR_get_playing_program(&frameworkData->hdrInstance[0], &curPn);
+			}
 			(void)tchdrbbinput_resetIqDrvAndBbinputSetting(eTC_HDR_ID_MAIN, inputTune);
-        }
+		}
 	    ret = tchdrbbinput_setReacquire(&frameworkData->hdrInstance[0]);
 		if(ret != (HDRET)eTC_HDR_RET_OK) {
 			ret = (HDRET)eTC_HDR_RET_NG_RSC;
 		}
+		else {
+			if(fChgFreq <= 0) {
+				// Maintain the current program number when acquiring at the same frequency.
+				(void)HDR_set_playing_program(&frameworkData->hdrInstance[0], curPn);
+				(void)tchdrsvc_setProgramNumber(&frameworkData->hdrInstance[0], curPn);
+			}
+		}
 	}
 	else {
+		HDR_program_t curPn = HDR_PROGRAM_HD1;
+		(void)HDR_get_playing_program(&frameworkData->hdrInstance[0], &curPn);
 		// Just call HDR_reacquire() because anything is not changed
 	    ret = tchdrbbinput_setReacquire(&frameworkData->hdrInstance[0]);
 		if(ret != (HDRET)eTC_HDR_RET_OK) {
 			ret = (HDRET)eTC_HDR_RET_NG_RSC;
+		}
+		else {
+			// Maintain the current program number when acquiring at the same frequency.
+			(void)HDR_set_playing_program(&frameworkData->hdrInstance[0], curPn);
+			(void)tchdrsvc_setProgramNumber(&frameworkData->hdrInstance[0], curPn);
 		}
 	}
 

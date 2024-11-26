@@ -374,7 +374,12 @@ static HDRET tchdrfwk_setConfiguration(U32 numOfHdrInstances)
     auto_align_config.fm_auto_time_align_enabled = false;
     auto_align_config.am_auto_level_align_enabled = false;
     auto_align_config.fm_auto_level_align_enabled = false;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+    auto_align_config.am_auto_level_correction_enabled = false;
+    auto_align_config.fm_auto_level_correction_enabled = false;
+#else
     auto_align_config.apply_level_adjustment = false;
+#endif
 
 	stHdrFrameworkData.autoAlign = HDR_auto_align_init((void*)autoAlignMem, HDR_AUTO_ALIGN_MEM_SIZE, &auto_align_config , HDR_AUDIO_SAMPLING_RATE_44KHz);
 	if(stHdrFrameworkData.autoAlign == NULL) {
@@ -445,11 +450,19 @@ static HDRET tchdrfwk_setConfiguration(U32 numOfHdrInstances)
 	hdrConfig.blend_params.am_all_dig_audio_scaling = 17200;
 #endif
 
+#ifdef USE_HDRLIB_3RD_CHG_VER
+	if((auto_align_config.am_auto_level_correction_enabled == true) || (auto_align_config.fm_auto_level_correction_enabled == true)){
+        hdrConfig.tx_audio_gain_enabled =false;
+    }else{
+        hdrConfig.tx_audio_gain_enabled = true;
+    }
+#else
 	if(auto_align_config.apply_level_adjustment == true){
         hdrConfig.mps_tx_audio_gain_enabled =false;
     }else{
         hdrConfig.mps_tx_audio_gain_enabled = true;
     }
+#endif
     hdrConfig.adv_blend_params.ramp_up_enabled = true;
     hdrConfig.adv_blend_params.ramp_down_enabled=true;
 #ifndef MP11_ENABLED
@@ -640,10 +653,15 @@ static HDRET tchdr_deinitMRC(U32 instance_number)
 		ret = (HDRET)eTC_HDR_RET_NG_DEINIT;
 		(*pfnHdrLog)(eTAG_MRC, eLOG_ERR, "Failed to deinit mutex.\n");
 	}
-	rc = (*stOsal.mutexdeinit)(&mrcMutex);
+	rc = (*stOsal.mutexdeinit)(&mrcMutex[0]);
 	if(rc != (HDRET)eTC_HDR_RET_OK) {
 		ret = (HDRET)eTC_HDR_RET_NG_DEINIT;
-		(*pfnHdrLog)(eTAG_MRC, eLOG_ERR, "Failed to deinit mrc mutex.\n");
+		(*pfnHdrLog)(eTAG_MRC, eLOG_ERR, "Failed to deinit mrc mutex for main.\n");
+	}
+	rc = (*stOsal.mutexdeinit)(&mrcMutex[1]);
+	if(rc != (HDRET)eTC_HDR_RET_OK) {
+		ret = (HDRET)eTC_HDR_RET_NG_DEINIT;
+		(*pfnHdrLog)(eTAG_MRC, eLOG_ERR, "Failed to deinit mrc mutex for bs.\n");
 	}
 	bMrcConnection = false;
 	bBsMrcConnection = false;

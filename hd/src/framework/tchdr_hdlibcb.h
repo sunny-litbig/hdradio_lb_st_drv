@@ -84,7 +84,7 @@ int_t HDLIB_cb_enter_critical_section(const HDR_instance_t* hdr_instance);
  * brief Callback function template to define end of a critical function so that access to shared resources are now freed.
  * param[in] hdr_instance: Pointer to the HDRadio Instance.
  */
-void HDLIB_cb_exit_critical_section(const HDR_instance_t* hdr_instance);
+int_t HDLIB_cb_exit_critical_section(const HDR_instance_t* hdr_instance);
 
 /**
  * brief Callback function template to define implementation for a mutex lock.

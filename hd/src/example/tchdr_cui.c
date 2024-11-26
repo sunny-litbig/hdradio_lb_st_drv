@@ -357,6 +357,28 @@ static HDRET tchdradiocui_cmdProcessor(S8* const argv[], S32 argc)
 					err = -1;
 				}
 			}
+			else if(SCMP(p0, "reacq", 6)==0) {
+				if(argc == 2) {
+					if(SCMP(p1, "main", 5)==0) {
+						hdret = tchdradiocui_setReacquire(eTC_HDR_ID_MAIN);
+					}
+					else if(SCMP(p1, "mrc", 4)==0) {
+						hdret = tchdradiocui_setReacquire(eTC_HDR_ID_MRC);
+					}
+					else if(SCMP(p1, "bs", 3)==0) {
+						hdret = tchdradiocui_setReacquire(eTC_HDR_ID_BS);
+					}
+					else if(SCMP(p1, "bsmrc", 6)==0) {
+						hdret = tchdradiocui_setReacquire(eTC_HDR_ID_BS_MRC);
+					}
+					else {
+						err = -1;
+					}
+				}
+				else {
+					err = -1;
+				}
+			}
 			else if(SCMP(p0, "mute", 5)==0) {
 				if(argc == 2) {
 					if(SCMP(p1, "on", 3)==0) {

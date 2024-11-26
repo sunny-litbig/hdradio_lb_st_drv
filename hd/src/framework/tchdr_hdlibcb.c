@@ -97,7 +97,7 @@ Agreement between Telechips and Company.
  * */
 int_t HDLIB_cb_enter_critical_section(const HDR_instance_t* hdr_instance)
 {
-	int_t rc = 0;
+	int_t rc = -1;
 	if(hdr_instance != NULL) {
 		if(hdr_instance->mutex != NULL) {
 	    	rc = pthread_mutex_lock((pthread_mutex_t *)hdr_instance->mutex);
@@ -114,14 +114,14 @@ int_t HDLIB_cb_enter_critical_section(const HDR_instance_t* hdr_instance)
 	else {
 		(*pfnHdrLog)(eTAG_CORE, eLOG_ERR, "[tchdr_hdlibcb.c:%d] null pointer parameter.\n", __LINE__);
 	}
-	return 0;
+	return rc;
 }
 
 /* Callback to Exit a Protected section of code
  * */
-void HDLIB_cb_exit_critical_section(const HDR_instance_t* hdr_instance)
+int_t HDLIB_cb_exit_critical_section(const HDR_instance_t* hdr_instance)
 {
-	int_t rc=0;
+	int_t rc= -1;
 	if(hdr_instance != NULL) {
 		if(hdr_instance->mutex != NULL) {
 	    	rc = pthread_mutex_unlock((pthread_mutex_t *)hdr_instance->mutex);
@@ -138,6 +138,7 @@ void HDLIB_cb_exit_critical_section(const HDR_instance_t* hdr_instance)
 	else {
 		(*pfnHdrLog)(eTAG_CORE, eLOG_ERR, "[tchdr_hdlibcb.c:%d] null pointer parameter.\n", __LINE__);
 	}
+	return rc;
 }
 
 /* Callback implementation to lock a mutex

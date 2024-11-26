@@ -47,7 +47,7 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
-#define	TC_HDR_AUDIO_FRAME_SIZE				(2048)	// Do not change value.
+#define	TC_HDR_AUDIO_FRAME_SIZE				(2048U)	// Do not change value.
 
 /***************************************************
 *				Enumeration				*
@@ -379,6 +379,7 @@ extern HDRET tchdr_setAnalogAudioMute(U32 fOnOff);
 extern HDRET tchdr_setAudioMuteFader(U32 enable, U32 fadein_ms, U32 fadeout_ms);
 extern HDRET tchdr_getAudioMuteFader(U32 *enable, U32 *fadein_ms, U32 *fadeout_ms);
 extern HDRET tchdr_getProgramType(eTC_HDR_ID_t id, stTC_HDR_PTY_t *pty);
+extern HDRET tchdr_setReacquire(eTC_HDR_ID_t id);
 
 // Blend
 extern HDRET tchdr_setBlendTransitionTime(U32 transition_time);

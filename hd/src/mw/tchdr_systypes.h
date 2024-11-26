@@ -64,7 +64,7 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
-#define HDRADIO_FRAMEWORK_VER				"1.6.1"
+#define HDRADIO_FRAMEWORK_VER				"1.6.4"
 
 #define PTHREAD_32BIT_STACK_MIN				((U32)16*(U32)1024)     // 32bit system's pthread minimum stack size
 #define PTHREAD_64BIT_STACK_MIN				((U32)128*(U32)1024)	// 64bit system's pthread minimum stack size
@@ -74,16 +74,20 @@ extern "C" {
 
 // It should match the HDR core library version used when building.
 // Linux: It should be the same as the version set in CORE_HD_LIB in the Makefile.am file.
-#define	HDRLIB_CUR_VER						(0x2A3)	// Current HD Core LIB version
+#define	HDRLIB_CUR_VER						(0x2A8)	// Current HD Core LIB version
 // Do not modify the definition of the following change point version.
 #define HDRLIB_1ST_CHG_VER					(0x263)	// 1st change point. Change some HD Core Callback Functions
 #define HDRLIB_2ND_CHG_VER					(0x2A3)	// 2nd change point. Modify or add some HD Core Library APIs and Add HD configuration type
+#define HDRLIB_3RD_CHG_VER					(0x2A8) // 3rd chagne point. Modify or add some HD Core Library APIs
 
 #if (HDRLIB_CUR_VER >= HDRLIB_1ST_CHG_VER)
 #define	USE_CHANGED_HDRLIB_CB
 #endif
 #if (HDRLIB_CUR_VER >= HDRLIB_2ND_CHG_VER)
 #define	USE_HDRLIB_2ND_CHG_VER
+#endif
+#if (HDRLIB_CUR_VER >= HDRLIB_3RD_CHG_VER)
+#define	USE_HDRLIB_3RD_CHG_VER
 #endif
 
 /** Common configurations supported by HD Radio */

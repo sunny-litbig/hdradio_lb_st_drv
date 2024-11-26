@@ -30,6 +30,65 @@
 #include "hdrAudio.h"
 #include "hdrBlend.h"
 
+#ifdef USE_HDRLIB_2ND_CHG_VER
+typedef union PACKED_STRUCTURE{
+    struct PACKED_STRUCTURE{
+        U8     digital_fm_1:   1;
+        U8     digital_am_1:   1;
+        U8     analog_fm:      1;
+        U8     analog_am:      1;
+        U8     digital_fm_2:   1;
+        U8     digital_am_2:   1;
+        U8     digital_fm_3:   1;
+        U8     digital_am_3:   1;
+    }bit;
+	U8 all;
+} RX_SW_Cnfg_Byte0;
+
+typedef union PACKED_STRUCTURE{
+    struct PACKED_STRUCTURE{
+        U8     res1:           1;
+        U8     res2:           1;
+        U8     res3:          	1;
+        U8     res4:           1;
+        U8     aux1_audio_ip:  1;
+        U8     aux2_audio_ip:  1;
+        U8     digital_fm_4:   1;
+        U8     digital_am_4:   1;
+    }bit;
+    U8 all;
+} RX_SW_Cnfg_Byte1;
+
+typedef union PACKED_STRUCTURE{
+    struct PACKED_STRUCTURE{
+        U8     inst1_cap_0:    1;
+        U8     inst1_cap_1:    1;
+        U8     inst2_cap_0:    1;
+        U8     inst2_cap_1:    1;
+        U8     inst3_cap_0:    1;
+        U8     inst3_cap_1:    1;
+        U8     cond_access:    1;
+        U8     res1:           1;
+    }bit;
+    U8 all;
+} RX_SW_Cnfg_Byte2;
+
+typedef union PACKED_STRUCTURE{
+    struct PACKED_STRUCTURE{
+        U8     psd_decode:     1;
+        U8     blend_on_chip:  1;
+        U8     tagging:        1;
+        U8     emerg_alerts:   1;
+        U8     lot_offchip:    1;
+        U8     auto_alignment: 1;
+        U8     inst4_cap_0:    1;
+        U8     inst4_cap_1:    1;
+    }bit;
+    U8 all;
+} RX_SW_Cnfg_Byte3;
+
+#else    // #ifdef USE_HDRLIB_3RD_CHG_VER
+
 /**
  * 2206 Figure 5-4: RX_SW_Cnfg Bitmap:
  * - Sys_Cntrl_Cnfg (0x83) -> Get_Supported_Services (0x03)
@@ -89,6 +148,7 @@ typedef union PACKED_STRUCTURE{
     }bit;
     U8 all;
 } RX_SW_Cnfg_Byte3;
+#endif
 
 typedef struct PACKED_STRUCTURE BBP_services_t
 {
@@ -465,7 +525,12 @@ typedef struct {
     HDBOOL fm_auto_time_align_enabled;
     HDBOOL am_auto_level_align_enabled;
     HDBOOL fm_auto_level_align_enabled;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+    HDBOOL am_auto_level_correction_enabled;
+    HDBOOL fm_auto_level_correction_enabled;
+#else
     HDBOOL apply_level_adjustment;
+#endif
 }CMD_auto_alignment_config_t;
 
 S32 CMD_cb_set_auto_alignment_config(HDR_instance_t* hdr_instance, const CMD_auto_alignment_config_t* config);

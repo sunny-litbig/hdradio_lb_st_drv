@@ -345,6 +345,23 @@ int_t HDR_mrc_disable(const HDR_instance_t* hdr_instance);
  */
 int_t HDR_mrc_enabled(const HDR_instance_t* hdr_instance, bool* mrc_enabled);
 
+#ifdef USE_HDRLIB_3RD_CHG_VER
+/**
+* @brief Indicates if an automatic reacquisition has occurred since the last time this command was received
+*
+* An automatic reacquisition occurs whenever the signal quality is below an internal
+* threshold for greater than 60 seconds for FM or greater than eight seconds for AM.
+* This query can only be made to non-MRC instances and a MRC Master instance.
+* Note that the status will be cleared each time this command is received.
+*
+* @param [in]  hdr_instance: Pointer to the HDR instance structure.
+* @returns
+*     true  - self-reacquisition occurred      <br>
+*     false - no self-reacquisition occurred
+*/
+bool HDR_get_acquisition_status(HDR_instance_t* hdr_instance);
+#endif
+
 #ifdef USE_HDRLIB_2ND_CHG_VER
 /**
  * @brief Returns Maximal Ratio Combining(MRC) instance for the input instance

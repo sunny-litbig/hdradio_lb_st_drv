@@ -154,6 +154,158 @@ static S32 BBP_checkValidTune(const BBP_tune_select_t* tune_select)
 	return ret;
 }
 
+#ifdef USE_HDRLIB_2ND_CHG_VER
+void BBP_sys_init_default_config (void)
+{
+	const U32 currentHdrType = tchdrfwk_getHdrType();
+
+    //Common services supported on HDRadio ARM
+    bbpSysConfig.supported_services.byte0.bit.digital_fm_1 = 1;
+    bbpSysConfig.supported_services.byte0.bit.digital_am_1 = 1;
+    bbpSysConfig.supported_services.byte0.bit.analog_fm = 1;
+    bbpSysConfig.supported_services.byte0.bit.analog_am = 1;
+    bbpSysConfig.supported_services.byte3.bit.psd_decode = 1;
+    bbpSysConfig.supported_services.byte3.bit.tagging = 0;
+    bbpSysConfig.supported_services.byte3.bit.emerg_alerts = 1;
+    bbpSysConfig.supported_services.byte3.bit.lot_offchip = 0;
+    bbpSysConfig.supported_services.byte3.bit.auto_alignment = 1;
+
+    bbpSysConfig.activated_services.byte0.bit.digital_fm_1 = 1;
+    bbpSysConfig.activated_services.byte0.bit.digital_am_1 = 1;
+    bbpSysConfig.activated_services.byte0.bit.analog_fm = 1;
+    bbpSysConfig.activated_services.byte0.bit.analog_am = 1;
+    bbpSysConfig.activated_services.byte3.bit.psd_decode = 1;
+    bbpSysConfig.activated_services.byte3.bit.tagging = 0;
+    bbpSysConfig.activated_services.byte3.bit.emerg_alerts = 1;
+    bbpSysConfig.activated_services.byte3.bit.lot_offchip = 0;
+    bbpSysConfig.activated_services.byte3.bit.auto_alignment = 1;
+
+    bbpSysConfig.storage_device = 0x10;        //Flash
+    bbpSysConfig.flash_size = 0x01;            //1Mbyte
+    bbpSysConfig.bb_src_mode = 0x52;           //AM BB Sample rate=46.5kHz, FM BB Sample Rate=744kHz
+    bbpSysConfig.bb_src_mode_alternate = 0x42; //AM BB Sample rate=55.1kHz, FM BB Sample Rate=744kHz
+    bbpSysConfig.bb_src_flags = 0x22;          //AM and FM Software Switching Enabled
+    bbpSysConfig.tuner_hw = 0x0303;            //
+
+    switch (currentHdrType) {
+    case (U32)HDR_1p0_CONFIG:
+        /**
+         * 2206 Figure 4-1: RX_SW_Cnfg Bitmap:
+         * Refer to Figure 4-1 for Instance Capability Bits for HD 1.0
+         * */
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_0 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_1 = 0;
+
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_0 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_1 = 0;
+
+        break;
+
+    case (U32)HDR_1p0_MRC_CONFIG:
+        /**
+         * 2206 Figure 4-1: RX_SW_Cnfg Bitmap:
+         * Refer to Figure 4-1 for Instance Capability Bits for HD MRC Config
+         * */
+        bbpSysConfig.supported_services.byte0.bit.digital_fm_2 = 1;
+        bbpSysConfig.supported_services.byte0.bit.digital_am_2 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_0 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_1 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst2_cap_0 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst2_cap_1 = 0;
+
+        bbpSysConfig.activated_services.byte0.bit.digital_fm_2 = 1;
+        bbpSysConfig.activated_services.byte0.bit.digital_am_2 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_0 = 1;
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_1 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst2_cap_0 = 1;
+        bbpSysConfig.activated_services.byte2.bit.inst2_cap_1 = 0;
+        break;
+
+    case (U32)HDR_1p5_CONFIG:
+        /**
+         * 2206 Figure 4-1: RX_SW_Cnfg Bitmap:
+         * Refer to Figure 4-1 for Instance Capability Bits for HD 1.5 Config
+         * */
+        bbpSysConfig.supported_services.byte0.bit.digital_fm_2 = 1;
+        bbpSysConfig.supported_services.byte0.bit.digital_am_2 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_0 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_1 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst2_cap_0 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst2_cap_1 = 0;
+
+        bbpSysConfig.activated_services.byte0.bit.digital_fm_2 = 1;
+        bbpSysConfig.activated_services.byte0.bit.digital_am_2 = 1;
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_0 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_1 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst2_cap_0 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst2_cap_1 = 0;
+        break;
+    case (U32)HDR_1p5_MRC_CONFIG:
+        /**
+         * 2206 Figure 4-1: RX_SW_Cnfg Bitmap:
+         * Refer to Figure 4-1 for Instance Capability Bits for HD 1.5 + MRC Config
+         * */
+        bbpSysConfig.supported_services.byte0.bit.digital_fm_2 = 1;
+        bbpSysConfig.supported_services.byte0.bit.digital_am_2 = 1;
+        bbpSysConfig.supported_services.byte0.bit.digital_fm_3 = 1;
+        bbpSysConfig.supported_services.byte0.bit.digital_am_3 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_0 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_1 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst2_cap_0 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst2_cap_1 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst3_cap_0 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst3_cap_1 = 0;
+
+        bbpSysConfig.activated_services.byte0.bit.digital_fm_2 = 1;
+        bbpSysConfig.activated_services.byte0.bit.digital_am_2 = 1;
+        bbpSysConfig.activated_services.byte0.bit.digital_fm_3 = 1;
+        bbpSysConfig.activated_services.byte0.bit.digital_am_3 = 1;
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_0 = 1;
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_1 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst2_cap_0 = 1;
+        bbpSysConfig.activated_services.byte2.bit.inst2_cap_1 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst3_cap_0 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst3_cap_1 = 0;
+
+        break;
+    case (U32)HDR_1p5_DUAL_MRC_CONFIG:
+        /**
+         * 2206 Figure 4-1: RX_SW_Cnfg Bitmap:
+         * Refer to Figure 4-1 for Instance Capability Bits for DUAL MRC Config
+         * */
+        bbpSysConfig.supported_services.byte0.bit.digital_fm_2 = 1;
+        bbpSysConfig.supported_services.byte0.bit.digital_am_2 = 1;
+        bbpSysConfig.supported_services.byte0.bit.digital_fm_3 = 1;
+        bbpSysConfig.supported_services.byte0.bit.digital_am_3 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_0 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst1_cap_1 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst2_cap_0 = 1;
+        bbpSysConfig.supported_services.byte2.bit.inst2_cap_1 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst3_cap_0 = 0;
+        bbpSysConfig.supported_services.byte2.bit.inst3_cap_1 = 1;
+        bbpSysConfig.supported_services.byte3.bit.inst4_cap_0 = 0;
+        bbpSysConfig.supported_services.byte3.bit.inst4_cap_1 = 1;
+
+        bbpSysConfig.activated_services.byte0.bit.digital_fm_2 = 1;
+        bbpSysConfig.activated_services.byte0.bit.digital_am_2 = 1;
+        bbpSysConfig.activated_services.byte0.bit.digital_fm_3 = 1;
+        bbpSysConfig.activated_services.byte0.bit.digital_am_3 = 1;
+        bbpSysConfig.activated_services.byte1.bit.digital_fm_4 = 1;
+        bbpSysConfig.activated_services.byte1.bit.digital_am_4 = 1;
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_0 = 1;
+        bbpSysConfig.activated_services.byte2.bit.inst1_cap_1 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst2_cap_0 = 1;
+        bbpSysConfig.activated_services.byte2.bit.inst2_cap_1 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst3_cap_0 = 0;
+        bbpSysConfig.activated_services.byte2.bit.inst3_cap_1 = 1;
+        bbpSysConfig.activated_services.byte3.bit.inst4_cap_0 = 0;
+        bbpSysConfig.activated_services.byte3.bit.inst4_cap_1 = 1;
+        break;
+    }
+}
+
+#else    //#ifdef USE_HDRLIB_3RD_CHG_VER
+
 void BBP_sys_init_default_config(void)
 {
 	const U32 numOfHdrInstances = tchdrfwk_getNumOfHdrInstance();
@@ -205,6 +357,7 @@ void BBP_sys_init_default_config(void)
     //(void)(*stOsal.osmemcpy)((void*)&bbpSysConfig[ACTIVE], (void*)&bbpSysConfig[DEFAULT], (U32)sizeof(BBP_sys_config_t));
     UNUSED(numOfHdrInstances);
 }
+#endif
 
 HDBOOL CMD_cb_bbp_busy(HDR_instance_t* hdr_instance)
 {
@@ -433,8 +586,13 @@ S32 CMD_cb_bbp_set_playing_program(HDR_instance_t* hdr_instance, HDR_program_t p
 		if(hdr_instance->instance_type != HDR_DEMOD_ONLY_INSTANCE) {
 			(*pfnHdrLog)(eTAG_CB, eLOG_DBG, "[%s:%d] Instance Number[%d], Program[%d]\n", __func__, __LINE__, hdr_instance->instance_number, program);
 		    rc = HDR_set_playing_program(hdr_instance, program);
-			(void)tchdrsvc_setProgramNumber(hdr_instance, program);
-			(*pfnHdrLog)(eTAG_CDM, eLOG_INF, "Set to the program[%d] of the instance[%d].\n", (U32)program, hdr_instance->instance_number);
+			if(rc == 0) {
+				(void)tchdrsvc_setProgramNumber(hdr_instance, program);
+				(*pfnHdrLog)(eTAG_CDM, eLOG_INF, "Set to the program[%d] of the instance[%d].\n", (U32)program, hdr_instance->instance_number);
+			}
+			else {
+				(*pfnHdrLog)(eTAG_CDM, eLOG_ERR, "Failed to set the program[%d] of the instance[%d]. rc=[%d]\n", (U32)program, hdr_instance->instance_number, rc);
+			}
 		}
 	} else {
 		(*pfnHdrLog)(eTAG_CB, eLOG_ERR, "[%s] HDR Instance argument is null pointer.\n", __func__);
@@ -725,40 +883,52 @@ S32 CMD_cb_digital_audio_acquired(HDR_instance_t* hdr_instance, HDBOOL* audio_ac
 
 S32 CMD_cb_set_auto_alignment_config(HDR_instance_t* hdr_instance, const CMD_auto_alignment_config_t* config)
 {
-	S32 rc;
+    S32 rc;
     const stHDR_FRAMEWORK_DATA_t* frameworkData  = tchdrfwk_getDataStructPtr();
     HDR_auto_align_config_t configParams;
 
-	if(hdr_instance != NULL) {
-		(*pfnHdrLog)(eTAG_CB, eLOG_DBG, "[%s:%d] Instance Number[%d]\n", __func__, __LINE__, hdr_instance->instance_number);
-    	configParams.am_auto_time_align_enabled = config->am_auto_time_align_enabled;
-    	configParams.fm_auto_time_align_enabled = config->fm_auto_time_align_enabled;
-    	configParams.am_auto_level_align_enabled = config->am_auto_level_align_enabled;
-    	configParams.fm_auto_level_align_enabled = config->fm_auto_level_align_enabled;
-		rc = HDR_auto_align_set_config(frameworkData->autoAlign, &configParams);
-	} else {
-		(*pfnHdrLog)(eTAG_CB, eLOG_ERR, "[%s] HDR Instance argument is null pointer.\n", __func__);
-		rc = -1;
-	}
+    if(hdr_instance != NULL) {
+        (*pfnHdrLog)(eTAG_CB, eLOG_DBG, "[%s:%d] Instance Number[%d]\n", __func__, __LINE__, hdr_instance->instance_number);
+        configParams.am_auto_time_align_enabled = config->am_auto_time_align_enabled;
+        configParams.fm_auto_time_align_enabled = config->fm_auto_time_align_enabled;
+        configParams.am_auto_level_align_enabled = config->am_auto_level_align_enabled;
+        configParams.fm_auto_level_align_enabled = config->fm_auto_level_align_enabled;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+        configParams.am_auto_level_correction_enabled = config->am_auto_level_correction_enabled;
+        configParams.fm_auto_level_correction_enabled = config->fm_auto_level_correction_enabled;
+#else
+        configParams.apply_level_adjustment = config->apply_level_adjustment;
+#endif
+        rc = HDR_auto_align_set_config(frameworkData->autoAlign, &configParams);
+    } else {
+        (*pfnHdrLog)(eTAG_CB, eLOG_ERR, "[%s] HDR Instance argument is null pointer.\n", __func__);
+        rc = -1;
+    }
 
     return rc;
 }
 
 S32 CMD_cb_get_auto_alignment_config(HDR_instance_t* hdr_instance, CMD_auto_alignment_config_t* config)
 {
-	S32 rc;
+    S32 rc;
     const stHDR_FRAMEWORK_DATA_t* frameworkData  = tchdrfwk_getDataStructPtr();
     HDR_auto_align_config_t config_params;
 
-	if(hdr_instance != NULL) {
-		rc = HDR_auto_align_get_config(frameworkData->autoAlign, &config_params);
-		if(rc < 0){
+    if(hdr_instance != NULL) {
+        rc = HDR_auto_align_get_config(frameworkData->autoAlign, &config_params);
+        if(rc < 0){
 	        rc = -1;
-	    } else {
-		    config->am_auto_time_align_enabled = config_params.am_auto_time_align_enabled;
-		    config->fm_auto_time_align_enabled = config_params.fm_auto_time_align_enabled;
-		    config->am_auto_level_align_enabled = config_params.am_auto_level_align_enabled;
-		    config->fm_auto_level_align_enabled = config_params.fm_auto_level_align_enabled;
+        } else {
+            config->am_auto_time_align_enabled = config_params.am_auto_time_align_enabled;
+            config->fm_auto_time_align_enabled = config_params.fm_auto_time_align_enabled;
+            config->am_auto_level_align_enabled = config_params.am_auto_level_align_enabled;
+            config->fm_auto_level_align_enabled = config_params.fm_auto_level_align_enabled;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+            config->am_auto_level_correction_enabled = config_params.am_auto_level_correction_enabled;
+            config->fm_auto_level_correction_enabled = config_params.fm_auto_level_correction_enabled;
+#else
+            config->apply_level_adjustment = config_params.apply_level_adjustment;
+#endif
 	    }
 #ifdef DEBUG_ENABLE_FREQUENT_CB_LOG
 		(*pfnHdrLog)(eTAG_CB, eLOG_DBG, "[%s:%d]return[%d], Instance Number[%d]\n", __func__, __LINE__, rc, hdr_instance->instance_number);

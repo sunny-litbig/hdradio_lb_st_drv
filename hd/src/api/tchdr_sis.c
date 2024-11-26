@@ -229,7 +229,13 @@ HDRET tchdr_sis_getStationID(eTC_HDR_ID_t id, stTC_HDR_SIS_STATION_ID_t* station
 				ret = tchdr_convertHdrError((HDR_error_code_t)ret);
 			}
 			else {
+#ifdef USE_HDRLIB_3RD_CHG_VER
+				station_id->id.field.fcc_facility_id = getStationID.all & 0x7FFFFU;
+				station_id->id.field.reserved = (getStationID.all >> 19U) & 0x07U;
+				station_id->id.field.country_code = (getStationID.all >> 22U) & 0x3FFU;
+#else
 				(void)(*stOsal.osmemcpy)((void*)station_id, (void*)&getStationID, (U32)sizeof(stTC_HDR_SIS_STATION_ID_t));
+#endif
 			}
 		}
 	}

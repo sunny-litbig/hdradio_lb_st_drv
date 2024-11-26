@@ -1213,6 +1213,20 @@ HDRET tchdr_close(void)
 	return ret;
 }
 
+HDRET tchdr_setReacquire(eTC_HDR_ID_t id)
+{
+	HDRET ret;
+	HDR_instance_t *hdrInstance = tchdr_getHdrInstanceAddr(id);
+	stHDR_FRAMEWORK_DATA_t* frameworkData = tchdrfwk_getDataStructPtr();
+
+	ret = HDR_reacquire(hdrInstance);
+	if(ret == (HDRET)eTC_HDR_RET_OK) {
+		frameworkData->busyFlag[hdrInstance->instance_number] = true;
+	}
+
+	return ret;
+}
+
 HDRET tchdr_setTune(eTC_HDR_ID_t id, stTC_HDR_TUNE_TO_t tuneTo)
 {
 	HDRET ret = tchdr_getHDRadioOpenStatus();
@@ -1247,7 +1261,7 @@ HDRET tchdr_setTune(eTC_HDR_ID_t id, stTC_HDR_TUNE_TO_t tuneTo)
 			(void)(*stOsal.osmemcpy)((void*)&uiSendMsg[1], (void*)&tune, (U32)sizeof(stTCHDR_TUNE_t));
 			ret = tchdrsvc_sendMessage(eTCHDR_SENDER_ID_APP, (U32)eTCHDR_SVC_CMD_SET_TUNE, uiSendMsg, pNULL, 0);
 		#ifdef USE_ANALOG_AUDIO_MUTE_FOR_TUNE
-			if(ret == eTC_HDR_RET_OK) {
+			if(ret == (HDRET)eTC_HDR_RET_OK) {
 				tchdrblending_setAAMute(true);
 			}
 		#endif
@@ -1779,7 +1793,7 @@ HDRET tchdr_getDigitalAudioSlips(S32 *clkOffset)	// Q16.16 format
 	HDRET ret = tchdr_checkHDRadioInitStatus();
 	if(ret == (HDRET)eTC_HDR_RET_OK) {
 		if(clkOffset != NULL) {
-			clkOffset = tchdrfwk_getExtnalClockOffset();
+			*clkOffset = tchdrfwk_getExtnalClockOffset();
 			(*pfnHdrLog)(eTAG_BLD, eLOG_DBG, "Digital audio clock offset is 0x%08x\n", clkOffset);
 		}
 		else {
@@ -1905,6 +1919,8 @@ HDRET tchdr_setBlendParam(eTC_HDR_BLEND_PARAMS_t param, U32 param_value)
 					ret = HDR_blend_set_param_actual(hdrMainInstance, (U32)offsetof(HDR_blend_params_t, fm_all_dig_blend_rate), (U32)sizeof(((HDR_blend_params_t *) 0)->fm_all_dig_blend_rate), param_value);
 					break;
 				case eBLEND_FM_MPS_DAUD_DELAY:
+					// As you decrease the audio delay value, d-audio becomes slower than a-audio.
+					// - = <- left move, + = -> right move
 					//ret = HDR_blend_set_param(hdrMainInstance, fm_mps_dig_audio_delay, param_value+(U32)40000);
 					ret = HDR_blend_set_param_actual(hdrMainInstance, (U32)offsetof(HDR_blend_params_t, fm_mps_dig_audio_delay), (U32)sizeof(((HDR_blend_params_t *) 0)->fm_mps_dig_audio_delay), (*stArith.u32add)(param_value, (U32)40000));
 					break;
@@ -1925,6 +1941,8 @@ HDRET tchdr_setBlendParam(eTC_HDR_BLEND_PARAMS_t param, U32 param_value)
 					ret = HDR_blend_set_param_actual(hdrMainInstance, (U32)offsetof(HDR_blend_params_t, am_all_dig_audio_scaling), (U32)sizeof(((HDR_blend_params_t *) 0)->am_all_dig_audio_scaling), param_value);
 					break;
 				case eBLEND_AM_MPS_DAUD_DELAY:
+					// As you decrease the audio delay value, d-audio becomes slower than a-audio.
+					// - = <- left move, + = -> right move
 					//ret = HDR_blend_set_param(hdrMainInstance, am_mps_dig_audio_delay, param_value);
 					ret = HDR_blend_set_param_actual(hdrMainInstance, (U32)offsetof(HDR_blend_params_t, am_mps_dig_audio_delay), (U32)sizeof(((HDR_blend_params_t *) 0)->am_mps_dig_audio_delay), param_value);
 					break;
@@ -2383,7 +2401,12 @@ HDRET tchdr_setAutoAudioAlignEnable(U32 fEnable)
 			    configParams.fm_auto_time_align_enabled = false;
 			    configParams.am_auto_level_align_enabled = false;
 			    configParams.fm_auto_level_align_enabled = false;
+			#ifdef USE_HDRLIB_3RD_CHG_VER
+				configParams.am_auto_level_correction_enabled = false;
+				configParams.fm_auto_level_correction_enabled = false;
+			#else
 				configParams.apply_level_adjustment = false;
+			#endif
 			    rc = HDR_auto_align_set_config(frameworkData->autoAlign, &configParams);
 				if(rc < (S32)0) {
 					ret = (HDRET)eTC_HDR_RET_NG_SET_VALUE;
@@ -2394,7 +2417,12 @@ HDRET tchdr_setAutoAudioAlignEnable(U32 fEnable)
 			    configParams.fm_auto_time_align_enabled = true;
 			    configParams.am_auto_level_align_enabled = true;
 			    configParams.fm_auto_level_align_enabled = true;
+			#ifdef USE_HDRLIB_3RD_CHG_VER
+				configParams.am_auto_level_correction_enabled = true;
+				configParams.fm_auto_level_correction_enabled = true;
+			#else
 				configParams.apply_level_adjustment = true;
+			#endif
 			    rc = HDR_auto_align_set_config(frameworkData->autoAlign, &configParams);
 				if(rc < (S32)0) {
 					ret = (HDRET)eTC_HDR_RET_NG_SET_VALUE;
@@ -2611,6 +2639,7 @@ HDRET tchdr_debugTcHdrFramework(U32 id, U32 numdbg, const U32 *parg)
 				uiSendMsg[2] = 0;
 				ret = tchdrsvc_sendMessage(eTCHDR_SENDER_ID_APP, (U32)eTCHDR_SVC_CMD_TEST, uiSendMsg, pNULL, 0);
 				break;
+#ifdef DEBUG_IQ_BUF_FILE_DUMP
 			case (U32)eTCHDR_DEBUG_BBINPUT_IQ_DUMP:
 				if(parg != NULL) {
 					uiSendMsg[1] = parg[0];	// 0: dump stop, 1:dump start
@@ -2620,6 +2649,7 @@ HDRET tchdr_debugTcHdrFramework(U32 id, U32 numdbg, const U32 *parg)
 					ret = (HDRET)eTC_HDR_RET_NG_NULL_POINTER_PARAMETERS;
 				}
 				break;
+#endif
 			case (U32)eTCHDR_DEBUG_AUDIO_OUTPUT_DUMP:
 				if(parg != NULL) {
 					uiSendMsg[1] = parg[0]; // 0: dump stop, 1:dump start

@@ -49,6 +49,21 @@ Agreement between Telechips and Company.
 #define	tchdr_ussleep(X)		(usleep(X))
 #define	tchdr_mssleep(X)		(usleep((X)*(1000)))
 
+/**
+ * @brief Reverses the bytes of 32-bit integer
+ *
+ * Converts integer from one endiness to the other
+ * @param [in] x: integer to byte-reverse
+ */
+#define REVERSE_BYTES_32(x)  (((x) >> 24)&0x000000FFU) | (((x) >> 8)&0x0000FF00U) | (((x) << 8)&0x00FF0000U) | (((x) << 24)&0xFF000000U);
+
+/**
+ * @brief Reverses the bytes of 16-bit integer
+ * @param [in] x: integer to byte-reverse
+ */
+#define REVERSE_BYTES_16(x)  (((x) >> 8) & 0xff) | (((x) & 0xff) << 8)
+
+
 /***************************************************
 *				Enumeration				*
 ****************************************************/

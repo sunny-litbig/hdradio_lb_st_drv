@@ -225,15 +225,15 @@ CMD_dispatch_rc_t IBOC_procHostCommand(HDR_instance_t* hdrInstance, CMD_opcode_t
 			offset++;
 
             HDR_test_audio_bw_status_t audioBwStatus;
-            S32 rc = HDR_test_get_audio_bw_status(hdrInstance, &audioBwStatus);
+            S32 rc1 = HDR_test_get_audio_bw_status(hdrInstance, &audioBwStatus);
 
             U32 startBw = 0;
-            (void)HDR_blend_get_adv_param(hdrInstance, am_dig_audio_blend_start_bw, &startBw);
+            S32 rc2 = HDR_blend_get_adv_param(hdrInstance, am_dig_audio_blend_start_bw, &startBw);
 
             U32 maxBw = 0;
-            (void)HDR_blend_get_adv_param(hdrInstance, am_dig_audio_max_bw, &maxBw);
+            S32 rc3 = HDR_blend_get_adv_param(hdrInstance, am_dig_audio_max_bw, &maxBw);
 
-            if(rc < 0){
+            if((rc1 < 0) || (rc2 < 0) || (rc3 < 0)){
                 *outLength = 0;
                 break;
             }
@@ -295,13 +295,10 @@ static CMD_dispatch_rc_t procIbocCtrlCnfg(HDR_instance_t* hdrInstance, const U8*
 
 	           BBP_iboc_config_t ibocConfig;
 	           HDR_config_t hdrConfig;
-#ifdef AVOID_CODESONAR_REDUNDANT_CONDITION_WARNING
-	           (void)CMD_cb_bbp_get_iboc_config(&ibocConfig, (BBP_config_select_t)dataIn[1]);
-	           if(HDR_get_config(hdrInstance, &hdrConfig) != 0)
-#else
-	           if(CMD_cb_bbp_get_iboc_config(&ibocConfig, (BBP_config_select_t)dataIn[1]) != 0 || HDR_get_config(hdrInstance, &hdrConfig) != 0)
-#endif
-	           {
+
+			   S32 rc1 = CMD_cb_bbp_get_iboc_config(&ibocConfig, (BBP_config_select_t)dataIn[1]);
+			   S32 rc2 = HDR_get_config(hdrInstance, &hdrConfig);
+			   if((rc1 != 0) || (rc2 != 0)) {
 	               *outLength = 2;
 	               break;
 	           }
@@ -1252,34 +1249,90 @@ static CMD_dispatch_rc_t procIbocCtrlCnfg(HDR_instance_t* hdrInstance, const U8*
 	        }
 	        case (U8)SET_ALIGN_PARAMETERS:
 	        {
+	            /* RX_IDD_2206 Revision 13, table 5-16
+	            *
+	            * Byte 1: Automatic Align Enable
+	            *   Bit[0]:
+	            *       1 = Enable AM Automatic Alignment function
+	            *       0 = Disable AM Automatic Alignment function
+	            *   Bit[1]:
+	            *       1 = Enable FM Automatic Alignment function
+	            *       0 = Disable FM Automatic Alignment function
+	            *   Bits[7:2] reserved, Must be set to 0
+	            * Byte 2: Reserved, Must be set to 0
+	            * Byte 3: TX_GAIN Update Enable:
+	            *   These bits determine if the value of TX Digital Audio Gain in the Sys_Tune()->Tune_Get_Status command is updated with the
+	            *   results from the alignment algorithm and whether they should be applied
+	            *   Setting bits 0 and 1 to 0 effectively turns off level alignment.
+	            *   Setting bits 2 and 3 to 1 effectively turns off application of level alignment on the base band chip so the
+	            *   HC can apply the gain externally.
+			    *   The Automatic Align Enable bit for a given band must be set to 1 to enable TX_GAIN update for that band.
+	            *   Bit[0]:
+	            *       1 = Enable AM TX_GAIN update with Level Alignment value
+	            *       0 = Disable AM TX_GAIN update with Level Alignment value
+	            *   Bit[1]:
+	            *       1 = Enable FM TX_GAIN update with Level Alignment value
+	            *       0 = Disable FM TX_GAIN update with Level Alignment value
+	            *   Bit[2]:
+	            *       0 = Enable AM On-Chip Level Adjustment. Tx_Gain status will be set to 0, since level alignment is applied to digital
+	            *           audio on-chip. HC will not need to make any level adjustment
+	            *       1 = Disable AM On-Chip Level Adjustment. Tx_Gain status will be updated. HC will need to apply the gain to digital audio
+	            *   Bit[3]:
+	            *       0 = Enable FM On-Chip Level Adjustment. Tx_Gain status will be set to 0, since level alignment is applied to digital
+	            *           audio on-chip. HC will not need to make any level adjustment
+	            *       1 = Disable FM On-Chip Level Adjustment. Tx_Gain status will be updated. HC will need to apply the gain to digital audio
+	            *   Bits[7:4] reserved, write as 0
+	            *
+	            * Comments:
+	            * For BBP versions that perform level alignment automatically, the value of TX Digital Audio Gain in the
+	            * Sys_Tune()->Tune_Get_Status command will always be set to zero.
+	            * Bit[0] and Bit[1]
+	            * When the bit is set to zero, the value of TX Digital Audio Gain in the Sys_Tune()->Tune_Get_Status command will reflect what is
+	            * received from the broadcast.
+	            */
 	            LOG(CMD,16384U, "received IBOC_CNTRL_CNFG->SET_ALIGN_PARAMETERS");
 	            dataOut[0] = (U8)SET_ALIGN_PARAMETERS;
 	            dataOut[1] = 0x01;
 
 	            CMD_auto_alignment_config_t autoAlignConfig;
 
-				if((dataIn[1] & (U8)0x01) == 1U) {
-					autoAlignConfig.am_auto_time_align_enabled = true;
-				}else{
-					autoAlignConfig.am_auto_time_align_enabled = false;
-				}
-				if(((dataIn[1] >> 1U) & (U8)0x1) == 1U) {
-					autoAlignConfig.fm_auto_time_align_enabled = true;
-				}else{
-					autoAlignConfig.fm_auto_time_align_enabled = false;
-				}
+                // Byte 1
+                if((dataIn[1] & (U8)0x01) == 1U) {
+                    autoAlignConfig.am_auto_time_align_enabled = true;
+                }else{
+                    autoAlignConfig.am_auto_time_align_enabled = false;
+                }
+                if(((dataIn[1] >> 1U) & (U8)0x1) == 1U) {
+                    autoAlignConfig.fm_auto_time_align_enabled = true;
+                }else{
+                    autoAlignConfig.fm_auto_time_align_enabled = false;
+                }
 
-				if((dataIn[3] & (U8)0x1) == 1U) {
-					autoAlignConfig.am_auto_level_align_enabled = true;
-				}else{
-					autoAlignConfig.am_auto_level_align_enabled = false;
-				}
-				if(((dataIn[3] >> 1U) & (U8)0x1) == 1U) {
-					autoAlignConfig.fm_auto_level_align_enabled = true;
-				}else{
-					autoAlignConfig.fm_auto_level_align_enabled = false;
-				}
+                // Byte 3
+                if((dataIn[3] & (U8)0x1) == 1U) {
+                    autoAlignConfig.am_auto_level_align_enabled = true;
+                }else{
+                    autoAlignConfig.am_auto_level_align_enabled = false;
+                }
+                if(((dataIn[3] >> 1U) & (U8)0x1) == 1U) {
+                    autoAlignConfig.fm_auto_level_align_enabled = true;
+                }else{
+                    autoAlignConfig.fm_auto_level_align_enabled = false;
+                }
 
+#ifdef USE_HDRLIB_3RD_CHG_VER
+                if(((dataIn[3] >> 2U) & (U8)0x1) == 0U) {
+                    autoAlignConfig.am_auto_level_correction_enabled = true;
+                }else{
+                    autoAlignConfig.am_auto_level_correction_enabled = false;
+                }
+
+                if(((dataIn[3] >> 3U) & (U8)0x1) == 0U) {
+                    autoAlignConfig.fm_auto_level_correction_enabled = true;
+                }else{
+                    autoAlignConfig.fm_auto_level_correction_enabled = false;
+                }
+#endif
 	            if(CMD_cb_set_auto_alignment_config(hdrInstance, &autoAlignConfig) != 0){
 	                dataOut[1] = 0x00;
 	            }
@@ -1314,11 +1367,19 @@ static CMD_dispatch_rc_t procIbocCtrlCnfg(HDR_instance_t* hdrInstance, const U8*
 				offset++;
 
 	            dataOut[offset] = 0; // Byte 2 reserved
-				offset++;
+	            offset++;
 
+	            // Byte 3: TX_GAIN Update Enable
 	            dataOut[offset] = (*stCast.booltou8)(autoAlignConfig.am_auto_level_align_enabled);
+#ifdef USE_HDRLIB_3RD_CHG_VER
 	            dataOut[offset] |= (*stCast.booltou8)(autoAlignConfig.fm_auto_level_align_enabled) << 1;
-				offset++;
+	            dataOut[offset] |= (*stCast.booltou8)(!(autoAlignConfig.am_auto_level_correction_enabled)) << 2;
+	            dataOut[offset] |= (*stCast.booltou8)(!(autoAlignConfig.fm_auto_level_correction_enabled)) << 3;
+	            offset++;
+#else
+	            dataOut[offset] |= (*stCast.booltou8)(autoAlignConfig.fm_auto_level_align_enabled) << 1;
+	            offset++;
+#endif
 
 	            dataOut[offset] = (U8)(autoAlignSpec.amMaxPosRange & 0xffU);
 				offset++;
@@ -1758,29 +1819,48 @@ static CMD_dispatch_rc_t procIbocDiagnostics(HDR_instance_t* hdrInstance, const 
             }
 
             dataOut[offset] = (*stCast.booltou8)(mrcEnabled);
-			offset++;
 
             if(mrcEnabled == false){
+                offset++;
                 *outLength = offset;
                 dispatch_rc = CMD_DISPATCH_OK;
 				break;
             }
 
-            HDR_instance_t* mrcSlaveInstance = CMD_cb_bbp_get_hdr_instance(2);
-			if(mrcSlaveInstance == NULL) {
-				(*pfnHdrLog)(eTAG_CDM, eLOG_WRN, "There is no MRC slave instance.\n");
-				dispatch_rc = CMD_UNSUPPORTED_INSTANCE;
-				break;
+            HDR_instance_t* mrcSlaveInstance = NULL;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+            rc = HDR_get_mrc_instance(hdrInstance,&mrcSlaveInstance);
+            if(rc != 0) {
+                (*pfnHdrLog)(eTAG_CDM, eLOG_WRN, "There is no MRC slave instance.\n");
+                dispatch_rc = CMD_UNSUPPORTED_INSTANCE;
+                break;
+            }
+            else {
+                BBP_tune_select_t masterTunerParams, slaveTunerParams;
+                CMD_cb_bbp_get_tune_select(hdrInstance,&masterTunerParams);
+                CMD_cb_bbp_get_tune_select(mrcSlaveInstance,&slaveTunerParams);
+                if(masterTunerParams.rfFreq != slaveTunerParams.rfFreq)
+                    dataOut[offset] |= 0x2;
+                if(masterTunerParams.band != slaveTunerParams.band)
+                    dataOut[offset] |= 0x4;
 			}
-
+#else
+            mrcSlaveInstance = CMD_cb_bbp_get_hdr_instance(2);
+            if(mrcSlaveInstance == NULL) {
+                (*pfnHdrLog)(eTAG_CDM, eLOG_WRN, "There is no MRC slave instance.\n");
+                dispatch_rc = CMD_UNSUPPORTED_INSTANCE;
+                break;
+            }
+#endif
+            offset++;
             dataOut[offset] = (*stCast.booltou8)(HDR_demod_hd_signal_acquired(hdrInstance));
             dataOut[offset] |= (*stCast.booltou8)(HDR_demod_hd_signal_acquired(mrcSlaveInstance)) << 1;
-			offset++;
+            offset++;
 
             dataOut[offset] = HDR_get_mrc_demod_active_state(hdrInstance);
             dataOut[offset] |= (*stCast.booltou8)(HDR_test_mrc_demod_enabled(hdrInstance)) << 4;
             dataOut[offset] |= (*stCast.booltou8)(HDR_test_mrc_demod_enabled(mrcSlaveInstance)) << 5;
-			offset++;
+            offset++;
 
             U32 cdN0 = 0;
             (void)HDR_get_demod_cdno(hdrInstance, &cdN0);
@@ -1852,12 +1932,22 @@ static CMD_dispatch_rc_t procIbocDiagnostics(HDR_instance_t* hdrInstance, const 
 				break;
             }
 
-            HDR_instance_t* mrcSlaveInstance = CMD_cb_bbp_get_hdr_instance(2);
-			if(mrcSlaveInstance == NULL) {
-				(*pfnHdrLog)(eTAG_CDM, eLOG_WRN, "There is no MRC slave instance.\n");
-				dispatch_rc = CMD_UNSUPPORTED_INSTANCE;
-				break;
-			}
+            HDR_instance_t* mrcSlaveInstance = NULL;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+            rc = HDR_get_mrc_instance(hdrInstance,&mrcSlaveInstance);
+            if(rc != 0) {
+                (*pfnHdrLog)(eTAG_CDM, eLOG_WRN, "There is no MRC slave instance.\n");
+                dispatch_rc = CMD_UNSUPPORTED_INSTANCE;
+                break;
+            }
+#else
+            mrcSlaveInstance = CMD_cb_bbp_get_hdr_instance(2);
+            if(mrcSlaveInstance == NULL) {
+                (*pfnHdrLog)(eTAG_CDM, eLOG_WRN, "There is no MRC slave instance.\n");
+                dispatch_rc = CMD_UNSUPPORTED_INSTANCE;
+                break;
+            }
+#endif
 
             if((dataIn[1] & (U8)0x01) != (U8)0){
                 (void)HDR_test_mrc_demod_enable(hdrInstance);

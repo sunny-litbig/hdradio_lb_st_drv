@@ -99,6 +99,7 @@ extern HDRET tchdradiocui_init(U32 nice);
 extern HDRET tchdradiocui_deinit(void);
 extern HDRET tchdradiocui_open(void);
 extern HDRET tchdradiocui_close(void);
+extern HDRET tchdradiocui_setReacquire(eTC_HDR_ID_t hdr_id);
 extern HDRET tchdradiocui_setTune(eTC_HDR_BAND_t hdr_band, U32 freq, eTC_HDR_ID_t hdr_id);
 extern HDRET tchdradiocui_setAudioDevice(U32 audio_samplerate, U32 OnOff);
 

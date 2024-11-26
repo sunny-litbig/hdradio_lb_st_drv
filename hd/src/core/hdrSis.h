@@ -179,9 +179,15 @@ int_t HDR_sis_get_alfn(HDR_instance_t* hdr_instance, HDR_sis_alfn_t* alfn);
 typedef struct HDR_sis_station_id_t{
     union {
         struct {
-            uint32_t country_code:10;    /**< Binary representation of ISO 3166-1-alpha-2 Country Names and Code Elements */
-            uint32_t reserved:3;         /**< Bits not used */
+#ifdef USE_HDRLIB_3RD_CHG_VER
             uint32_t fcc_facility_id:19; /**< Unique Facility ID assigned by the FCC (USA only) */
+            uint32_t reserved:3;         /**< Bits not used */
+            uint32_t country_code:10;    /**< Binary representation of ISO 3166-1-alpha-2 Country Names and Code Elements */
+#else
+			uint32_t country_code:10;    /**< Binary representation of ISO 3166-1-alpha-2 Country Names and Code Elements */
+			uint32_t reserved:3;		 /**< Bits not used */
+			uint32_t fcc_facility_id:19; /**< Unique Facility ID assigned by the FCC (USA only) */
+#endif
         };
         uint32_t all;
     };

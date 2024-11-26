@@ -1028,7 +1028,7 @@ void tcradiocui_getNotificationCallBack(uint32 notifyID, uint32 *arg, void **pDa
 			}
 			else {
 				if(*(pData) != NULL) {
-					U8 alert_message[TC_HDR_MAX_ALERT_PYALOAD_LENGTH] = {0,};
+					U8 alert_message[TC_HDR_MAX_ALERT_PAYLOAD_LENGTH] = {0,};
 					stTC_HDR_ALERT_MESSAGE_t msg;
 					memcpy((void*)&msg, *(pData+0), sizeof(stTC_HDR_ALERT_MESSAGE_t));
 					if(msg.text_message != NULL) {

@@ -45,7 +45,7 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
-#define TC_HDR_MAX_ALERT_PYALOAD_LENGTH            (381)
+#define TC_HDR_MAX_ALERT_PAYLOAD_LENGTH            (381)
 
 /***************************************************
 *				Enumeration				*
@@ -66,7 +66,7 @@ typedef struct {
 	eTC_HDR_ALERT_TEXT_ENCODING_t text_encoding;
 	U32 text_length;
 	S8* text_message; // A pointer to the message in the payload array. This string does not contain the last null byte.
-	S8 payload[TC_HDR_MAX_ALERT_PYALOAD_LENGTH];	// Message ID + Control String(CNT) + Alert Text Message
+	S8 payload[TC_HDR_MAX_ALERT_PAYLOAD_LENGTH];	// Message ID + Control String(CNT) + Alert Text Message
 }stTC_HDR_ALERT_MESSAGE_t;
 
 typedef struct {

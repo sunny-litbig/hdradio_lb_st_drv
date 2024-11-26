@@ -459,6 +459,15 @@ static HDRET tchdradiocui_checkTuneFreq(eTC_HDR_BAND_t hdr_band, U32 freq)
 	return hdret;
 }
 
+HDRET tchdradiocui_setReacquire(eTC_HDR_ID_t hdr_id)
+{
+	HDRET hdret = (HDRET)eTC_HDR_RET_OK;
+
+	hdret = tchdr_setReacquire(hdr_id);
+
+	return hdret;
+}
+
 HDRET tchdradiocui_setTune(eTC_HDR_BAND_t hdr_band, U32 freq, eTC_HDR_ID_t hdr_id)
 {
 	HDRET hdret = (HDRET)eTC_HDR_RET_OK;
@@ -655,13 +664,11 @@ void tchdradiocui_getTcHdrNotificationCallBack(U32 notifyID, const U32 *arg, voi
 			else {
 				HDRCUI_MAIN_LOG(CUI_DBG_LOG, 1U, "eTC_HDR_NOTIFY_TUNE : Done! id[%u], fChgBand[%u], fChgFreq[%u], fChgSR[%u]\n", arg[0], arg[1], arg[2], arg[3]);
 				if(arg[0] == (U32)eTC_HDR_ID_MAIN) {
-					(void)tchdr_setProgram(eTC_HDR_ID_MAIN, eTC_HDR_PROGRAM_HD1);
 					(void)tchdr_enablePsdNotification(eTC_HDR_ID_MAIN, 0x01U, PSD_BITMASK, 1U);
 					(void)tchdr_enableSisNotification(eTC_HDR_ID_MAIN, (U32)eBITMASK_SIS_SHORT_NAME, 1U);
 				}
 				else {
 					if(arg[0] == (U32)eTC_HDR_ID_BS) {
-						(void)tchdr_setProgram(eTC_HDR_ID_BS, eTC_HDR_PROGRAM_HD1);
 						(void)tchdr_enablePsdNotification(eTC_HDR_ID_BS, 0x01U, PSD_BITMASK, 1U);
 						(void)tchdr_enableSisNotification(eTC_HDR_ID_BS, (U32)eBITMASK_SIS_SHORT_NAME, 1U);
 					}
@@ -960,7 +967,7 @@ void tchdradiocui_getTcHdrNotificationCallBack(U32 notifyID, const U32 *arg, voi
 			}
 			else {
 				if((pData != NULL) && (*pData != NULL)) {
-					U8 alert_message[TC_HDR_MAX_ALERT_PYALOAD_LENGTH] = {0,};
+					U8 alert_message[TC_HDR_MAX_ALERT_PAYLOAD_LENGTH] = {0,};
 					stTC_HDR_ALERT_MESSAGE_t msg;
 
 					(void)memcpy((void*)&msg, *pData, sizeof(stTC_HDR_ALERT_MESSAGE_t));

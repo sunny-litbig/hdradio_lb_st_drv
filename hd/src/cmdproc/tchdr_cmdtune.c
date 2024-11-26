@@ -48,9 +48,7 @@ enum SYS_TUNE_FUNC_CODES
     //RESERVED  0x0
     TUNE_SELECT            = 0x1,
     TUNE_STEP              = 0x2,
-    TUNE_SEEK              = 0x3,
-    TUNE_SCAN              = 0x4,
-    //RESERVED  0x5
+    //RESERVED  0x3-0x5
     TUNE_GET_STATUS        = 0x6,
     //RESERVED  0x7-0x9
     TUNE_SET_PARAMS        = 0xA,
@@ -253,33 +251,6 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
 
             break;
         }
-        case (U32)TUNE_SEEK:
-        {
-            LOG(CMD,1U, "Received SysTune->SEEK");
-//            HDR_tune_method_t  method = dataIn[1];
-//            HDR_tune_direction_t direction = dataIn[2];
-//            HDR_tune_multicast_t multicast = dataIn[3];
-//            HDR_tune_distance_t distance = dataIn[4];
-
-            dataOut[1] = 0x0;   // Busy Flag: 0=Process Started
-            *outLength = 2;
-            // seek method: 0x00: All, 0x01: Digital, 0x02: Analog, 0x03: Hybrid
-            break;
-        }
-        case (U32)TUNE_SCAN:
-        {
-//            HDR_tune_method_t  method = dataIn[1];
-//            HDR_tune_direction_t direction = dataIn[2];
-//            HDR_tune_multicast_t multicast = dataIn[3];
-//            HDR_tune_distance_t distance = dataIn[4];
-//            LOG(CMD,1U, "Received SysTune->SCAN");
-
-            dataOut[1] = 0x0;   // Busy Flag: 0=Process Started
-            *outLength = 2;
-
-            // scanMethod:0x00: All, 0x01: Digital, 0x02: Analog, 0x03: Hybrid
-            break;
-        }
         case (U32)TUNE_GET_STATUS:
         {
             HDR_tune_method_t  tuneMethod = (HDR_tune_method_t)dataIn[1];
@@ -296,7 +267,12 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
 			auto_alignment_config.fm_auto_time_align_enabled = false;
 			auto_alignment_config.am_auto_level_align_enabled = false;
 			auto_alignment_config.fm_auto_level_align_enabled = false;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+			auto_alignment_config.am_auto_level_correction_enabled = false;
+			auto_alignment_config.fm_auto_level_correction_enabled = false;
+#else
 			auto_alignment_config.apply_level_adjustment = false;
+#endif
             (void)CMD_cb_get_auto_alignment_config(hdrInstance,&auto_alignment_config);
 
 
@@ -331,7 +307,16 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
             acqStatus |= (*stCast.booltou8)(digAcq) << 2U;
 
             dataOut[offset] = (U8)tuneSelect.band;
-			offset++;
+            offset++;
+            if(tuneSelect.band == HDR_BAND_IDLE){
+                dataOut[offset] = 0U;
+                offset++;
+                dataOut[offset] = 0U;
+                offset++;
+                *outLength = offset;
+                break;
+            }
+
             dataOut[offset] = (U8)(tuneSelect.rfFreq & 0xffU);
 			offset++;
             dataOut[offset] = (U8)((tuneSelect.rfFreq >> 8U) & 0xffU);
@@ -373,8 +358,27 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
                     }
                     dataOut[offset] = (U8)(value & 0xffU);
 					offset++;
-                    if (((tuneSelect.band == HDR_BAND_FM) && (auto_alignment_config.fm_auto_level_align_enabled==true))||((tuneSelect.band == HDR_BAND_AM) && (auto_alignment_config.am_auto_level_align_enabled==true))){
+                    if (((tuneSelect.band == HDR_BAND_FM) && (auto_alignment_config.fm_auto_level_align_enabled==true))||
+                        ((tuneSelect.band == HDR_BAND_AM) && (auto_alignment_config.am_auto_level_align_enabled==true))){
+                        // If auto level alignment algorithm is enabled, update TX_GAIN value with the result, unless
+                        // on-chip correction is enabled, in which case return 0.
+                    #ifdef USE_HDRLIB_3RD_CHG_VER
+                        if (((tuneSelect.band == HDR_BAND_FM) && (auto_alignment_config.fm_auto_level_correction_enabled == true)) ||
+                            ((tuneSelect.band == HDR_BAND_AM) && (auto_alignment_config.am_auto_level_correction_enabled == true))) {
+                            value=0;
+                        }
+                        else {
+                            CMD_auto_alignment_status_t status;
+                            if(CMD_cb_get_auto_alignment_status(hdrInstance, &status) < 0){
+                                value = 0;
+                            }
+                            else {
+                                value = status.levelOffset & 0x1f;
+                            }
+                        }
+                    #else
                         value=0;
+                    #endif
                     }else{
                         if(hdrInstance->instance_type != HDR_DEMOD_ONLY_INSTANCE) {
                             (void)HDR_get_tx_dig_audio_gain(hdrInstance, &value);
@@ -403,9 +407,21 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
                     (void)(*stOsal.osmemset)((void*)&dataOut[offset], (S8)0, (U32)3); // Bytes 26 - 28: Reserved
                     offset += (U32)3;
                     dataOut[offset]  = 0; // Audio Program Conditional Access
-					offset++;
+                    offset++;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+                    HDR_program_bitmap_t audiblePrograms;
+                    audiblePrograms.all = 0;
+                    (void)HDR_get_audible_programs(hdrInstance, &audiblePrograms);
+                    dataOut[offset] = audiblePrograms.all;
+                    offset++;
+                    dataOut[offset] = (U8)HDR_get_acquisition_status(hdrInstance);
+                    offset++;
+                    dataOut[offset] = (U8)audioQualityReport.filt_quality_indicator;
+                    offset++;
+#else
                     (void)(*stOsal.osmemset)((void*)&dataOut[offset], (S8)0, (U32)3); // Bytes 30 - 32: Reserved
                     offset += (U32)3;
+#endif
                     if(hdrInstance->instance_type != HDR_DEMOD_ONLY_INSTANCE) {
                         dataOut[offset] = HDR_psd_get_changed_programs(hdrInstance).all;
                     }else{
@@ -445,9 +461,17 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
                     dataOut[offset] = (U8)((filtDsqm >> 8U) & 0xffU);
 					offset++;
 
+#ifdef USE_HDRLIB_2ND_CHG_VER
+                    HDR_program_types_t program_types;
+                    value = HDR_get_program_types(hdrInstance, &program_types);
+                    for (U32 i=0; i<HDR_MAX_NUM_PROGRAMS; i++) {
+                        dataOut[offset] = (U8)program_types.value[i];
+                        offset++;
+                    }
+#else
                     (void)(*stOsal.osmemset)((void*)&dataOut[offset], (S8)0, (U32)8); // Bytes 45 - 52: Reserved
                     offset += (U32)8;
-
+#endif
                     *outLength = offset;
                     break;
                 }
@@ -490,8 +514,27 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
 					offset++;
                     // IF AAA is used , we should ignore this value and send 0 to the host.
 
-                    if (((tuneSelect.band == HDR_BAND_FM) && (auto_alignment_config.fm_auto_level_align_enabled==true))||((tuneSelect.band == HDR_BAND_AM) && (auto_alignment_config.am_auto_level_align_enabled==true))){
+                    if (((tuneSelect.band == HDR_BAND_FM) && (auto_alignment_config.fm_auto_level_align_enabled==true))||
+                        ((tuneSelect.band == HDR_BAND_AM) && (auto_alignment_config.am_auto_level_align_enabled==true))){
+                        // If auto level alignment algorithm is enabled, update TX_GAIN value with the result, unless
+                        // on-chip correction is enabled, in which case return 0.
+#ifdef USE_HDRLIB_3RD_CHG_VER
+                        if (((tuneSelect.band == HDR_BAND_FM) && (auto_alignment_config.fm_auto_level_correction_enabled == true)) ||
+                            ((tuneSelect.band == HDR_BAND_AM) && (auto_alignment_config.am_auto_level_correction_enabled == true))) {
+                            value=0;
+                        }
+                        else {
+                            CMD_auto_alignment_status_t status;
+                            if(CMD_cb_get_auto_alignment_status(hdrInstance, &status) < 0){
+                                value = 0;
+                            }
+                            else {
+                                value = status.levelOffset & 0x1f;
+                            }
+                        }
+#else
                         value=(U32)0;
+#endif
                     }else{
                         if(hdrInstance->instance_type != HDR_DEMOD_ONLY_INSTANCE) {
                             (void)HDR_get_tx_dig_audio_gain(hdrInstance, &value);
@@ -512,19 +555,34 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
                         (void)HDR_get_playing_program_type(hdrInstance, &value);
                     }
                     dataOut[offset] = (U8)(value & 0xffU);
-					offset++;
+                    offset++;
                     dataOut[offset] = availablePrograms.all;
-					offset++;
+                    offset++;
+					(void)(*stOsal.osmemset)((void*)&dataOut[offset], (S8)0, (U32)3);
                     offset += (U32)3; // Bytes 13 - 15: Reserved
                     dataOut[offset]  = 0; // Audio Program Conditional Access
-					offset++;
+                    offset++;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+                    HDR_program_bitmap_t audiblePrograms;
+                    audiblePrograms.all = 0;
+                    (void)HDR_get_audible_programs(hdrInstance, &audiblePrograms);
+                    dataOut[offset] = audiblePrograms.all;
+                    offset++;
+                    dataOut[offset]  = (U8)HDR_get_acquisition_status(hdrInstance);
+                    offset++;
+                    dataOut[offset] = (U8)audioQualityReport.filt_quality_indicator;
+                    offset++;
+#else
+                    (void)(*stOsal.osmemset)((void*)&dataOut[offset], (S8)0, (U32)3);
                     offset += (U32)3; // Bytes 17 - 19: Reserved
+#endif
                     if(hdrInstance->instance_type != HDR_DEMOD_ONLY_INSTANCE) {
                         dataOut[offset] = HDR_psd_get_changed_programs(hdrInstance).all;
                     }else{
                         dataOut[offset] = 0;
                     }
-					offset++;
+                    offset++;
+                    (void)(*stOsal.osmemset)((void*)&dataOut[offset], (S8)0, (U32)3);
                     offset += (U32)3; // Bytes 21 - 23: Reserved
 
                     dataOut[offset] = 0; // Tagging is no longer supported
@@ -552,11 +610,19 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
 						offset++;
                     }
                     dataOut[offset] = (U8)filtDsqm;
-					offset++;
+                    offset++;
                     dataOut[offset] = (U8)((filtDsqm >> 8U) & 0xffU);
-					offset++;
+                    offset++;
+#ifdef USE_HDRLIB_2ND_CHG_VER
+                    HDR_program_types_t program_types;
+					value = HDR_get_program_types(hdrInstance, &program_types);
+					for(U32 i=0; i<HDR_MAX_NUM_PROGRAMS; i++) {
+						dataOut[offset] = (U8)program_types.value[i];
+						offset++;
+					}
+#else
                     offset += (U32)8; // Bytes 32 - 39: Reserved
-
+#endif
                     *outLength = offset;
                     break;
                 }
@@ -681,11 +747,16 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
             dataOut[0] = (U8)GET_ALIGN_STATUS;
 
             CMD_auto_alignment_config_t auto_alignment_config;
-			auto_alignment_config.am_auto_time_align_enabled = false;
-			auto_alignment_config.fm_auto_time_align_enabled = false;
-			auto_alignment_config.am_auto_level_align_enabled = false;
-			auto_alignment_config.fm_auto_level_align_enabled = false;
-			auto_alignment_config.apply_level_adjustment = false;
+            auto_alignment_config.am_auto_time_align_enabled = false;
+            auto_alignment_config.fm_auto_time_align_enabled = false;
+            auto_alignment_config.am_auto_level_align_enabled = false;
+            auto_alignment_config.fm_auto_level_align_enabled = false;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+            auto_alignment_config.am_auto_level_correction_enabled = false;
+            auto_alignment_config.fm_auto_level_correction_enabled = false;
+#else
+            auto_alignment_config.apply_level_adjustment = false;
+#endif
             (void)CMD_cb_get_auto_alignment_config(hdrInstance,&auto_alignment_config);
             HDR_tune_band_t band;
             HDR_config_t config;
@@ -710,7 +781,8 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
             }
 
             (void)HDR_get_config(hdrInstance,&config);
-            if ((auto_alignment_config.fm_auto_time_align_enabled==false) || (auto_alignment_config.am_auto_time_align_enabled==false)){
+			if (((band == HDR_BAND_FM) && (auto_alignment_config.fm_auto_time_align_enabled==false)) ||
+                ((band == HDR_BAND_AM) && (auto_alignment_config.am_auto_time_align_enabled==false))){
                 timeOffset=0;
             }else {
                 timeOffset =status.alignmentOffset;

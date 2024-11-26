@@ -499,6 +499,50 @@ int_t HDR_aas_get_lot_object_body(HDR_instance_t* hdr_instance, uint_t port_numb
  */
 int_t HDR_aas_flush_lot_object(HDR_instance_t* hdr_instance, uint_t port_number, uint_t object_lot_id);
 
+#ifdef USE_HDRLIB_3RD_CHG_VER
+/**
+ * @brief Returns information about LOT timeout (in seconds).
+ *
+ * @param[in] hdr_instance: Pointer to the HDR Library instance handle
+ * @param[out] lot_timeout: Timeout value in seconds.
+ *                         Must be allocated by the caller.
+ * @returns
+ *     0 - Success <br>
+ *    -1 - LOT is not enabled <br>
+ *    -100 or less - Generic error(see #HDR_error_code_t)
+ */
+int_t HDR_aas_get_lot_timeout(HDR_instance_t* hdr_instance, uint_t* lot_timeout);
+
+/**
+ * @brief Defines a structure used to specify a list of enabled LOT ports
+ *
+ * Used for retrieving information about currently enabled LOT ports
+ */
+typedef struct HDR_aas_lot_port_list_t{
+    struct{
+        uint16_t number;                /**< Specifies AAS port number used to receive LOT ojbects. Value of 0 means it's closed. */
+        uint16_t service;               /**< Service number associated with this port */
+    }port[HDR_AAS_MAX_NUM_LOT_PORTS];   /**< Stores the port list in array */
+    uint8_t num_ports;					/**< Number of LOT ports in the list */
+}HDR_aas_lot_port_list_t;
+
+/**
+ * @brief Returns information about currently enabled LOT ports
+ *
+ * Information includes the number of ports enabled, enabled port numbers, and service
+ * numbers associated with ports.
+ *
+ * @param[in] hdr_instance: Pointer to the HDR Library instance handle
+ * @param[out] port_list: The information about the enabled LOT ports.
+ *                         Must be allocated by the caller.
+ * @returns
+ *     0 - Success <br>
+ *    -1 - LOT is not enabled <br>
+ *    -100 or less - Generic error(see #HDR_error_code_t)
+ */
+int_t HDR_aas_get_lot_ports(HDR_instance_t* hdr_instance, HDR_aas_lot_port_list_t* port_list);
+#endif //#ifdef USE_HDRLIB_3RD_CHG_VER
+
 #endif //HDR_AAS_H_
 
 /** @} */ //doxygen end-bracket

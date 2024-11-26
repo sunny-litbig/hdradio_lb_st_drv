@@ -195,6 +195,24 @@ typedef union HDR_program_bitmap_t{
  */
 int_t HDR_get_available_programs(HDR_instance_t* hdr_instance, HDR_program_bitmap_t* avail_programs);
 
+#ifdef USE_HDRLIB_3RD_CHG_VER
+/**
+ * @brief Retrieves a bitmap of audible audio programs.
+ *
+ * This bitmap is based on the output of the audio blending algorithm for each audio program. 
+ * It will be affected by the blending configuration settings such as blend threshold, 
+ * blend rate and blend decision threshold (for MPS only).
+ *
+ * @param[in] hdr_instance: Pointer to the HDR Library instance handle
+ * @param[out] audible_programs: Pointer to the bitmap of audible programs. Must be allocated by the caller.
+ * @returns
+ *     0 - Success <br>
+ *    -1 - Blend not initialized <br>
+ *    -100 or less - Generic error.(see #HDR_error_code_t)
+ */
+int_t HDR_get_audible_programs(HDR_instance_t* hdr_instance, HDR_program_bitmap_t* audible_programs);
+#endif
+
 /**
  * @brief Retrieves the currently playing program type
  *
