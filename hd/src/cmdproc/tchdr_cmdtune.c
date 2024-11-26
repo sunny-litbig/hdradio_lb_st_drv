@@ -565,7 +565,9 @@ S32 SYS_procTune(HDR_instance_t* hdrInstance, const U8* dataIn, U32 inLength, U8
 #ifdef USE_HDRLIB_3RD_CHG_VER
                     HDR_program_bitmap_t audiblePrograms;
                     audiblePrograms.all = 0;
-                    (void)HDR_get_audible_programs(hdrInstance, &audiblePrograms);
+                    if(hdrInstance->instance_type == HDR_FULL_INSTANCE) {
+                        (void)HDR_get_audible_programs(hdrInstance, &audiblePrograms);
+                    }
                     dataOut[offset] = audiblePrograms.all;
                     offset++;
                     dataOut[offset]  = (U8)HDR_get_acquisition_status(hdrInstance);
