@@ -635,7 +635,7 @@ case $input5 in
 		break;;
 
 	9)
-		rm -rf ${tcadt_local_dir}
+		# rm -rf ${tcadt_local_dir}
 		build_peri
 		cd ../../
 		build_tuner
