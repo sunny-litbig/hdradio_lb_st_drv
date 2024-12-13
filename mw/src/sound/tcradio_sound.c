@@ -72,7 +72,7 @@ Agreement between Telechips and Company.
 ****************************************************/
 //#define USE_ALSA_AIN_AS_INPUT_AUDIO
 
-//#define DEBUG_TCRADIO_AUDIO_OUTPUT_DUMP
+// #define DEBUG_TCRADIO_AUDIO_OUTPUT_DUMP
 //#define DEBUG_TCRADIO_AUDIO_OUTPUT_AVAIL_DUMP	// Test on ALSA device hw0,0. It is incorrect on pulsmedia.
 
 /***************************************************
@@ -540,6 +540,7 @@ static RET tcradiosound_playbackHandler(void)
 			}
 		#endif
 		#ifdef DEBUG_TCRADIO_AUDIO_OUTPUT_DUMP
+	    #ifdef USE_HDRADIO
 			if(++dumpAudioCnt <= 15500) {	// When read frame size is 2048, it's about 11min.
 				if(dumpAudioCnt == 999) {
 					RSND_DBG(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<< Started Audio Output Dump >>>>>><<<<<<<\n");
@@ -552,6 +553,7 @@ static RET tcradiosound_playbackHandler(void)
 					RSND_DBG(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<< Finished Audio Output Dump >>>>>><<<<<<<\n");
 				}
 			}
+        #endif
 		#endif
 		}
 	}
