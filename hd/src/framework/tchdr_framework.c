@@ -92,6 +92,8 @@ Agreement between Telechips and Company.
 // required memory is much smaller
 #define HDR_CACHED_MEM_SIZE         (4 * 1024 * 1024)
 
+#define MP11_ENABLED
+
 /***************************************************
 *           Local type definitions                 *
 ****************************************************/
