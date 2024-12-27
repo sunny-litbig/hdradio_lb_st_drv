@@ -719,7 +719,7 @@ static void tcradioservice_eventHandler(void)
 											tuneTo2.iqsamplerate = tcradioservice_getIqSampleRate(eRADIO_ID_SECONDARY);
 											tcradioservice_setHdrTune(eTC_HDR_ID_MRC, tuneTo2);
 										}
-										tcradioservice_enableHdrSis(eTC_HDR_ID_MAIN, eBITMASK_SIS_SHORT_NAME, 1);
+										tcradioservice_enableHdrSis(eTC_HDR_ID_MAIN, (eBITMASK_SIS_SHORT_NAME | eBITMASK_SIS_UNIVERSAL_SHORT_NAME), 1);
 									#if 0    // BS tuner can tune separately and disable this part
 										if(fChgBand && tcradioservice_getBsTunerNumber() == 3) {
 											ret = tcradiohal_setTune(stRadioRcvMsgQ.uiData[0], stRadioRcvMsgQ.uiData[1], stRadioRcvMsgQ.uiData[2], eRADIO_ID_TERTIARY);
@@ -781,7 +781,7 @@ static void tcradioservice_eventHandler(void)
 									if(stRadioRcvMsgQ.uiData[3] == eRADIO_ID_PRIMARY) {
 										tcradioservice_setHdrTune(eTC_HDR_ID_MAIN, tuneTo1);
 										tcradioservice_setHdrProgramNumber(0);
-										tcradioservice_enableHdrSis(eTC_HDR_ID_MAIN, eBITMASK_SIS_SHORT_NAME, 1);
+										tcradioservice_enableHdrSis(eTC_HDR_ID_MAIN, (eBITMASK_SIS_SHORT_NAME | eBITMASK_SIS_UNIVERSAL_SHORT_NAME), 1);
 									#if 0    // BS tuner can tune separately and disable this part
 										if(fChgBand && tcradioservice_getBsTunerNumber() == 2) {
 											ret = tcradiohal_setTune(stRadioRcvMsgQ.uiData[0], stRadioRcvMsgQ.uiData[1], stRadioRcvMsgQ.uiData[2], eRADIO_ID_SECONDARY);

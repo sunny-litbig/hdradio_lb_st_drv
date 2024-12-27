@@ -104,6 +104,7 @@ static stLOG_CONF_t stLogConf[eTAG_MAX] = {
 	{"PRI", 1},		// Primary Instance
 	{"MRC", 1},		// MRC Instance
 	{"BS", 1},		// Background Scan Instance
+	{"BSMRC", 1},	// BS MRC Demod Instance
 	{"BLD", 1},		// Audio Blending
 	{"AOUT", 1},	// Audio Output
 	{"CB", 0},		// Callback of the HD Radio Core, There are many logs with frequent output.

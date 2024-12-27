@@ -2681,8 +2681,10 @@ static void tchdrsvc_getShortNameWithConditions(HDR_instance_t *hdrInstance, U8 
 	HDR_sis_univ_name_t univName;
 
 	if((enabled == 1U) && ((stTcHdrService.mainHdr.sis.fieldBitmask & (U32)eBITMASK_SIS_SHORT_NAME) > 0U)) {
-        (void)HDR_sis_get_station_short_name(hdrInstance, shortName);
+		S32 rc;
+        rc = HDR_sis_get_station_short_name(hdrInstance, shortName);
 
+#if 0
         if((shortName->status == HDR_SIS_NO_DATA) || (shortName->status == HDR_SIS_ERROR)) {
             // No short name; try universal name
             (void)(*stOsal.osmemset)((void*)(&univName), (S8)0, (U32)sizeof(HDR_sis_univ_name_t));
@@ -2696,6 +2698,11 @@ static void tchdrsvc_getShortNameWithConditions(HDR_instance_t *hdrInstance, U8 
 				}
             }
         }
+#else   // Modify for 6o-3.auto
+		if(rc != 0) {
+			shortName->status = HDR_SIS_ERROR;
+		}
+#endif
     }
 }
 
