@@ -1236,7 +1236,14 @@ static S32 tchdrsvc_isHDRadioData(U32 mainOrBs)	// main Hdr (0) or bs Hdr (1)
 
 	if(mainOrBs == 0U) {
 		acqStatus = stTcHdrService.mainSts.acqStatus.all;
-		if((acqStatus & (U8)0x0d) == 0x0dU) {
+        // fix 801.auto, 80.2.auto
+        // HD signal & SIS enabled is the condition to display SIS & PSD
+        // eBITMASK_SIGNAL_STATUS_HD_SIGNAL	= 0x01U,
+        // eBITMASK_SIGNAL_STATUS_SIS			= 0x02U,
+        // eBITMASK_SIGNAL_STATUS_SIS_OK		= 0x04U,
+        // eBITMASK_SIGNAL_STATUS_HD_AUDIO		= 0x08U
+		// if((acqStatus & (U8)0x0d) == 0x0dU) {
+		if((acqStatus & (U8)0x07) == 0x07U) {
 			ret = 1;
 		}
 	}
@@ -1599,6 +1606,7 @@ static void tchdrsvc_gatherHdrDataHandler(void)
 
 	// PSD
 	if((stTcHdrService.mainHdr.psd.progBitmask > 0U) || (stTcHdrService.bsHdr.psd.progBitmask > 0U)) {
+        // (*pfnHdrLog)(eTAG_SYS, eLOG_ERR, "tchdrsvc_gatherHdrDataHandler tchdrsvc_isHDRadioData(0) : %d ", tchdrsvc_isHDRadioData(0));
 		if((tchdrsvc_isHDRadioData(0) == 1) && (stTcHdrService.mainHdr.psd.progBitmask > 0U)) {
 			if(stTcHdrService.mainHdr.psd.checkInterval == 0U) {
 				hdrInstance = tchdrfwk_getHdrInstancePtr(eTC_HDR_ID_MAIN);
