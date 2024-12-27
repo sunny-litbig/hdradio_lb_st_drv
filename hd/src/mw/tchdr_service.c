@@ -2018,6 +2018,7 @@ HDRET tchdrsvc_getHdrSignalStatus(eTC_HDR_ID_t id, stTC_HDR_SIGNAL_STATUS_t *dat
 			dataOut->pmap = (U32)availablePrograms.all;					// Available program bitmap
 			dataOut->acqStatus = acqStatus;								// Acquired Status, [3:0] digital audio:sis crc ok:sis:hd signal
 			(void)HDR_get_cdno(hdrInstance, &dataOut->cnr);				// CDNO
+            dataOut->ballgameMode = tchdrfwk_getBallGameMode(hdrInstance);
 
 		//	(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "00) HDR ID: %d\n", dataOut->hdrId);
 		//	(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "01) Playing Program Number: %d\n", dataOut->curPN);
@@ -2091,6 +2092,7 @@ HDRET tchdrsvc_getHdrStatus(eTC_HDR_ID_t id, stTC_HDR_STATUS_t *dataOut)
 			dataOut->acqStatus = acqStatus;											// Acquired Status, [3:0] digital audio:sis crc ok:sis:hd signal
 
 			(void)HDR_get_cdno(hdrInstance, &dataOut->cnr);							// CD/NO
+            dataOut->ballgameMode = tchdrfwk_getBallGameMode(hdrInstance);
 
 		    (void)(*stOsal.osmemset)((void*)&programTypes, (S8)0, (U32)sizeof(HDR_program_types_t));
 			(void)HDR_get_program_types(hdrInstance, &programTypes);

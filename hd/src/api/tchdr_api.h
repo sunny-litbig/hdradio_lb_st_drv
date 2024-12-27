@@ -242,6 +242,7 @@ typedef struct{
 	U32 cnr;				// carrier to noise ratio
 	U32 pmap;				// audio available program bitmap
 	U32 hybridProgram;		// hybrid program
+	U32 ballgameMode;			// ballgame mode
 } stTC_HDR_SIGNAL_STATUS_t;
 
 typedef union {
@@ -290,6 +291,7 @@ typedef struct {
     U32 p3BitsTested;     /**< Total number of P3 bit bits tested */
     U32 p4BitErrors;      /**< Total number of P4 bit errors */
     U32 p4BitsTested;     /**< Total number of P4 bit bits tested */
+	U32 ballgameMode;			// ballgame mode
 }stTC_HDR_STATUS_t;
 
 typedef struct{

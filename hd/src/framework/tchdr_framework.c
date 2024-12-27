@@ -2178,7 +2178,7 @@ static void tchdrblending_audioOutputHandler(HDBOOL blendFlag, HDBOOL hybridProg
                 }
                 (void)HDR_blend_crossfade(stHdrFrameworkData.blendCrossfade, stHdrFrameworkData.digitalAudio, stHdrFrameworkData.analogAudio, blendStatus, &audioOutput);
 
-#if 0	// for test
+#if 1	// for test
 				(void)HDR_test_get_raw_tx_blend_control(&stHdrFrameworkData.hdrInstance[0], &curBlendCtrlMode);
 				if(blendControl != blendControlOld) {
 					//(*pfnHdrLog)(eTAG_BLD, eLOG_INF, "blendControl[%d], blendControlOld[%d]\n", blendControl, blendControlOld);
@@ -2197,9 +2197,15 @@ static void tchdrblending_audioOutputHandler(HDBOOL blendFlag, HDBOOL hybridProg
 				if(prevBlendCtrlMode != curBlendCtrlMode) {
 					if(curBlendCtrlMode == 0) {
 						(*pfnHdrLog)(eTAG_BLD, eLOG_INF, "The blend control is not required.\n");
+                        stHdrFrameworkData.ballgameMode = false;
 					}
 					else {
 						(*pfnHdrLog)(eTAG_BLD, eLOG_INF, "Ball game mode is %s.\n", (curBlendCtrlMode == 1) ? "on" : "off");
+                        if (curBlendCtrlMode == 1) {
+                            stHdrFrameworkData.ballgameMode = true;
+                        } else {
+                            stHdrFrameworkData.ballgameMode = false;
+                        }
 					}
 				}
 #endif
@@ -2279,6 +2285,15 @@ S32 tchdraudinput_getReadySemaValue(void)
 	}
 
 	return rc;
+}
+
+HDBOOL tchdrfwk_getBallGameMode(const HDR_instance_t* hdr_instance)
+{
+	HDBOOL audio_acquired = false;
+	if(hdr_instance->instance_type == HDR_FULL_INSTANCE) {
+		audio_acquired = stHdrFrameworkData.ballgameMode;
+	}
+	return audio_acquired;
 }
 
 HDBOOL tchdrfwk_getDigitalAudioAcquired(const HDR_instance_t* hdr_instance)

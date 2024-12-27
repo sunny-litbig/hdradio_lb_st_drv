@@ -84,6 +84,7 @@ typedef struct {
     HDR_pcm_stereo_t digitalAudio[HDR_AUDIO_FRAME_SIZE];
     HDR_pcm_stereo_t analogAudio[HDR_AUDIO_FRAME_SIZE];
     eHDR_AUDIO_MODE_t audioMode;
+    HDBOOL ballgameMode;
 }stHDR_FRAMEWORK_DATA_t;
 
 /***************************************************
@@ -109,6 +110,7 @@ HDRET tchdrfwk_open(void);
 HDBOOL tchdrfwk_getMrcStatus(void);
 HDBOOL tchdrfwk_getBsMrcStatus(void);
 void tchdrfwk_setAnalogAudioMute(U32 fOnOff);
+HDBOOL tchdrfwk_getBallGameMode(const HDR_instance_t* hdr_instance);
 HDBOOL tchdrfwk_getDigitalAudioAcquired(const HDR_instance_t* hdr_instance);
 void tchdraudinput_ready(void);
 S32 tchdraudinput_getReadySemaValue(void);
