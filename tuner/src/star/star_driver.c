@@ -1922,6 +1922,9 @@ Tun_Status TUN_Download_CustomizedCoeffs(tU8 deviceAddress)
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_qd_dBuOffset, 0x140000);
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_smLevUpLim, 0xf10000);
 
+    //tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x3FD930);     // AM volume 6dB
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x5A3031);       // AM volume 9dB
+
     return tunerStatus;
 }
 
