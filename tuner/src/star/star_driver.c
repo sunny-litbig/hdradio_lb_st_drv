@@ -1922,8 +1922,17 @@ Tun_Status TUN_Download_CustomizedCoeffs(tU8 deviceAddress)
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_qd_dBuOffset, 0x140000);
     tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_wsp_smLevUpLim, 0xf10000);
 
-    //tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x3FD930);     // AM volume 6dB
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x5A3031);       // AM volume 9dB
+    // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x3FD930);     // AM volume 6dB
+    // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x4BE24B);       // AM volume 7.5dB
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x4E198D);       // AM volume 7.5dB    OK  -> +-0.1
+    // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x5A3031);       // AM volume 9dB
+
+    // FM default : 1dB
+    // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_asp_volume, 0x200000);       // FM volume 0dB
+    // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_asp_volume, 0x1F1793);       // FM volume -0.25dB
+    // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_asp_volume, 0x1C8520);       // FM volume -1dB
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_asp_volume, 0x1A2926);       // FM volume -1.75dB OK  -> +-0.1
+    // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_fmCoef_asp_volume, 0x196B23);       // FM volume -2dB
 
     return tunerStatus;
 }
