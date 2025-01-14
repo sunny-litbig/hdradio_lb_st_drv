@@ -154,7 +154,7 @@ static S32 BBP_checkValidTune(const BBP_tune_select_t* tune_select)
 	return ret;
 }
 
-#ifdef USE_HDRLIB_2ND_CHG_VER
+#ifdef USE_HDRLIB_3RD_CHG_VER
 void BBP_sys_init_default_config (void)
 {
 	const U32 currentHdrType = tchdrfwk_getHdrType();

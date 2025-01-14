@@ -92,8 +92,6 @@ Agreement between Telechips and Company.
 // required memory is much smaller
 #define HDR_CACHED_MEM_SIZE         (4 * 1024 * 1024)
 
-#define MP11_ENABLED
-
 /***************************************************
 *           Local type definitions                 *
 ****************************************************/
@@ -467,8 +465,10 @@ static HDRET tchdrfwk_setConfiguration(U32 numOfHdrInstances)
 #endif
     hdrConfig.adv_blend_params.ramp_up_enabled = true;
     hdrConfig.adv_blend_params.ramp_down_enabled=true;
-#ifndef MP11_ENABLED
-	hdrConfig.mp11_enabled=false;
+#ifdef USE_MP11_SERVICE_MODE
+	hdrConfig.mp11_enabled = true;
+#else
+	hdrConfig.mp11_enabled = false;
 	(*pfnHdrLog)(eTAG_CORE, eLOG_DBG, "MP11 DISABLED\n");
 #endif
 

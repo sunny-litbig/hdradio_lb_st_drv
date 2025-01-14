@@ -30,7 +30,7 @@
 #include "hdrAudio.h"
 #include "hdrBlend.h"
 
-#ifdef USE_HDRLIB_2ND_CHG_VER
+#ifdef USE_HDRLIB_3RD_CHG_VER
 typedef union PACKED_STRUCTURE{
     struct PACKED_STRUCTURE{
         U8     digital_fm_1:   1;

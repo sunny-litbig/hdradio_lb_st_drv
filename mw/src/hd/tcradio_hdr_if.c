@@ -255,6 +255,7 @@ RET tcradioservice_openHdr(eRADIO_MOD_MODE_t init_band, uint32 init_freq, eTC_HD
 		(void)tchdr_setBlendParam(eBLEND_FM_MPS_DAUD_DELAY, 22424U);    // FM	// Enalbe st tuner blend(DNR)
 		(void)tchdr_setBlendParam(eBLEND_AM_MPS_DAUD_DELAY, 13570U);    // AM	// Enable st tuner blend(DNR)
 #endif
+		(void)tchdr_setBlendParam(eBLEND_FM_AUDIO_INVERT_PHASE, 1U);
 	}
 
 	ret = tchdr_open(tuneInfo);

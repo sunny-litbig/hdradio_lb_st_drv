@@ -64,7 +64,7 @@ Agreement between Telechips and Company.
 extern "C" {
 #endif
 
-#define HDRADIO_FRAMEWORK_VER				"1.6.4"
+#define HDRADIO_FRAMEWORK_VER				"1.6.5"
 
 #define PTHREAD_32BIT_STACK_MIN				((U32)16*(U32)1024)     // 32bit system's pthread minimum stack size
 #define PTHREAD_64BIT_STACK_MIN				((U32)128*(U32)1024)	// 64bit system's pthread minimum stack size
@@ -151,6 +151,7 @@ extern "C" {
 //#define USE_AUTO_MUTE_WHEN_ONLY_ANALOG_AUDIO_MODE	// If current program is all-digital program and force-analog is requested, play mute. for JVCK.
 #define USE_AUDIO_OUTPUT_RESAMPLER                 	// Use an audio resampler developed internally.
 //#define USE_ANALOG_AUDIO_MUTE_FOR_TUNE           	// Use analog audio mute when tune band/frequency
+#define USE_MP11_SERVICE_MODE                       // Enables/Disables MP11 primary service mode
 
 // For Coverity
 //#define AVOID_MC2012_RULE_21P6_USING_PRINTF

@@ -103,7 +103,7 @@ S32 commandProcessorInit(const COMMAND_PROC_CONFIG_T* config)
 	    (void)(*stOsal.osmemcpy)(&commandProcConfig, config, (U32)sizeof(COMMAND_PROC_CONFIG_T));
 
 	    headerAsmBuffer = &commandProcConfig.msgBuffer[0];
-#ifdef USE_HDRLIB_2ND_CHG_VER
+#ifdef USE_HDRLIB_3RD_CHG_VER
         rxMsgBuffer = &commandProcConfig.msgBuffer[0];
 #else
 	    rxMsgBuffer = &commandProcConfig.msgBuffer[12];
