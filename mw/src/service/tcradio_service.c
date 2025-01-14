@@ -1436,6 +1436,7 @@ static void tcradioservice_seekHandler(void)
                         stRadioService.curSeekResult++;
 						// eRadioSeekStep = eSEEK_STEP_SET_FREQ;
                         stRadioService.curSeekListeningCount = 0;
+                        RSRV_DBG("<<<<<<<< eRadioSeekStep : eSEEK_STEP_CHK_QDATA -> eSEEK_STEP_LISTEN >>>>>>>>>>\n");
                         eRadioSeekStep = eSEEK_STEP_LISTEN;
                         tcradiohal_setMute(0, 0);		//Mute Off
 					}
@@ -1489,7 +1490,7 @@ static void tcradioservice_seekHandler(void)
         case eSEEK_STEP_LISTEN:
             stRadioService.curSeekListeningCount++;
             if(stRadioService.curSeekListeningCount >= 500) {
-                // RSRV_DBG("<<<<<<<< eRadioSeekStep : eSEEK_STEP_SET_FREQ >>>>>>>>>>\n");
+                RSRV_DBG("<<<<<<<< eRadioSeekStep : eSEEK_STEP_LISTEN -> eSEEK_STEP_SET_FREQ >>>>>>>>>>\n");
                 tcradiohal_setMute(1, 0);		//Mute On
                 eRadioSeekStep = eSEEK_STEP_SET_FREQ;
             }
