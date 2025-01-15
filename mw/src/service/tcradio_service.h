@@ -92,7 +92,7 @@ extern "C" {
 #define	_AmFmDBSize			100
 
 #ifdef USE_HDRADIO
-// #define SUPPORT_AM_ALL_DIGITAL_SEEK
+#define SUPPORT_AM_ALL_DIGITAL_SEEK
 #endif
 
 /***************************************************
