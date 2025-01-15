@@ -91,6 +91,10 @@ extern "C" {
 #define _MaxPresetNum		18
 #define	_AmFmDBSize			100
 
+#ifdef USE_HDRADIO
+// #define SUPPORT_AM_ALL_DIGITAL_SEEK
+#endif
+
 /***************************************************
 *				Enumeration				*
 ****************************************************/
@@ -152,6 +156,11 @@ typedef enum{
     eSEEK_STEP_STOP			= 6,
     eSEEK_STEP_CHK_PI		= 7,
     eSEEK_STEP_LISTEN   	= 8,
+#ifdef USE_HDRADIO
+#ifdef SUPPORT_AM_ALL_DIGITAL_SEEK
+    eSEEK_STEP_CHK_HD_SIGNAL 	= 9,
+#endif
+#endif
 	eSEEK_STEP_END
 }eSEEK_STEP_t;
 
@@ -166,6 +175,11 @@ typedef struct{
 	eRADIO_SEEK_MODE_t eSeekMode;
 	uint32 curSeekResult;
 	uint32 curSeekListeningCount;
+#ifdef USE_HDRADIO
+#ifdef SUPPORT_AM_ALL_DIGITAL_SEEK
+	uint32 curSeekHDSignalCheckCount;
+#endif
+#endif
 
 	uint32 curBand;		// eRADIO_MOD_MODE_t
 	uint32 curFreq;
