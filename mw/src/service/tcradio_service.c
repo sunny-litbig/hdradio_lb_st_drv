@@ -1463,15 +1463,6 @@ static void tcradioservice_seekHandler(void)
 					eRadioSeekStep = eSEEK_STEP_STOP;
 				}
 			}
-#ifdef USE_HDRADIO
-#ifdef SUPPORT_AM_ALL_DIGITAL_SEEK
-			else if((stRadioService.curBand == eRADIO_AM_MODE) && (retValid == 1)) {	// to supportk all-digital AM seek
-                stRadioService.curSeekHDSignalCheckCount = 0;
-                RSRV_DBG("<<<<<<<< eRadioSeekStep : eSEEK_STEP_CHK_QDATA -> eSEEK_STEP_CHK_HD_SIGNAL >>>>>>>>>>\n");
-                eRadioSeekStep = eSEEK_STEP_CHK_HD_SIGNAL;
-            }
-#endif
-#endif
 			else {	// nok
 				if(stRadioService.curFreq == stRadioService.curStartFreq) {
 					eRadioSeekStep = eSEEK_STEP_STOP;
@@ -1495,62 +1486,6 @@ static void tcradioservice_seekHandler(void)
 				eRadioSt = eRADIO_STS_DOING_NOTIFY;			// for returning current frequency quality values
 			}
 			break;
-
-#ifdef USE_HDRADIO
-#ifdef SUPPORT_AM_ALL_DIGITAL_SEEK
-        case eSEEK_STEP_CHK_HD_SIGNAL:
-            {
-                bool hdSignalAcquired = false;
-                stTC_HDR_SIGNAL_STATUS_t signalStatus;
-                if (stRadioService.curSeekHDSignalCheckCount % 5 == 0) // Wait 50 ms
-                {
-                    RET ret = tcradio_getHdrSignalStatus(eTC_HDR_ID_MAIN, &signalStatus);
-                    if (ret == eRET_OK) {
-                        if (signalStatus.acqStatus > 0) {
-                            hdSignalAcquired = true;
-                            RSRV_DBG("<<<<<<<<<<<<<<<<< eRadioSeekStep : eSEEK_STEP_CHK_HD_SIGNAL >>>>>>>>>>>>>>>>> freq [%d] HD signal is acquired. [Spends %d ms] signalStatus.acqStatus : [%d]\n"
-                                    , stRadioService.curFreq, stRadioService.curSeekHDSignalCheckCount*SERVICE_THREAD_TIME_INTERVAL, signalStatus.acqStatus);
-                            if(tcradioservice_getSeekMode() == eRADIO_SEEK_SCAN_STATION) {
-                                tcradioservice_makeStationList();
-                                if(stRadioService.curFreq == stRadioService.curStartFreq) {
-                                    eRadioSeekStep = eSEEK_STEP_STOP;
-                                }
-                                else {
-                                    stRadioService.curSeekResult++;
-                                    stRadioService.curSeekListeningCount = 0;
-                                    RSRV_DBG("<<<<<<<< eRadioSeekStep : eSEEK_STEP_CHK_HD_SIGNAL -> eSEEK_STEP_LISTEN >>>>>>>>>>\n");
-                                    eRadioSeekStep = eSEEK_STEP_LISTEN;
-                                    tcradiohal_setMute(0, 0);		//Mute Off
-                                }
-                            }
-                            else {
-                                stRadioService.curSeekResult = 1;
-                                eRadioSeekStep = eSEEK_STEP_STOP;
-                            }
-                        }
-                    }
-                }
-
-                if (!hdSignalAcquired) {
-                    if(stRadioService.curSeekHDSignalCheckCount >= 120) { // 10 ms * 120 = 1200 ms (1.2 secs)
-                        RSRV_DBG("<<<<<<<<<<<<<<<<< eRadioSeekStep : eSEEK_STEP_CHK_HD_SIGNAL >>>>>>>>>>>>>>>>> freq [%d] [Spends %d ms TIME OUT] signalStatus.acqStatus : [%d]\n"
-                                , stRadioService.curFreq, stRadioService.curSeekHDSignalCheckCount*SERVICE_THREAD_TIME_INTERVAL, signalStatus.acqStatus);
-                        if(stRadioService.curFreq == stRadioService.curStartFreq) {
-                            eRadioSeekStep = eSEEK_STEP_STOP;
-                        } else {
-                            eRadioSeekStep = eSEEK_STEP_SET_FREQ;
-                        }
-                    } 
-                    else {
-                        // RSRV_DBG("<<<<<<<<<<<<<<<<< eRadioSeekStep : eSEEK_STEP_CHK_HD_SIGNAL >>>>>>>>>>>>>>>>> freq [%d] [Spends %d ms] signalStatus.acqStatus : [%d]\n"
-                        //         , stRadioService.curFreq, stRadioService.curSeekHDSignalCheckCount*10, signalStatus.acqStatus);
-                        stRadioService.curSeekHDSignalCheckCount++;
-                    }
-                }
-            }
-            break;
-#endif
-#endif
 
         case eSEEK_STEP_LISTEN:
             stRadioService.curSeekListeningCount++;
