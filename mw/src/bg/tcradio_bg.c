@@ -52,6 +52,7 @@ Agreement between Telechips and Company.
 #include "tcradio_hdr_if.h"
 #endif
 
+extern uint32 tcradiosound_checkPlayback();
 /***************************************************
 *        Global variable definitions               *
 ****************************************************/
@@ -276,24 +277,26 @@ void *tcradiobg_mainThread(void *arg)
         tcradiobg_eventHandler();		// Command Message Event Handler
 		tcradiobg_stateHandler();
 
-        if (checkCnt%50 == 0) {
+        if (tcradiosound_checkPlayback() != 0) {
+            if (checkCnt%50 == 0) {
 #ifdef USE_HDRADIO
-            if (prev_audio_in_out_count == audio_in_out_count) {
-                RBG_ERR("%s audio[%d:%d]\n", __func__, prev_audio_in_out_count, audio_in_out_count);
-            }
-            prev_audio_in_out_count = audio_in_out_count;
+                if (prev_audio_in_out_count == audio_in_out_count) {
+                    RBG_ERR("%s audio[%d:%d]\n", __func__, prev_audio_in_out_count, audio_in_out_count);
+                }
+                prev_audio_in_out_count = audio_in_out_count;
 #else
-            if (prev_i2s_in_out_count == i2s_in_out_count) {
-                RBG_ERR("%s i2s[%d:%d]\n", __func__, prev_i2s_in_out_count, i2s_in_out_count);
-            }
-            prev_i2s_in_out_count = i2s_in_out_count;
+                if (prev_i2s_in_out_count == i2s_in_out_count) {
+                    RBG_ERR("%s i2s[%d:%d]\n", __func__, prev_i2s_in_out_count, i2s_in_out_count);
+                }
+                prev_i2s_in_out_count = i2s_in_out_count;
 #endif
-            if (prev_alsa_in_out_count == alsa_in_out_count) {
-                RBG_ERR("%s alsa[%d:%d]\n", __func__, prev_alsa_in_out_count, alsa_in_out_count);
+                if (prev_alsa_in_out_count == alsa_in_out_count) {
+                    RBG_ERR("%s alsa[%d:%d]\n", __func__, prev_alsa_in_out_count, alsa_in_out_count);
+                }
+                prev_alsa_in_out_count = alsa_in_out_count;
             }
-            prev_alsa_in_out_count = alsa_in_out_count;
+            checkCnt++;
         }
-        checkCnt++;
 
 		tcradio_mssleep(BG_THREAD_TIME_INTERVAL);
 	}

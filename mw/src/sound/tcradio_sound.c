@@ -131,6 +131,11 @@ static void tcradiosound_setPlayback(uint32 fPalyback)
 	}
 }
 
+uint32 tcradiosound_checkPlayback()
+{
+	return stRadioSound.fSoundPlaying;
+}
+
 static uint32 tcradiosound_getPlayback(void)
 {
 	return stRadioSound.fSoundPlaying;
@@ -433,7 +438,7 @@ void tcradiosound_hdrAudioOutPCMCallback(void *pOutBuf, int32 frames, uint32 sam
 }
 #endif
 
-// static int count = 0;
+static int count = 0;
 static RET tcradiosound_playbackHandler(void)
 {
 	RET ret = eRET_NG_NO_RSC;
