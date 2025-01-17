@@ -433,6 +433,7 @@ void tcradiosound_hdrAudioOutPCMCallback(void *pOutBuf, int32 frames, uint32 sam
 }
 #endif
 
+// static int count = 0;
 static RET tcradiosound_playbackHandler(void)
 {
 	RET ret = eRET_NG_NO_RSC;
@@ -462,7 +463,16 @@ static RET tcradiosound_playbackHandler(void)
 		}
 		else if(tcradiosound_getSoundSource() == eSOUND_SOURCE_TC_I2S) {
 			if(pfnBlendAudioI2sRead != NULL) {
+                i2s_in_out_count++; // +1
 				frames = (*pfnBlendAudioI2sRead)(soundBuffer, 2048);
+                i2s_in_out_count++; // +2
+                // FOR_TEST
+                // if (count != 0 && count%1001 == 0) {
+                //     RSND_ERR("%s i2s[%d]\n", __func__, i2s_in_out_count);
+                //     (void)tcradio_mssleep(50000);	// 50000ms sleep
+                // }
+                // count++;
+                // ~FOR_TEST
 				if(frames > 0) {
 					if(tcradiosound_getPlayback() == 0) {
 						tcradio_memset(soundBuffer, 0, frames);
@@ -525,7 +535,17 @@ static RET tcradiosound_playbackHandler(void)
 			clock_gettime(CLOCK_MONOTONIC, &audChkTimer);
 		#endif
 			if(pfnAoutWrite != NULL) {
+                alsa_in_out_count++; // +1
 				(*pfnAoutWrite)(soundBuffer, frames);
+                alsa_in_out_count++; // +2
+                // RSND_ERR("%s alsa[%d]\n", __func__, alsa_in_out_count);
+                // FOR_TEST
+                // if (count != 0 && count%1000 == 0) {
+                //     RSND_ERR("%s alsa[%d]\n", __func__, alsa_in_out_count);
+                //     (void)tcradio_mssleep(50000);	// 50000ms sleep
+                // }
+                // count++;
+                // ~FOR_TEST
 
                 if (aout1st_flag == 1)
                 {

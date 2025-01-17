@@ -184,6 +184,14 @@ typedef struct{
 //	uint32 scanPI;		// DAB Seamless Link
 }stRADIO_BG_t;
 
+#ifdef USE_HDRADIO
+static int prev_audio_in_out_count;
+#else
+static int prev_i2s_in_out_count;
+#endif
+static int prev_alsa_in_out_count;
+static int checkCnt;
+
 /***************************************************
 *			Constant definitions				*
 ****************************************************/

@@ -74,6 +74,8 @@ static S8 *readIQ23;
 static U32 fExtIq01DrvEn=0U;
 static U32 fExtIq23DrvEn=0U;
 
+int audio_in_out_count;
+
 stCIRC_BUFF_t analogAudioBuffer;
 
 /***************************************************
@@ -3062,12 +3064,22 @@ void tchdraudinput_getResamplerSlips(F64 *ppm, F64 *out_hz)
 	}
 }
 
+// static count = 0;
 static S32 tchdr_readAudioInputProcess(S16 *anaAudioInBuffer, S16 * anaAudioOutBuffer)
 {
 	S32 ret=0;
 	static U32 prevInputSize=0;
 
+    audio_in_out_count++; // +1
 	ret= (*pfnTcHdrBlendAudioRead)((S8*)anaAudioInBuffer, (S32)HDR_AUDIO_FRAME_SIZE);
+    audio_in_out_count++; // +2
+    // (*pfnHdrLog)(eTAG_AIN, eLOG_ERR, "%s pfnTcHdrBlendAudioRead audioIn[%d]\n", __func__, audio_in_out_count);
+    // FOR_TEST
+    // if (count == 10000) {
+    //     (void)usleep(5000000);	// 5000ms sleep
+    // }
+    // count++;
+    // ~FOR_TEST
 	if(ret > 0) {
 		ret = tcaudio_resampler_exec(tcAudioInputResampler, anaAudioInBuffer, anaAudioOutBuffer, ret/4, anain_hz, anaout_hz);
 		if(ret > 0) {

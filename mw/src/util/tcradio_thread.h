@@ -55,6 +55,9 @@ typedef enum {
 	eRADIO_SCHED_FIFO	= 3		/**Real-time, first-in first-out*/
 } eRADIO_THREAD_SCHPOLICY_t;
 
+extern int i2s_in_out_count;
+extern int alsa_in_out_count;
+
 /***************************************************
 *				Typedefs					*
 ****************************************************/

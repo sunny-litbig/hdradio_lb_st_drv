@@ -43,6 +43,9 @@ Agreement between Telechips and Company.
 #include "tcradio_service.h"
 #include "tcradio_thread.h"
 
+int i2s_in_out_count;
+int alsa_in_out_count;
+
 /***************************************************
 *        Global variable definitions               *
 ****************************************************/

@@ -48,6 +48,9 @@ Agreement between Telechips and Company.
 #include "tcradio_hal.h"
 #include "tcradio_bg.h"
 #include "tcradio_msgq.h"
+#ifdef USE_HDRADIO
+#include "tcradio_hdr_if.h"
+#endif
 
 /***************************************************
 *        Global variable definitions               *
@@ -120,6 +123,12 @@ RET tcradiobg_init(void)
 
 	tcradiobg_initVariable();
 	if(bgMainThreadID == (pthread_t)NULL) {
+#ifdef USE_HDRADIO
+        prev_audio_in_out_count = audio_in_out_count = 0;
+#else
+        prev_i2s_in_out_count = i2s_in_out_count = 0;
+#endif
+        prev_alsa_in_out_count = alsa_in_out_count = 0;
 		ret = tcradio_createThread(&bgMainThreadID, &tcradiobg_mainThread, "TCRADIO_BG", eRADIO_SCHED_OTHER, 00, pNULL);
 		if(ret != eRET_OK) {
 			RBG_ERR("[%s:%d] Can not make Radio Main Thread!!!\n", __func__, __LINE__);
@@ -266,6 +275,26 @@ void *tcradiobg_mainThread(void *arg)
 		}
         tcradiobg_eventHandler();		// Command Message Event Handler
 		tcradiobg_stateHandler();
+
+        if (checkCnt%50 == 0) {
+#ifdef USE_HDRADIO
+            if (prev_audio_in_out_count == audio_in_out_count) {
+                RBG_ERR("%s audio[%d:%d]\n", __func__, prev_audio_in_out_count, audio_in_out_count);
+            }
+            prev_audio_in_out_count = audio_in_out_count;
+#else
+            if (prev_i2s_in_out_count == i2s_in_out_count) {
+                RBG_ERR("%s i2s[%d:%d]\n", __func__, prev_i2s_in_out_count, i2s_in_out_count);
+            }
+            prev_i2s_in_out_count = i2s_in_out_count;
+#endif
+            if (prev_alsa_in_out_count == alsa_in_out_count) {
+                RBG_ERR("%s alsa[%d:%d]\n", __func__, prev_alsa_in_out_count, alsa_in_out_count);
+            }
+            prev_alsa_in_out_count = alsa_in_out_count;
+        }
+        checkCnt++;
+
 		tcradio_mssleep(BG_THREAD_TIME_INTERVAL);
 	}
 
