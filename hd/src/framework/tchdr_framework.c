@@ -2004,7 +2004,7 @@ static void tchdrblending_automaticAudioAlignmentProcess(U32 audioQuality, HDBOO
 		if(stHdrFrameworkData.aaaState == HDR_AUTO_ALIGN_PLAY_DIGITAL) {
 			// AAA was not running, not aligning, or already playing Digital
 			// - pass blendFlag through
-			if (blendFlag == false) {
+			if (*blendFlag == false) {
 				// Not playing Digital - reset AAA state
 				stHdrFrameworkData.aaaState = 0;
 			}
