@@ -2028,6 +2028,12 @@ HDRET tchdrsvc_getHdrSignalStatus(eTC_HDR_ID_t id, stTC_HDR_SIGNAL_STATUS_t *dat
 			(void)HDR_get_cdno(hdrInstance, &dataOut->cnr);				// CDNO
             dataOut->ballgameMode = tchdrfwk_getBallGameMode(hdrInstance);
 
+            stHDR_FRAMEWORK_DATA_t* frameworkData = tchdrfwk_getDataStructPtr();
+            if(frameworkData->busyFlag[hdrInstance->instance_number] == true) {
+                (*pfnHdrLog)(eTAG_SYS, eLOG_ERR, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> During HDR reacquisition... [%d].\n", (S32)hdrInstance->instance_number);
+            }
+            dataOut->bbBand = tchdraudinput_getTunedBand(id);
+            dataOut->bbFreq = tchdraudinput_getTunedFreq(id);
 		//	(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "00) HDR ID: %d\n", dataOut->hdrId);
 		//	(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "01) Playing Program Number: %d\n", dataOut->curPN);
 		//	(*pfnHdrLog)(eTAG_SYS, eLOG_DBG, "02) Available Program Bitmap: %d\n", dataOut->pmap);
@@ -2101,6 +2107,13 @@ HDRET tchdrsvc_getHdrStatus(eTC_HDR_ID_t id, stTC_HDR_STATUS_t *dataOut)
 
 			(void)HDR_get_cdno(hdrInstance, &dataOut->cnr);							// CD/NO
             dataOut->ballgameMode = tchdrfwk_getBallGameMode(hdrInstance);
+
+            stHDR_FRAMEWORK_DATA_t* frameworkData = tchdrfwk_getDataStructPtr();
+            if(frameworkData->busyFlag[hdrInstance->instance_number] == true) {
+                (*pfnHdrLog)(eTAG_SYS, eLOG_ERR, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> During HDR reacquisition... [%d].\n", (S32)hdrInstance->instance_number);
+            }
+            dataOut->bbBand = tchdraudinput_getTunedBand(id);
+            dataOut->bbFreq = tchdraudinput_getTunedFreq(id);
 
 		    (void)(*stOsal.osmemset)((void*)&programTypes, (S8)0, (U32)sizeof(HDR_program_types_t));
 			(void)HDR_get_program_types(hdrInstance, &programTypes);

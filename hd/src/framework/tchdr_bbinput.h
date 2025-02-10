@@ -130,6 +130,8 @@ extern void *tchdr_rfIqInputThread(void * arg);
 extern F64 tchdraudinput_setResamplerSlips(F64 ppm);
 extern void tchdraudinput_getResamplerSlips(F64 *ppm, F64 *out_hz);
 
+extern U8 tchdraudinput_getTunedBand(U8 hdrInstance);
+extern U16 tchdraudinput_getTunedFreq(U8 hdrInstance);
 #ifdef __cplusplus
 }
 #endif

@@ -1772,6 +1772,14 @@ static HDRET tchdraudinput_stop(void)
 	return ret;
 }
 
+U8 tchdraudinput_getTunedBand(U8 hdrInstance) {
+    return (stBbInputCtrl[hdrInstance].tuneInfo.band == HDR_BAND_AM)?0x01:0x00;
+}
+
+U16 tchdraudinput_getTunedFreq(U8 hdrInstance) {
+    return stBbInputCtrl[hdrInstance].tuneInfo.freq;
+}
+
 static void tchdrbbinput_syncTuneInfo(stTCHDR_TUNE_INFO_t tuneInfo)
 {
 /*
@@ -2189,6 +2197,14 @@ static HDRET tchdrbbinput_setTune(eTC_HDR_ID_t id, stTCHDR_TUNE_t inputTune, U32
 
 	if(id == eTC_HDR_ID_MAIN) {
 		curTune = &stTcHdrTuneInfo.mainInstance;
+        if (curTune->band != inputTune.band) {
+            (*pfnHdrLog)(eTAG_SYS, eLOG_ERR, "[%s][bbFreq][id == eTC_HDR_ID_MAIN] curTune->band [%s -> %s].\n"
+                    , __func__, (curTune->band==HDR_BAND_AM?"AM":"FM"), (inputTune.band==HDR_BAND_AM?"AM":"FM"));
+        }
+        if (curTune->freq != inputTune.freq) {
+            (*pfnHdrLog)(eTAG_SYS, eLOG_ERR, "[%s][bbFreq][id == eTC_HDR_ID_MAIN] curTune->freq [%d -> %d].\n"
+                    , __func__, curTune->freq, inputTune.freq);
+        }
 	}
 	else if(id == eTC_HDR_ID_MRC) {
 		curTune = &stTcHdrTuneInfo.mrcInstance;
