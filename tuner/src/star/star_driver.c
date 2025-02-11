@@ -1924,7 +1924,7 @@ Tun_Status TUN_Download_CustomizedCoeffs(tU8 deviceAddress)
 
     // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x3FD930);     // AM volume 6dB
     // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x4BE24B);       // AM volume 7.5dB
-    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x4E198D);       // AM volume 7.5dB    OK  -> +-0.1
+    tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x4E198D);       // AM volume 7.75dB    OK  -> +-0.1
     // tunerStatus |= TUN_Cmd_Write(deviceAddress, TDA7707_amCoef_asp_volume, 0x5A3031);       // AM volume 9dB
 
     // FM default : 1dB
