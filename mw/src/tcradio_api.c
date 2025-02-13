@@ -302,13 +302,14 @@ RET tcradio_setTune(eRADIO_MOD_MODE_t mod_mode, uint32 freq, uint32 tune_mode, u
 	return ret;
 }
 
-RET tcradio_setSeek(eRADIO_SEEK_MODE_t seekcmd, uint32 *data)
+RET tcradio_setSeek(eRADIO_SEEK_MODE_t seekcmd, uint32 startFreq, uint32 *data)
 {
 	RET ret = checkRadioOpenStatus();
 	uint32 uiBuf[MSGQ_DATA_LENGTH]={0,};
 	if(ret == eRET_OK) {
 		tcradioservice_mutexLock();
 		uiBuf[0] = (uint32)seekcmd;
+		uiBuf[1] = (uint32)startFreq;
 		if(data != NULL) {
 			tcradio_memcpy(scanPiList, data, 128);
 		}

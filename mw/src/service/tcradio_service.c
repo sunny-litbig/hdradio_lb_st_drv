@@ -129,7 +129,7 @@ void tcradioservice_sortPresetMemory(void);
 void tcradioservice_loadPresetMemory(uint8 pnum);
 #endif
 static void tcradioservice_eventHandler(void);
-void tcradioservice_initSeek(eRADIO_SEEK_MODE_t nextSeekMode);
+void tcradioservice_initSeek(eRADIO_SEEK_MODE_t nextSeekMode, uint32 startFreq);
 void tcradioservice_makeStationList(void);
 void *tcradioservice_mainThread(void *arg);
 eRADIO_STS_t tcradioservice_seekProcess(void);
@@ -506,7 +506,7 @@ void tcradioservice_appMessageParser(stMsgBuf_t *pstMsg)
 			break;
 
 		case eRADIO_CMD_SET_SEEK:
-			tcradioservice_initSeek((eRADIO_SEEK_MODE_t)pstMsg->uiData[0]);
+			tcradioservice_initSeek((eRADIO_SEEK_MODE_t)pstMsg->uiData[0], pstMsg->uiData[1]);
 			tcradioservice_setMainMode(eRADIO_EVT_SET_SEEK);
 			break;
 
@@ -2039,9 +2039,19 @@ int32 tcradioservice_findBestStation(void)
 	return ret;
 }
 
-void tcradioservice_initSeek(eRADIO_SEEK_MODE_t nextSeekMode)
+void tcradioservice_initSeek(eRADIO_SEEK_MODE_t nextSeekMode, uint32 startFreq)
 {
-	uint32 cf = stRadioService.curFreq;
+	uint32 cf;
+    if (startFreq != 0) {
+        if(stRadioService.curBand == eRADIO_FM_MODE) {
+            cf = stRadioService.curFreq = startFreq*10;
+        } else {
+            cf = stRadioService.curFreq = startFreq;
+        }
+    } else {
+        cf = stRadioService.curFreq;
+    }
+    // RSRV_ERR("<<<<<<<< [%s] startFreq : %d, cf : %d, stRadioService.curFreq : %d >>>>>>>>>>\n", __func__, startFreq, cf, stRadioService.curFreq);
 	uint32 sf= 0, ef = 0, step = 0;
 	int32 chkret;
 
@@ -2049,6 +2059,7 @@ void tcradioservice_initSeek(eRADIO_SEEK_MODE_t nextSeekMode)
 	stRadioService.curSeekResult = 0;
 
 	chkret = tcradioservice_checkValidFreqAccordingToConfig(stRadioService.curBand, cf);
+    // RSRV_ERR("<<<<<<<< [%s] chkret : %d >>>>>>>>>>\n", __func__, chkret);
 	if(chkret != 0) {
 		if(stRadioService.curBand == eRADIO_AM_MODE) {
 			sf = stRadioService.am.startFreq;
@@ -2088,6 +2099,7 @@ void tcradioservice_initSeek(eRADIO_SEEK_MODE_t nextSeekMode)
 
 		stRadioService.curFreq = cf;
 	}
+    // RSRV_ERR("<<<<<<<< [%s] stRadioService.curFreq : %d >>>>>>>>>>\n", __func__, stRadioService.curFreq);
 
 	stRadioService.curStartFreq = stRadioService.curFreq;
 

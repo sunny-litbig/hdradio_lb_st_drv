@@ -1406,25 +1406,25 @@ int32 tcradiocui_operation(char *argv[], int argc)
 		}
 	}
 	else if(SCMP(p0, "up", MAX_SCMP_LEN)==0) {
-		ret = tcradio_setSeek(eRADIO_SEEK_AUTO_UP, NULL);
+		ret = tcradio_setSeek(eRADIO_SEEK_AUTO_UP, 0, NULL);
 		RAPP_DBG("Wait... This operation takes time...\n");
 	}
 	else if(SCMP(p0, "dn", MAX_SCMP_LEN)==0) {
-		ret = tcradio_setSeek(eRADIO_SEEK_AUTO_DOWN, NULL);
+		ret = tcradio_setSeek(eRADIO_SEEK_AUTO_DOWN, 0, NULL);
 		RAPP_DBG("Wait... This operation takes time...\n");
 	}
 	else if(SCMP(p0, "u", MAX_SCMP_LEN)==0) {
-		ret = tcradio_setSeek(eRADIO_SEEK_MAN_UP, NULL);
+		ret = tcradio_setSeek(eRADIO_SEEK_MAN_UP, 0, NULL);
 	}
 	else if(SCMP(p0, "d", MAX_SCMP_LEN)==0) {
-		ret = tcradio_setSeek(eRADIO_SEEK_MAN_DOWN, NULL);
+		ret = tcradio_setSeek(eRADIO_SEEK_MAN_DOWN, 0, NULL);
 	}
 	else if(SCMP(p0, "list", MAX_SCMP_LEN)==0) {
-		ret = tcradio_setSeek(eRADIO_SEEK_SCAN_STATION, NULL);
+		ret = tcradio_setSeek(eRADIO_SEEK_SCAN_STATION, 0, NULL);
 		RAPP_DBG("Wait... This operation takes time...\n");
 	}
 	else if(SCMP(p0, "s", MAX_SCMP_LEN)==0) {
-		ret = tcradio_setSeek(eRADIO_SEEK_STOP, NULL);
+		ret = tcradio_setSeek(eRADIO_SEEK_STOP, 0, NULL);
 	}
 	else if(SCMP(p0, "bf", MAX_SCMP_LEN)==0) {
 		if(argc > 1) {
@@ -1745,7 +1745,7 @@ int32 tcradiocui_operation(char *argv[], int argc)
 					RAPP_DBG("pi scan list [0]=%xh\n", pilist[0]);
 					if(pilist[0] > 0 && pilist[0] < 0x10000)
 					{
-						tcradio_setSeek(eRADIO_SEEK_SCAN_PI, pilist);
+						tcradio_setSeek(eRADIO_SEEK_SCAN_PI, 0, pilist);
 					}
 				}
 				else if(argc == 4) {
@@ -1756,7 +1756,7 @@ int32 tcradiocui_operation(char *argv[], int argc)
 					if( (pilist[0] > 0 && pilist[0] < 0x10000) &&
 						(pilist[1] > 0 && pilist[1] < 0x10000) )
 					{
-						tcradio_setSeek(eRADIO_SEEK_SCAN_PI, pilist);
+						tcradio_setSeek(eRADIO_SEEK_SCAN_PI, 0, pilist);
 					}
 				}
 				else if(argc == 5) {
@@ -1769,7 +1769,7 @@ int32 tcradiocui_operation(char *argv[], int argc)
 						(pilist[1] > 0 && pilist[1] < 0x10000) &&
 						(pilist[2] > 0 && pilist[2] < 0x10000) )
 					{
-						tcradio_setSeek(eRADIO_SEEK_SCAN_PI, pilist);
+						tcradio_setSeek(eRADIO_SEEK_SCAN_PI, 0, pilist);
 					}
 				}
 				else {

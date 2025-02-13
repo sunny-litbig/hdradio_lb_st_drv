@@ -470,7 +470,7 @@ static void tcsubrmgr_eventHandler(stSdrIpcBuf_t rxbuf, stSdrIpcBuf_t *txbuf)
 				eRADIO_SEEK_MODE_t seekcmd = (eRADIO_SEEK_MODE_t)rxbuf.data[0];
 				uint32 picode[128] = {0,};
 				picode[0] = tcsubrmgr_8bto32b(rxbuf.data+1);
-				ret = tcradio_setSeek(seekcmd, picode);
+				ret = tcradio_setSeek(seekcmd, 0, picode);
 				if(ret != eRET_OK) {
 					fresp = 1;
 					txbuf->length = (uint16)IPC_MIN_LEN + 2;

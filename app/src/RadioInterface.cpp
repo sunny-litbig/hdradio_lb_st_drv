@@ -283,7 +283,7 @@ void RadioInterface::setFrequency(int freq) {
 void RadioInterface::radioSeekManual(bool up) {
     TC_RADIO_PRINTF("Seek manual - %d", up);
 #ifndef QT_DEBUG
-    tcradio_setSeek(up ? eRADIO_SEEK_MAN_UP : eRADIO_SEEK_MAN_DOWN, NULL);
+    tcradio_setSeek(up ? eRADIO_SEEK_MAN_UP : eRADIO_SEEK_MAN_DOWN, 0, NULL);
   #ifdef USE_HDRADIO
 	stTC_HDR_PSD_FORM_t hdrPsd;
 	stTC_HDR_SIS_t hdrSis;
@@ -310,7 +310,7 @@ void RadioInterface::radioSeekManual(bool up) {
 void RadioInterface::radioSeekAuto(bool up) {
     TC_RADIO_PRINTF("Seek auto - %d", up);
 #ifndef QT_DEBUG
-    tcradio_setSeek(up ? eRADIO_SEEK_AUTO_UP : eRADIO_SEEK_AUTO_DOWN, NULL);
+    tcradio_setSeek(up ? eRADIO_SEEK_AUTO_UP : eRADIO_SEEK_AUTO_DOWN, 0, NULL);
   #ifdef USE_HDRADIO
 	stTC_HDR_PSD_FORM_t hdrPsd;
 	stTC_HDR_SIS_t hdrSis;
@@ -336,14 +336,14 @@ void RadioInterface::radioSeekAuto(bool up) {
 void RadioInterface::radioSeekList() {
     TC_RADIO_PRINTF("seek list");
 #ifndef QT_DEBUG
-    tcradio_setSeek(eRADIO_SEEK_SCAN_STATION, NULL);
+    tcradio_setSeek(eRADIO_SEEK_SCAN_STATION, 0, NULL);
 #endif
 }
 
 void RadioInterface::radioSeekStop() {
     TC_RADIO_PRINTF("Seek stop");
 #ifndef QT_DEBUG
-    tcradio_setSeek(eRADIO_SEEK_STOP, NULL);
+    tcradio_setSeek(eRADIO_SEEK_STOP, 0, NULL);
 #endif
 }
 
@@ -351,7 +351,7 @@ void RadioInterface::radioSeekPIList(unsigned int *pilist, unsigned int cnt) {
     TC_RADIO_PRINTF("seek PI list");
 	//TODO : malloc pilist array
 	(void)cnt;
-    tcradio_setSeek(eRADIO_SEEK_SCAN_PI, pilist);
+    tcradio_setSeek(eRADIO_SEEK_SCAN_PI, 0, pilist);
 }
 
 void RadioInterface::getRadioFrequency(eRADIO_MOD_MODE_t *mod_mode, unsigned int *freq, int ntuner) {

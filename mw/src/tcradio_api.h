@@ -368,7 +368,7 @@ extern RET tcradio_getCurrentDabFreqList(uint8 *curNums, uint32 ntuner);
 extern RET tcradio_setDabFreqList(uint32 *dab_freq_hz_table, uint8 num_freq, uint32 ntuner);
 extern RET tcradio_getDabFreqList(uint32 *dab_freq_hz_table, uint8 *num_freq, uint32 ntuner);
 extern RET tcradio_setTune(eRADIO_MOD_MODE_t mod_mode, uint32 freq, uint32 tune_mode, uint32 ntuner);
-extern RET tcradio_setSeek(eRADIO_SEEK_MODE_t seekcmd, uint32 *data);
+extern RET tcradio_setSeek(eRADIO_SEEK_MODE_t seekcmd, uint32 startFreq, uint32 *data);
 extern RET tcradio_bgStart(eRADIO_MOD_MODE_t mod_mode);
 extern RET tcradio_bgStop(void);
 extern RET tcradio_setTunerCommand(uint8 *txdata, uint32 txlen, uint8 *rxdata, uint32 rxlen, uint32 ntuner);
