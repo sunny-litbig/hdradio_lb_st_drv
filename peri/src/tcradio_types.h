@@ -133,6 +133,18 @@ typedef int					BOOL;
 #define FALSE				(0)
 #endif
 
+//#define IQ_PATTERN_CHECK_ENABLE
+#define TUNER_A_PATTERN_4BYTE 	0xA3A2A1A0
+#define TUNER_B_PATTERN_4BYTE 	0xB3B1B1B0
+
+#ifdef IQ_PATTERN_CHECK_ENABLE
+#define TUNER_A_PATTERN_I		0xA3A2
+#define TUNER_A_PATTERN_Q		0xA1A0
+#define TUNER_A_PATTERN_BYTE0 	0xA0
+#define TUNER_A_PATTERN_BYTE1 	0xA1
+#define TUNER_A_PATTERN_BYTE2 	0xA2
+#define TUNER_A_PATTERN_BYTE3 	0xA3
+#endif
 /***************************************************
 *				Enumeration				*
 ****************************************************/

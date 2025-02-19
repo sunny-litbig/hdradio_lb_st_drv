@@ -65,6 +65,7 @@ Agreement between Telechips and Company.
 #include "tchdr_callback.h"
 #include "tchdr_audio.h"
 #include "tcaud_resampler.h"
+#include "tcradio_types.h"
 
 /***************************************************
 *        Global variable definitions               *
@@ -1367,7 +1368,50 @@ void *tchdr_bbInputThread(void* arg)
 
 S32 tchdrbbinput_getSamples(int16c_t* bbSamples, U32 numSamples, U32 instanceNum)
 {
+#ifndef IQ_PATTERN_CHECK_ENABLE
     return (*stCircFunc.cb_read)(&stBbInputCtrl[instanceNum].iqSampleBuffer, (void*)bbSamples, numSamples);
+#else
+	S32 ret;
+    ret = (*stCircFunc.cb_read)(&stBbInputCtrl[instanceNum].iqSampleBuffer, (void*)bbSamples, numSamples);
+
+	uint_t check_size;
+
+    if(stBbInputCtrl[instanceNum].tuneInfo.band == HDR_BAND_AM)
+	{
+		check_size = HDR_AM_BB_INPUT_BUFFER_SIZE;
+    }
+	else if (stBbInputCtrl[instanceNum].tuneInfo.band == HDR_BAND_FM)
+	{
+		check_size = HDR_FM_BB_INPUT_BUFFER_SIZE;
+	}
+	else
+	{
+		check_size = 0;
+	}
+
+
+	if (numSamples != check_size)
+	{
+		(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "[IQ PATTERN CHECK] tchdrbbinput_getSamples numSamples = %d \n", numSamples);
+	}
+	else
+	{
+		int check_cnt = 0;
+		uint_t check_val = TUNER_A_PATTERN_4BYTE;
+		uint_t *check_p = bbSamples;
+
+		for (int tmp_cnt = 0; tmp_cnt < check_size; tmp_cnt ++)
+		{
+			if (check_p[tmp_cnt] != check_val)
+				check_cnt ++;
+		}
+
+		if (check_cnt != 0)
+			(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "[IQ PATTERN CHECK] tchdrbbinput_getSamples check_cnt = %d check_size = %d \n", check_cnt, check_size);
+	}
+	
+	return ret;
+#endif
 }
 
 S32 tchdrbbinput_getSamplesValid(U32 instanceNum)
@@ -1492,8 +1536,48 @@ static S32 tchdrbbinput_readTunerIqSamples(stHDR_BB_INPUT_CTRL_t* argStBbInputCt
 
 	if(ret == 0) {
 		bytesToRead = numSamplesNeeded * sampleSize;
+
 		rc0 = (*stCircFunc.cb_read)(&argStBbInputCtrl->iqReadBuffer, (void*)ISampBuffer, bytesToRead);
 		rc1 = (*stCircFunc.cb_read)(&argStBbInputCtrl->iqReadBuffer, (void*)QSampBuffer, bytesToRead);
+
+#ifdef IQ_PATTERN_CHECK_ENABLE
+		if (rc0 != (BB_INPUT_SYMBOL_SIZE * 2))
+		{
+			(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "[IQ PATTERN CHECK] iqReadBuffer ISampBuffer return = %d \n", rc0);
+		}
+		else
+		{
+			int check_cnt = 0;
+			S16 check_val = TUNER_A_PATTERN_I;
+
+			for (int tmp_cnt = 0; tmp_cnt < BB_INPUT_SYMBOL_SIZE; tmp_cnt ++)
+			{
+				if (ISampBuffer[tmp_cnt] != check_val)
+					check_cnt ++;
+			}
+
+			if (check_cnt != 0)
+				(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "[IQ PATTERN CHECK] iqReadBuffer ISampBuffer check_cnt = %d \n", check_cnt);
+		}
+
+		if (rc1 != (BB_INPUT_SYMBOL_SIZE * 2))
+		{
+			(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "[IQ PATTERN CHECK] iqReadBuffer QSampBuffer return = %d \n", rc1);
+		}
+		else
+		{
+			int check_cnt = 0;
+			S16 check_val = TUNER_A_PATTERN_Q;
+			for (int tmp_cnt = 0; tmp_cnt < BB_INPUT_SYMBOL_SIZE; tmp_cnt ++)
+			{
+				if (QSampBuffer[tmp_cnt] != check_val)
+					check_cnt ++;
+			}
+
+			if (check_cnt != 0)
+				(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "[IQ PATTERN CHECK] iqReadBuffer QSampBuffer check_cnt = %d \n", check_cnt);
+		}
+#endif
 
 		if((rc0 < (S32)bytesToRead) || (rc1 < (S32)bytesToRead)) {
 			(*pfnHdrLog)(eTAG_BBIN, eLOG_DBG, "IQ-samples read size is samll or not available. Iret[%d], Qret[%d]\n", rc0, rc1);
@@ -1509,6 +1593,28 @@ static S32 tchdrbbinput_readTunerIqSamples(stHDR_BB_INPUT_CTRL_t* argStBbInputCt
 		else {
 			// No matter what, the iqscaling is fixed at 1.0 in E1 vector format.
 			tchdrbbinput_packVectorE1Samples(argStBbInputCtrl->tuneInfo.band, ISampBuffer, QSampBuffer, outputBuffer, numSamplesNeeded);
+
+#ifdef IQ_PATTERN_CHECK_ENABLE
+			if (numSamplesNeeded != BB_INPUT_SYMBOL_SIZE)
+			{
+				(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "[IQ PATTERN CHECK] tchdrbbinput_packVectorE1Samples numSamplesNeeded = %d \n", numSamplesNeeded);
+			}
+			else
+			{
+				int check_cnt = 0;
+				uint_t check_val = TUNER_A_PATTERN_4BYTE;
+				uint_t *check_p = outputBuffer;
+
+				for (int tmp_cnt = 0; tmp_cnt < BB_INPUT_SYMBOL_SIZE; tmp_cnt ++)
+				{
+					if (check_p[tmp_cnt] != check_val)
+						check_cnt ++;
+				}
+
+				if (check_cnt != 0)
+					(*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, "[IQ PATTERN CHECK] tchdrbbinput_packVectorE1Samples check_cnt = %d \n", check_cnt);
+			}
+#endif
 		}
 
 		ret = (S32)numSamplesNeeded;
@@ -2512,6 +2618,8 @@ static eTCHDR_EVT_STS_t tchdrbbinput_event_test(stTcHdrMsgBuf_t stRcvMsgQ, U32 *
 	return eEvtSt;
 }
 
+static int dump_flag = 0;
+static FILE *giqfile;
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 /*								Telechips HD Radio IQ Data Functions							*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2561,6 +2669,37 @@ static HDRET tchdriqinput_readTunerIqSamples(U32 chunkSymbols01, U32 chunkSymbol
 	else {	// one or two Instance
 		if((pfnTcHdrIQ01Read != NULL) && (readIQ01 != NULL) && (chunkSymbols01 > 0U)) {
 			ret_size0 = (*pfnTcHdrIQ01Read)(readIQ01, (*stCast.u32tos32)(chunkSizeIQ01));
+
+#ifdef IQ_PATTERN_CHECK_ENABLE
+		if (ret_size0 > 0)
+		{
+			int check_cnt = 0;
+
+			if (ret_size0 != (BB_INPUT_SYMBOL_SIZE * 2))
+			{
+				(*pfnHdrLog)(eTAG_IQIN, eLOG_ERR, "[IQ PATTERN CHECK] pfnTcHdrIQ01Read return = %d \n", ret_size0);
+			}
+			else
+			{
+				for (int tmp_cnt = 0; tmp_cnt < (BB_INPUT_SYMBOL_SIZE * 2); tmp_cnt += 2)
+				{
+					if (readIQ01[tmp_cnt] != TUNER_A_PATTERN_BYTE2 || readIQ01[tmp_cnt + 1] != TUNER_A_PATTERN_BYTE3)
+					{
+						check_cnt ++;
+					}
+
+					if (readIQ01[tmp_cnt + (BB_INPUT_SYMBOL_SIZE * 2)] != TUNER_A_PATTERN_BYTE0 || readIQ01[tmp_cnt + (BB_INPUT_SYMBOL_SIZE * 2) + 1] != TUNER_A_PATTERN_BYTE1)
+					{
+						check_cnt ++;
+					}
+				}
+
+				if (check_cnt != 0)
+					(*pfnHdrLog)(eTAG_IQIN, eLOG_ERR, "[IQ PATTERN CHECK] pfnTcHdrIQ01Read check_cnt = %d \n", check_cnt);
+			}
+		}
+#endif
+
 		#ifdef DEBUG_IQ_BUF_FILE_DUMP
 			if(fIqdumpEnable) {
 				fwrite(readIQ01, 1, ret_size0, gDumpIBuf);

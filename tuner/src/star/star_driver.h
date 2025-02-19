@@ -27,7 +27,7 @@
 
 //Basic commands
 #define CMD_CODE_TUNER_PING						0x00
-//#define CMD_CODE_TUNER_READ		      				0x1E
+#define CMD_CODE_TUNER_READ		      			0x1E
 #define CMD_CODE_TUNER_WRITE  					0x1F
 #define CMD_CODE_TUNER_CHANGE_BAND 				0x0A
 #define CMD_CODE_TUNER_TUNE						0x08
