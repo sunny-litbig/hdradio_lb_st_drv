@@ -983,7 +983,9 @@ void *tchdr_bbInputThread(void* arg)
 						numSamplesRead = tchdrbbinput_readTunerIqSamples(&stBbInputCtrl[i], readOutputBuffer, bbReadBlockSize[i]);
 						if(numSamplesRead > 0) {
                     		HDR_bb_src_exec(stBbInputCtrl[i].hdrBbSrc, readOutputBuffer, bbReadBlockSize[i], bbOutputBuffer, &numOutputSamples);
-						}
+						} else {
+		                    (*pfnHdrLog)(eTAG_BBIN, eLOG_DBG, ">>>>>>><<<<<<< numSamplesRead %d\n", numSamplesRead);
+                        }
 	                }
 					else {
 	                    numSamplesRead = tchdrbbinput_readTunerIqSamples(&stBbInputCtrl[i], bbOutputBuffer, bbReadBlockSize[i]);

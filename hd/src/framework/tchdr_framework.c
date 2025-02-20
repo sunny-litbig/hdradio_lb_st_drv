@@ -370,6 +370,18 @@ static HDRET tchdrfwk_setConfiguration(U32 numOfHdrInstances)
     stHdrFrameworkData.hdaoutResampler = HDR_audio_resampler_init((void*)hdaoutResamplerMem, HDR_BB_SAMPLE_SLIPS_CORRECTION, NULL);
 	stHdrFrameworkData.digitalAudioStarted=false;
 
+#if 1 // for CCNC_PIO_SDR
+    auto_align_config.am_auto_time_align_enabled = true;
+    auto_align_config.fm_auto_time_align_enabled = true;
+    auto_align_config.am_auto_level_align_enabled = true;
+    auto_align_config.fm_auto_level_align_enabled = true;
+#ifdef USE_HDRLIB_3RD_CHG_VER
+    auto_align_config.am_auto_level_correction_enabled = true;
+    auto_align_config.fm_auto_level_correction_enabled = true;
+#else
+    auto_align_config.apply_level_adjustment = true;
+#endif
+#else
     auto_align_config.am_auto_time_align_enabled = false;
     auto_align_config.fm_auto_time_align_enabled = false;
     auto_align_config.am_auto_level_align_enabled = false;
@@ -379,6 +391,7 @@ static HDRET tchdrfwk_setConfiguration(U32 numOfHdrInstances)
     auto_align_config.fm_auto_level_correction_enabled = false;
 #else
     auto_align_config.apply_level_adjustment = false;
+#endif
 #endif
 
 	stHdrFrameworkData.autoAlign = HDR_auto_align_init((void*)autoAlignMem, HDR_AUTO_ALIGN_MEM_SIZE, &auto_align_config , HDR_AUDIO_SAMPLING_RATE_44KHz);
@@ -439,7 +452,38 @@ static HDRET tchdrfwk_setConfiguration(U32 numOfHdrInstances)
 	hdrConfig.blend_params.am_mps_dig_audio_delay = 13345;		// silab: 13345, st: 13415
 	hdrConfig.blend_params.fm_mps_audio_scaling = 16400;		// silab: 16400, st:
 	hdrConfig.blend_params.fm_all_dig_audio_scaling = 16400;	// silab: 16400, st:
-	hdrConfig.blend_params.am_mps_audio_scaling = 17200;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 17200;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 16200;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 15200;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 14200;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 12200;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 12000;		// silab: 17200, st:  // levelOffset 27 dig < anal
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11700;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11400;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11300;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11250;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11210;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11205;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11200;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11195;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11190;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11150;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11100;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11050;		// silab: 17200, st:
+    hdrConfig.blend_params.am_mps_audio_scaling = 11000;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 11000+5;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 10950;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 10700;		// silab: 17200, st:
+	// hdrConfig.blend_params.am_mps_audio_scaling = 10200;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 9700;		// silab: 17200, st:
+    // hdrConfig.blend_params.am_mps_audio_scaling = 9200;		// silab: 17200, st:  // levelOffset 903
+    // hdrConfig.blend_params.am_mps_audio_scaling = 8200;		// silab: 17200, st:  // levelOffset 903
+    // hdrConfig.blend_params.am_mps_audio_scaling = 6200;		// silab: 17200, st:  // levelOffset 903
+    // hdrConfig.blend_params.am_mps_audio_scaling = 5200;		// silab: 17200, st:  // levelOffset 2375
+    // hdrConfig.blend_params.am_mps_audio_scaling = 4750;		// silab: 17200, st:  // levelOffset 2375
+    // hdrConfig.blend_params.am_mps_audio_scaling = 4200;		// silab: 17200, st:  // levelOffset 2375
+    // hdrConfig.blend_params.am_mps_audio_scaling = 3700;		// silab: 17200, st:  // levelOffset 2375
+    // hdrConfig.blend_params.am_mps_audio_scaling = 3200;		// silab: 17200, st:  // levelOffset 2375
 	hdrConfig.blend_params.am_all_dig_audio_scaling = 17200;	// silab: 17200, st:
 #else	// 2.6.3
 	hdrConfig.blend_params.fm_mps_dig_audio_delay = 64383;		// 64384 <- 64362
@@ -456,6 +500,7 @@ static HDRET tchdrfwk_setConfiguration(U32 numOfHdrInstances)
     }else{
         hdrConfig.tx_audio_gain_enabled = true;
     }
+	(*pfnHdrLog)(eTAG_CORE, eLOG_ERR, "tx_audio_gain_enabled : %s\n", (hdrConfig.tx_audio_gain_enabled?"true":"false"));
 #else
 	if(auto_align_config.apply_level_adjustment == true){
         hdrConfig.mps_tx_audio_gain_enabled =false;
@@ -1981,6 +2026,7 @@ static void tchdrblending_automaticAudioAlignmentProcess(U32 audioQuality, HDBOO
 			stHdrFrameworkData.aaaState = alignRc;
 			if(HDR_blend_adjust_audio_delay(&stHdrFrameworkData.hdrInstance[0], timeOffset, &decodedAudioDelay) == 0) {
 				(*pfnHdrLog)(eTAG_BLD, eLOG_DBG, "Auto-alignment sample adjustment: %d.\n", (S32)timeOffset);
+				(*pfnHdrLog)(eTAG_BLD, eLOG_DBG, "Auto-alignment levelOffset: %d.\n", (S32)levelOffset);
 				decodedAudioDelay += HDR_audio_resampler_avail_data(stHdrFrameworkData.hdaoutResampler);
 				HDR_auto_align_set_holdoff(stHdrFrameworkData.autoAlign, decodedAudioDelay);
 				stHdrFrameworkData.alignmentSuccess = true;

@@ -567,17 +567,17 @@ static RET tcradiosound_playbackHandler(void)
 		#ifdef DEBUG_TCRADIO_AUDIO_OUTPUT_DUMP
 	    #ifdef USE_HDRADIO
 			// if(++dumpAudioCnt <= 15500) {	// When read frame size is 2048, it's about 11min.
-			if(++dumpAudioCnt <= 2530) {	// When read frame size is 2048, it's about 90secs.
+			if(++dumpAudioCnt <= 2380) {	// When read frame size is 2048, it's about 90secs.
 				// if(dumpAudioCnt == 999) {
-				if(dumpAudioCnt == 499) {
+				if(dumpAudioCnt == 199) {
 					RSND_DBG(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<< Started Audio Output Dump >>>>>><<<<<<<\n");
 				}
 				// else if(dumpAudioCnt >= 1000 && dumpAudioCnt < 15500) {
-				else if(dumpAudioCnt >= 500 && dumpAudioCnt < 2530) {
+				else if(dumpAudioCnt >= 200 && dumpAudioCnt < 2380) {
 					fwrite(soundBuffer, 4, TC_HDR_AUDIO_FRAME_SIZE, gOutAudfile);
 				}
 				// else if(dumpAudioCnt == 15500) {
-				else if(dumpAudioCnt == 2530) {
+				else if(dumpAudioCnt == 2380) {
 					if(gOutAudfile!=NULL)	fclose(gOutAudfile);
 					RSND_DBG(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<< Finished Audio Output Dump >>>>>><<<<<<<\n");
 				}
