@@ -1090,6 +1090,56 @@ static uint32 star_u8btou32b(uint8 src)
 }
 
 
+Tun_Status TUN_Cmd_Read(tU8 deviceAddress, tU32 regAddr, tU8 numOfRegs, tU8 *regData)
+{
+	Tun_Status tunerStatus = RET_ERROR;
+	int cmdID = CMD_CODE_TUNER_READ;
+	int cmdParamNum = 2;
+	int ansParmNum;
+	int realAnsParamNum;
+	tU8 paramData[1024 + 4];
+	tU8 answerData[1024 + 4];	/* answer data include asnwer header, answer param and check sum */
+
+    if(regData != NULL)
+    {
+        if((regAddr & 0x080000) == 0) {
+			// If bit 19 is 1, then the address is in the DSP memory space and the data word has 24 bits.
+			// if bit 19 is 0, then the address is elsewhere and the data word has 32 bits.
+			ansParmNum = numOfRegs * 2;
+		}
+		else {
+			ansParmNum = numOfRegs;
+		}
+
+        memset(paramData, 0x00, cmdParamNum * 3);
+
+		paramData[0] = (regAddr >> 16) & 0xFF;
+		paramData[1] = (regAddr >> 8) & 0xFF;
+		paramData[2] = (regAddr) & 0xFF;
+		paramData[3] = (numOfRegs >> 16) & 0xFF;
+		paramData[4] = (numOfRegs >> 8) & 0xFF;
+		paramData[5] = (numOfRegs) & 0xFF;
+
+        tunerStatus = Star_Command_Communicate(deviceAddress, cmdID, cmdParamNum, paramData, ansParmNum, answerData, FALSE, &realAnsParamNum, TRUE);
+
+        if(tunerStatus == RET_SUCCESS)
+        {
+            memcpy(regData, answerData + 3, ansParmNum * 3);
+        }
+        else
+        {
+            TDRV_ERR("[%s] Star_Command_Communicate fail with tunerStatus = %d \n", __func__, tunerStatus);
+        }
+    }
+    else
+    {
+		TDRV_ERR("[%s] Input register data pointer is NULL\n", __func__);
+    }
+
+    return tunerStatus;
+}
+
+
 /*************************************************************************************
 Function        : TUN_Cmd_Write
 Description    : This function performs a write operation to tuner' register. 
@@ -1147,7 +1197,6 @@ Tun_Status TUN_Cmd_Write(tU8 deviceAddress, tU32 regAddress, tU32 regData)
 
     return tunerStatus;
 }
-
 
 /*************************************************************************************
 Function         : TUN_Ping
@@ -1978,6 +2027,10 @@ int star_setBand(int mod_mode, int channelID)
     seekStep = stAreaBands[gStarConf.area][mod_mode].seekStep;
 
     tunerStatus = TUN_Change_Band(I2C_SLAVE_ADDRESS, channelID, bandMode, maxFreq, minFreq, seekStep, VPAMode);
+#ifdef IQ_PATTERN_CHECK_ENABLE
+    TDRV_ERR("[IQ PATTERN CHECK] star_setIQTestPattern with %X %X \n", TUNER_A_PATTERN_4BYTE, TUNER_B_PATTERN_4BYTE);
+    tunerStatus |= star_setIQTestPattern(1, 0);
+#endif
 
     return tunerStatus;
 }
@@ -2341,10 +2394,55 @@ int star_close(void)
 
 int star_setIQTestPattern(unsigned int fOnOff, unsigned int sel)
 {
+    Tun_Status tunerStatus = RET_SUCCESS;
+
     (void)fOnOff;
     (void)sel;
 
-    return 0;
+    tU8 regData0[6] = {0,};
+    tU8 regData1[6] = {0,};
+    tU8 regData2[6] = {0,};
+    tU32 reg_value = 0;
+
+    tunerStatus = TUN_Cmd_Write(I2C_SLAVE_ADDRESS, 0x00B001, TUNER_A_PATTERN_4BYTE);
+    tunerStatus |= TUN_Cmd_Write(I2C_SLAVE_ADDRESS, 0x00B005, TUNER_B_PATTERN_4BYTE);
+
+    tunerStatus |= TUN_Cmd_Read(I2C_SLAVE_ADDRESS, 0x00B000, 1, regData0);
+    reg_value = 0;
+    reg_value = (tU32)regData0[0] << 24;
+    reg_value |= (tU32)regData0[1] << 16;
+    reg_value |= (tU32)regData0[2] << 8;
+    reg_value |= (tU32)regData0[5];
+	TDRV_INF("[%s] Read 0x00B000 addr. register value is %X \n", __func__, reg_value);
+
+    reg_value = reg_value & 0xFFFFF9FF;
+	TDRV_INF("[%s] Write 0x00B000 addr. register value is %X \n", __func__, reg_value);
+    tunerStatus |= TUN_Cmd_Write(I2C_SLAVE_ADDRESS, 0x00B000, reg_value);
+
+    tunerStatus |= TUN_Cmd_Read(I2C_SLAVE_ADDRESS, 0x00B001, 1, regData1);
+    reg_value = 0;
+    reg_value = (tU32)regData1[0] << 24;
+    reg_value |= (tU32)regData1[1] << 16;
+    reg_value |= (tU32)regData1[2] << 8;
+    reg_value |= (tU32)regData1[5];
+	TDRV_INF("[%s] Read 0x00B001 addr. register value is %X \n", __func__, reg_value);
+
+    tunerStatus |= TUN_Cmd_Read(I2C_SLAVE_ADDRESS, 0x00B005, 1, regData2);
+    reg_value = 0;
+    reg_value = (tU32)regData2[0] << 24;
+    reg_value |= (tU32)regData2[1] << 16;
+    reg_value |= (tU32)regData2[2] << 8;
+    reg_value |= (tU32)regData2[5];
+	TDRV_INF("[%s] Read 0x00B005 addr. register value is %X \n", __func__, reg_value);
+
+    if (tunerStatus == RET_SUCCESS)
+    {
+        return eRET_OK;
+    }
+    else
+    {
+        return eRET_NG_UNKNOWN;
+    }
 }
 
 int star_rds_init(unsigned int ntuner)
