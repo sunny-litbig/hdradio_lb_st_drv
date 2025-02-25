@@ -511,13 +511,13 @@ static void tchdrsvc_appMessageParser(stTcHdrMsgBuf_t *pstMsg)
 				case (U32)eTCHDR_BBINPUT_NOTIFY_TUNE:
 					(void)tchdrapp_sendMessage(eTCHDR_SENDER_ID_SERVICE, (U32)eTCHDR_SVC_NOTIFY_TUNE, pstMsg->uiData, pNULL, pstMsg->iError);
                     // tchdrsvc_event_set_tune 에서 여기로 변경 (이전 서비스의 PTY 가 전달되는 이슈 수정)
-                    stTcHdrService.mainHdr.pty.fNotify = 1U;
-                    stTcHdrService.mainHdr.psd.checkInterval = 10U;
-                    stTcHdrService.mainHdr.sis.checkInterval = 100U;
-                    //stTcHdrService.mainHdr.status.fNotify = 1U;
-                    //stTcHdrService.mainSts.acqStatus.all = 0U;
-                    stTcHdrService.mainSts.cdno = 0U;
-                    stTcHdrService.mainSts.hybrid = false;
+                    // stTcHdrService.mainHdr.pty.fNotify = 1U;
+                    // stTcHdrService.mainHdr.psd.checkInterval = 10U;
+                    // stTcHdrService.mainHdr.sis.checkInterval = 100U;
+                    // //stTcHdrService.mainHdr.status.fNotify = 1U;
+                    // //stTcHdrService.mainSts.acqStatus.all = 0U;
+                    // stTcHdrService.mainSts.cdno = 0U;
+                    // stTcHdrService.mainSts.hybrid = false;
                     // ~tchdrsvc_event_set_tune 에서 여기로 변경 (이전 서비스의 PTY 가 전달되는 이슈 수정)
 				#if 0
 					if(pstMsg->iError == 0) {
@@ -1723,6 +1723,9 @@ static void tchdrsvc_gatherHdrDataHandler(void)
 						(void)(*stOsal.osmemset)((void*)pData, (S8)0, (U32)TCHDR_MSGQ_PDATA_LENGTH*(U32)sizeof(void*));
 						uiSendMsg[0] = (U32)eTC_HDR_ID_MAIN;
 						pData[0] = (void*)(&stTcHdrMainSis);
+                        U16 bbFreq = tchdraudinput_getTunedFreq(eTC_HDR_ID_MAIN);
+                        (*pfnHdrLog)(eTAG_SYS, eLOG_ERR, "eTCHDR_SVC_NOTIFY_SIS bbFreq : %d\n", bbFreq);
+
 						(void)tchdrapp_sendMessage(eTCHDR_SENDER_ID_SERVICE, (U32)eTCHDR_SVC_NOTIFY_SIS, uiSendMsg, (void*)pData, 0);
 						stTcHdrService.mainHdr.sis.checkInterval = 100;		// 1sec
 					}
@@ -2031,6 +2034,7 @@ HDRET tchdrsvc_getHdrSignalStatus(eTC_HDR_ID_t id, stTC_HDR_SIGNAL_STATUS_t *dat
             stHDR_FRAMEWORK_DATA_t* frameworkData = tchdrfwk_getDataStructPtr();
             if(frameworkData->busyFlag[hdrInstance->instance_number] == true) {
                 (*pfnHdrLog)(eTAG_SYS, eLOG_ERR, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> During HDR reacquisition... [%d].\n", (S32)hdrInstance->instance_number);
+                ret = (HDRET)eTC_HDR_RET_NG_BB_SRC_INIT;
             }
             dataOut->bbBand = tchdraudinput_getTunedBand(id);
             dataOut->bbFreq = tchdraudinput_getTunedFreq(id);
@@ -2111,6 +2115,7 @@ HDRET tchdrsvc_getHdrStatus(eTC_HDR_ID_t id, stTC_HDR_STATUS_t *dataOut)
             stHDR_FRAMEWORK_DATA_t* frameworkData = tchdrfwk_getDataStructPtr();
             if(frameworkData->busyFlag[hdrInstance->instance_number] == true) {
                 (*pfnHdrLog)(eTAG_SYS, eLOG_ERR, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> During HDR reacquisition... [%d].\n", (S32)hdrInstance->instance_number);
+                ret = (HDRET)eTC_HDR_RET_NG_BB_SRC_INIT;
             }
             dataOut->bbBand = tchdraudinput_getTunedBand(id);
             dataOut->bbFreq = tchdraudinput_getTunedFreq(id);
@@ -3070,12 +3075,12 @@ static eTCHDR_EVT_STS_t tchdrsvc_event_set_tune(stTcHdrMsgBuf_t stRcvMsgQ, U32 *
 		if(id == (U32)eTC_HDR_ID_MAIN) {
             // eTCHDR_BBINPUT_NOTIFY_TUNE 이벤트 발생 시점으로 변경 (이전 서비스의 PTY 가 전달되는 이슈 수정)
 			// stTcHdrService.mainHdr.pty.fNotify = 1U;
-			// stTcHdrService.mainHdr.psd.checkInterval = 10U;
-			// stTcHdrService.mainHdr.sis.checkInterval = 100U;
-			// //stTcHdrService.mainHdr.status.fNotify = 1U;
-			// //stTcHdrService.mainSts.acqStatus.all = 0U;
-			// stTcHdrService.mainSts.cdno = 0U;
-			// stTcHdrService.mainSts.hybrid = false;
+            stTcHdrService.mainHdr.psd.checkInterval = 10U;
+            stTcHdrService.mainHdr.sis.checkInterval = 100U;
+            //stTcHdrService.mainHdr.status.fNotify = 1U;
+            //stTcHdrService.mainSts.acqStatus.all = 0U;
+            stTcHdrService.mainSts.cdno = 0U;
+            stTcHdrService.mainSts.hybrid = false;
             // ~eTCHDR_BBINPUT_NOTIFY_TUNE 이벤트 발생 시점으로 변경 (이전 서비스의 PTY 가 전달되는 이슈 수정)
 			ret = tchdrbbinput_sendMessage(eTCHDR_SENDER_ID_SERVICE, (U32)eTCHDR_BBINPUT_CMD_SET_TUNE, stRcvMsgQ.uiData, pNULL, 0);
 		}
