@@ -435,11 +435,29 @@ static HDRET tchdrbbinput_setConditionsWithSamplerate(U32 instanceNum)
 	return ret;
 }
 
+#ifdef DEBUG_IQ_BUF_FILE_DUMP
+void tchdriqinput_stopIqDump(void) {
+    fIqdumpEnable = 0;
+    if(gDumpIBuf != NULL)	fclose(gDumpIBuf);
+    if(gDumpQBuf != NULL)	fclose(gDumpQBuf);
+    if(gDumpIqBuf != NULL)	fclose(gDumpIqBuf);
+    (*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, ">>>>>>>> Finished to dump IQ data at /tmp folder!!!\n");
+}
+#endif
+
 HDRET tchdrbbinput_open(void)
 {
 	HDRET ret = (HDRET)eTC_HDR_RET_OK;
 	const U32 numOfHdrInstances = tchdrfwk_getNumOfHdrInstance();
 	U32 i;
+
+#ifdef DEBUG_IQ_BUF_FILE_DUMP
+    gDumpIBuf = fopen(DUMP_PATH"dump_i0.bin", "w");
+    gDumpQBuf = fopen(DUMP_PATH"dump_q0.bin", "w");
+    gDumpIqBuf = fopen(DUMP_PATH"dump_iq0.bin", "w");
+    fIqdumpEnable = 1;
+    (*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, ">>>>>>>> Start to dump IQ data at /tmp folder!!!\n");
+#endif
 
 	for(i = 0; i < numOfHdrInstances; i++) {
 		// IQ output format of the current tuner is the 16bit fixed-point, so the default setting value is as follows.

@@ -99,6 +99,10 @@ extern HDRET tchdrbbinput_close(void);
 extern S32 tchdriqinput_getReadySemaValue(void);
 extern void tchdriqinput_ready(void);
 
+#ifdef DEBUG_IQ_BUF_FILE_DUMP
+extern void tchdriqinput_stopIqDump(void);
+#endif
+
 /**
  * brief: Baseband input thread function
  * param arg: not used

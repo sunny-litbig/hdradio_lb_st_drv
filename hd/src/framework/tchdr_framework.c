@@ -1995,6 +1995,9 @@ static void tchdrblending_audioResamplerProcess(HDR_tune_band_t band, U32 *audio
 #endif
 }
 
+#ifdef DEBUG_IQ_BUF_FILE_DUMP
+static iqDumpCount = 0;
+#endif
 static void tchdrblending_automaticAudioAlignmentProcess(U32 audioQuality, HDBOOL *blendFlag)
 {
 	S32 timeOffset = 0;
@@ -2025,11 +2028,18 @@ static void tchdrblending_automaticAudioAlignmentProcess(U32 audioQuality, HDBOO
 			// Remember that we were in APPLY_OFFSET state
 			stHdrFrameworkData.aaaState = alignRc;
 			if(HDR_blend_adjust_audio_delay(&stHdrFrameworkData.hdrInstance[0], timeOffset, &decodedAudioDelay) == 0) {
-				(*pfnHdrLog)(eTAG_BLD, eLOG_DBG, "Auto-alignment sample adjustment: %d.\n", (S32)timeOffset);
-				(*pfnHdrLog)(eTAG_BLD, eLOG_DBG, "Auto-alignment levelOffset: %d.\n", (S32)levelOffset);
+				(*pfnHdrLog)(eTAG_BLD, eLOG_ERR, "Auto-alignment sample adjustment: %d.\n", (S32)timeOffset);
+				(*pfnHdrLog)(eTAG_BLD, eLOG_ERR, "Auto-alignment levelOffset: %d.\n", (S32)levelOffset);
 				decodedAudioDelay += HDR_audio_resampler_avail_data(stHdrFrameworkData.hdaoutResampler);
 				HDR_auto_align_set_holdoff(stHdrFrameworkData.autoAlign, decodedAudioDelay);
 				stHdrFrameworkData.alignmentSuccess = true;
+#ifdef DEBUG_IQ_BUF_FILE_DUMP
+                if (iqDumpCount == 1) {
+                    tchdriqinput_stopIqDump();
+                } else {
+                    iqDumpCount++;
+                }
+#endif
 			}
 			else {
 				(*pfnHdrLog)(eTAG_BLD, eLOG_DBG, "Auto-alignment failed; sample adjustment is too large: %d\n", (S32)timeOffset);
