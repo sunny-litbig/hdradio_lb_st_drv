@@ -180,11 +180,19 @@ static U32 evalAccumulatedTimerCount=0U;
 static U32 evalMode=0U;
 #endif
 
+// #define DEBUG_IQ_BUF_FILE_DUMP_REPLAY
+#ifdef DEBUG_IQ_BUF_FILE_DUMP_REPLAY
+static U32 fIqdumpEnable=0U;
+static FILE *gDumpIBuf=NULL;
+static FILE *gDumpQBuf=NULL;
+static FILE *gDumpIqBuf=NULL;
+#else
 #ifdef DEBUG_IQ_BUF_FILE_DUMP
 static U32 fIqdumpEnable=0U;
 static FILE *gDumpIBuf=NULL;
 static FILE *gDumpQBuf=NULL;
 static FILE *gDumpIqBuf=NULL;
+#endif
 #endif
 
 #ifdef DEBUG_ALL_THREAD_STATUS_DUMP
@@ -451,6 +459,11 @@ HDRET tchdrbbinput_open(void)
 	const U32 numOfHdrInstances = tchdrfwk_getNumOfHdrInstance();
 	U32 i;
 
+#ifdef DEBUG_IQ_BUF_FILE_DUMP_REPLAY
+    gDumpIqBuf = fopen(DUMP_PATH"dump_iq0.bin", "r");
+    fIqdumpEnable = 1;
+    (*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, ">>>>>>>> Start to replay dump IQ data at /tmp folder!!!\n");
+#endif
 #ifdef DEBUG_IQ_BUF_FILE_DUMP
     gDumpIBuf = fopen(DUMP_PATH"dump_i0.bin", "w");
     gDumpQBuf = fopen(DUMP_PATH"dump_q0.bin", "w");
@@ -1010,6 +1023,15 @@ void *tchdr_bbInputThread(void* arg)
 	                    numSamplesRead = tchdrbbinput_readTunerIqSamples(&stBbInputCtrl[i], bbOutputBuffer, bbReadBlockSize[i]);
 						if(numSamplesRead > 0) {
 	                    	numOutputSamples = (U32)numSamplesRead;
+#ifdef DEBUG_IQ_BUF_FILE_DUMP_REPLAY
+							if(fIqdumpEnable && i == 0) {
+                                ULONG rsize = fread((void*)bbOutputBuffer, 4, bbReadBlockSize[i], gDumpIqBuf);
+                                if(rsize < (ULONG)bbReadBlockSize[i]){
+                                    rewind(gDumpIqBuf);
+                                    (*pfnHdrLog)(eTAG_BBIN, eLOG_ERR, ">>>>>>>>> rewind Reached the end of the file.");
+                                }
+							}
+#endif
 						#ifdef DEBUG_IQ_BUF_FILE_DUMP
 							if(fIqdumpEnable && i == 0) {
 								fwrite(bbOutputBuffer, 4, bbReadBlockSize[i], gDumpIqBuf);
